@@ -1,0 +1,2343 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Tech Assistent</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Condensed:wght@500;600;700&family=Permanent+Marker&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#000; --surface:#0F1217; --surface-2:#161B23; --field:#07090C; --line:#262D38; --line-strong:#3A4555;
+  --ink:#F3F6FA; --muted:#8C97A8; --blue:#3B8BFF; --blue-hi:#B4C6DF; --blue-soft:rgba(59,139,255,.14);
+  --green:#86B394; --green-soft:rgba(54,201,126,.16); --red:#CF7F72; --red-soft:rgba(255,91,79,.16);
+  --tape:#F2F4F7; --tape-ink:#0B0D10;
+  color-scheme:dark; box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){ color-scheme:dark; } }
+:root[data-theme="dark"]{ color-scheme:dark; }
+html{scroll-padding-top:env(safe-area-inset-top,0px);background:var(--bg)}
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 16px/1.45 Barlow,"Helvetica Neue",Arial,sans-serif;-webkit-font-smoothing:antialiased;min-height:100vh}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:rgba(0,0,0,.88);backdrop-filter:blur(10px)}
+button,input,select,textarea{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--blue-hi);outline-offset:2px}
+
+.bar{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:rgba(0,0,0,.88);backdrop-filter:blur(10px);display:flex;align-items:center;gap:6px;padding:10px 14px;border-bottom:1px solid var(--line);min-height:58px}
+.bar .t{flex:1;min-width:0}
+.bar h1{margin:0;font:600 1.3rem/1.1 "Barlow Condensed",sans-serif;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bar .sub{font-size:.82rem;color:var(--blue-hi);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.back{border:0;background:none;padding:6px 8px;margin-left:-6px;font:600 1.05rem "Barlow Condensed",sans-serif;cursor:pointer;color:var(--blue-hi)}
+
+main{max-width:760px;margin:0 auto;padding:18px 14px 70px}
+h2{font:700 1.3rem/1.15 "Barlow Condensed",sans-serif;margin:30px 0 10px}
+h2 small{font:500 .95rem Barlow,sans-serif;color:var(--muted);margin-left:6px}
+.muted{color:var(--muted)}
+.foot{color:var(--muted);font-size:.85rem;margin-top:28px;max-width:60ch}
+
+.tape{display:inline-block;background:var(--tape);color:var(--tape-ink);font:400 1.3rem/1.15 "Permanent Marker","Comic Sans MS",cursive;padding:8px 18px 7px;transform:rotate(-1.2deg);
+  clip-path:polygon(0 6%,3% 0,40% 5%,97% 0,100% 8%,98% 52%,100% 94%,96% 100%,55% 95%,3% 100%,0 92%,2% 48%)}
+.tape.big{font-size:1.9rem;padding:10px 22px 9px}
+.tape.sm{font-size:1rem;padding:5px 12px 4px}
+.tape.tilt{transform:rotate(1deg)}
+
+/* square artist buttons */
+.sq-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px}
+.sq{all:unset;cursor:pointer;aspect-ratio:1/1;display:flex;flex-direction:column;justify-content:space-between;padding:16px;border-radius:22px;background:linear-gradient(160deg,var(--surface-2),var(--surface));border:1px solid var(--line);position:relative;overflow:hidden}
+.sq:hover{border-color:var(--blue)}
+.sq:focus-visible{outline:2px solid var(--blue-hi);outline-offset:3px}
+.sq-ini{width:46px;height:46px;border-radius:14px;display:grid;place-items:center;background:var(--blue);color:#fff;font:700 1.3rem "Barlow Condensed",sans-serif}
+.sq-name{font:700 1.35rem/1.1 "Barlow Condensed",sans-serif;word-break:break-word}
+.sq-meta{font-size:.82rem;color:var(--muted)}
+.sq.add{background:transparent;border:1.5px dashed var(--line-strong);justify-content:center;align-items:center;text-align:center;gap:6px}
+.sq.add:hover{border-color:var(--blue)}
+.sq-plus{font:300 2.6rem/1 Barlow,sans-serif;color:var(--blue-hi)}
+
+.modes{display:grid;gap:14px}
+.mode{all:unset;cursor:pointer;border-radius:22px;padding:22px 20px;min-height:150px;display:flex;flex-direction:column;justify-content:flex-end;gap:4px;border:1px solid var(--line);background:var(--surface);position:relative;overflow:hidden}
+.mode::after{content:"";position:absolute;right:-30px;top:-30px;width:150px;height:150px;border-radius:50%;border:16px solid var(--blue-soft)}
+.mode:hover{border-color:var(--blue)}
+.mode:focus-visible{outline:2px solid var(--blue-hi);outline-offset:3px}
+.mode b{font:700 2.4rem/1 "Barlow Condensed",sans-serif}
+.mode span{color:var(--muted)}
+.mode em{font-style:normal;color:var(--blue-hi);font-size:.9rem;font-weight:600}
+
+.tiles{display:grid;gap:10px;margin-top:20px}
+.tile{all:unset;cursor:pointer;display:grid;grid-template-columns:1fr auto;align-items:center;gap:2px 12px;padding:18px;background:var(--surface);border:1px solid var(--line);border-radius:16px}
+.tile:hover{border-color:var(--blue)}
+.tile:focus-visible{outline:2px solid var(--blue-hi);outline-offset:2px}
+.tile b{font:700 1.6rem/1 "Barlow Condensed",sans-serif}
+.tile span{grid-column:1;color:var(--muted);font-size:.95rem}
+.tile i{grid-row:1/3;grid-column:2;font-style:normal;font:600 1.6rem "Barlow Condensed",sans-serif;color:var(--blue-hi)}
+.tile.primary{background:var(--blue);border-color:var(--blue)}
+.tile.primary span,.tile.primary i{color:#fff;opacity:.85}
+
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:12px}
+.list-item{all:unset;cursor:pointer;display:block;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:13px 15px;margin-bottom:10px;position:relative}
+.list-item::before{content:"";position:absolute;left:0;top:12px;bottom:12px;width:3px;border-radius:2px;background:var(--blue)}
+.list-item:hover{border-color:var(--blue)}
+.list-item:focus-visible{outline:2px solid var(--blue-hi);outline-offset:2px}
+.list-item b{display:block;font:600 1.2rem/1.2 "Barlow Condensed",sans-serif}
+.list-item span{color:var(--muted);font-size:.92rem}
+.empty{border:1px dashed var(--line-strong);border-radius:12px;padding:18px;color:var(--muted);text-align:center;margin-bottom:12px}
+
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px 12px}
+.field{display:flex;flex-direction:column;gap:4px;min-width:0}
+.field.wide{grid-column:1/-1}
+.field>span{font-size:.8rem;color:var(--muted);font-weight:500}
+input,select,textarea{width:100%;background:var(--field);border:1px solid var(--line);border-radius:8px;padding:9px 11px;min-height:42px}
+input::placeholder,textarea::placeholder{color:#566173}
+textarea{min-height:70px;resize:vertical}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px var(--blue-soft)}
+.with-btn{display:flex;gap:6px}
+.with-btn input{flex:1;min-width:0}
+
+.btn{border:1px solid var(--ink);background:transparent;border-radius:10px;padding:9px 15px;font:600 1rem/1.1 "Barlow Condensed",sans-serif;letter-spacing:.02em;cursor:pointer;min-height:42px}
+.btn:hover{border-color:var(--blue-hi);color:var(--blue-hi)}
+.btn.solid{background:var(--blue);border-color:var(--blue);color:#fff}
+.btn.solid:hover{background:#2F7BEF;color:#fff}
+.btn.ghost{border-color:var(--line-strong);color:var(--muted)}
+.btn.danger.armed{background:var(--red);border-color:var(--red);color:#fff}
+.btn.small{padding:6px 10px;min-height:36px;font-size:.95rem}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:12px}
+.add-row{display:flex;gap:8px;margin-top:10px}
+.add-row input{flex:1;min-width:0}
+.x{border:1px solid var(--line);background:var(--field);border-radius:8px;width:40px;min-height:40px;cursor:pointer;color:var(--muted);font-size:1.05rem;flex:none}
+.x:hover{color:var(--red);border-color:var(--red)}
+.x.sm{width:32px;min-height:32px;font-size:.9rem}
+
+.drum-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;gap:8px}
+.mic-row{display:grid;grid-template-columns:1fr 1.3fr auto;gap:6px;margin-bottom:6px}
+
+/* head picker */
+.pick-btn{display:flex;justify-content:space-between;align-items:center;gap:8px;width:100%;min-height:42px;text-align:left;background:var(--field);border:1px solid var(--line);border-radius:8px;padding:9px 11px;cursor:pointer}
+.pick-btn:hover,.pick-btn[aria-expanded="true"]{border-color:var(--blue)}
+.pick-btn .ph{color:#566173}
+.pick-btn i{font-style:normal;color:var(--blue-hi);transition:transform .15s}
+.pick-btn[aria-expanded="true"] i{transform:rotate(180deg)}
+.pick-panel{margin-top:6px;border:1px solid var(--blue);border-radius:10px;background:var(--surface-2);padding:10px}
+.pick-title{display:flex;align-items:center;gap:8px;font-size:.85rem;color:var(--muted);margin-bottom:8px}
+.linkbtn{border:0;background:none;color:var(--blue-hi);cursor:pointer;padding:2px 0;font-weight:600}
+.pick-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:6px}
+.pick-list{display:flex;flex-direction:column;gap:4px;max-height:280px;overflow:auto}
+.pick-opt{border:1px solid var(--line);background:var(--field);border-radius:8px;padding:10px 12px;text-align:left;cursor:pointer}
+.pick-opt:hover,.pick-opt.on{border-color:var(--blue);background:var(--blue-soft)}
+.pick-opt.brand{font:600 1.1rem "Barlow Condensed",sans-serif;text-align:center}
+
+/* recording chain */
+details.chain{background:var(--surface);border:1px solid var(--line);border-radius:14px;margin-bottom:10px}
+details.chain[open]{border-color:var(--line-strong)}
+details.chain summary{list-style:none;cursor:pointer;padding:14px 16px;display:flex;flex-direction:column;gap:2px}
+details.chain summary::-webkit-details-marker{display:none}
+.ch-name{font:600 1.2rem "Barlow Condensed",sans-serif;display:flex;justify-content:space-between}
+.ch-name::after{content:"+";color:var(--blue-hi)}
+details[open] .ch-name::after{content:"–"}
+.ch-sum{color:var(--blue-hi);font-size:.88rem}
+.ch-body{padding:0 14px 14px}
+.flow{display:flex;flex-direction:column;gap:0;margin-top:12px}
+.stage-blk{border:1px solid var(--line);border-radius:12px;padding:12px;background:var(--surface-2)}
+.flow .arrow{align-self:center;color:var(--blue);line-height:1;padding:4px 0;font-size:1.1rem}
+.stage-hd{display:flex;align-items:center;gap:6px;margin-bottom:10px;flex-wrap:wrap}
+.stage-hd .seg{order:5;flex-basis:100%;width:max-content;max-width:max-content}
+.ch-body,.stage-blk,details.chain{min-width:0}
+.stage-hd b{font:600 1.1rem "Barlow Condensed",sans-serif;flex:1}
+.seg{display:inline-flex;border:1px solid var(--line-strong);border-radius:8px;overflow:hidden}
+.seg button{border:0;background:transparent;padding:5px 10px;font-size:.82rem;cursor:pointer;color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--blue);color:#fff}
+
+/* setlists */
+.song{display:grid;grid-template-columns:2rem 1fr 4.6rem auto;gap:6px;align-items:start;padding:8px 0;border-bottom:1px solid var(--line)}
+.song .no{font:700 1.3rem/42px "Barlow Condensed",sans-serif;color:var(--blue-hi);text-align:right}
+.song .note{grid-column:2/4}
+.song .ctrl{display:flex;flex-direction:column;gap:4px;grid-row:1/3;grid-column:4}
+.song .ctrl button{width:38px;min-height:30px;border:1px solid var(--line);background:var(--field);border-radius:6px;cursor:pointer;color:var(--muted)}
+.song .ctrl button:hover{color:var(--blue-hi);border-color:var(--blue)}
+.stage{background:#000;color:#fff;position:fixed;inset:0;z-index:20;overflow:auto;padding:calc(env(safe-area-inset-top,0px) + 16px) 18px calc(env(safe-area-inset-bottom,0px) + 24px)}
+.stage ol{margin:0;padding:0;list-style:none;counter-reset:s}
+.stage li{counter-increment:s;display:flex;gap:14px;align-items:baseline;font:700 clamp(1.8rem,7vw,3.2rem)/1.15 "Barlow Condensed",sans-serif;padding:6px 0;border-bottom:1px solid #222}
+.stage li::before{content:counter(s);color:var(--blue);min-width:1.6em;text-align:right}
+.stage li small{display:block;font:500 1.05rem Barlow,sans-serif;color:#9aa}
+.stage .close{position:sticky;top:0;float:right;background:var(--blue);color:#fff;border:0;border-radius:10px;padding:10px 16px;font:700 1.05rem "Barlow Condensed",sans-serif;cursor:pointer}
+
+/* tuner */
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{border:1px solid var(--line-strong);background:transparent;border-radius:999px;padding:6px 13px;cursor:pointer;font-weight:500;color:var(--muted)}
+.chip[aria-pressed="true"]{background:var(--blue);color:#fff;border-color:var(--blue)}
+.tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:4px;margin:14px 0 10px}
+.tabs button{border:0;background:transparent;border-radius:9px;padding:9px 4px;font:600 1.05rem "Barlow Condensed",sans-serif;color:var(--muted);cursor:pointer}
+.tabs button[aria-selected="true"]{background:var(--surface-2);color:#fff;box-shadow:inset 0 -2px 0 var(--blue)}
+.readout{background:radial-gradient(120% 90% at 50% 0%,rgba(59,139,255,.16),transparent 60%),var(--surface);border:1px solid var(--line);border-radius:18px;padding:18px 16px 14px;text-align:center}
+.hz{font:700 clamp(4rem,22vw,7rem)/.95 "Barlow Condensed",sans-serif;font-variant-numeric:tabular-nums;color:#fff;text-shadow:0 0 28px rgba(59,139,255,.55)}
+.hz.stale{color:var(--muted);text-shadow:none}
+.hz small{font-size:.3em;font-weight:600;margin-left:4px;color:var(--blue-hi);text-shadow:none}
+.notename{font:600 1.1rem "Barlow Condensed",sans-serif;color:var(--muted);min-height:1.5em}
+.meter{position:relative;height:44px;margin:14px 2px 6px;border-radius:10px;background:var(--field);border:1px solid var(--line);overflow:hidden}
+.meter .zone{position:absolute;top:0;bottom:0;left:42%;width:16%;background:var(--green-soft)}
+.meter .center{position:absolute;top:0;bottom:0;left:50%;width:2px;margin-left:-1px;background:#fff;opacity:.5}
+.meter .needle{position:absolute;top:5px;bottom:5px;width:8px;margin-left:-4px;left:50%;border-radius:4px;background:var(--muted);transition:left .12s ease-out,background .12s}
+.meter-labels{display:flex;justify-content:space-between;font-size:.78rem;color:var(--muted);padding:0 4px}
+.status{font:700 1.35rem/1.2 "Barlow Condensed",sans-serif;margin-top:8px;min-height:1.65rem}
+.status.ok{color:var(--green)} .status.off{color:var(--red)}
+canvas.spec{width:100%;height:120px;display:block;margin-top:12px;border-radius:10px;background:var(--field);border:1px solid var(--line)}
+.hits{display:flex;gap:6px;flex-wrap:wrap;min-height:34px}
+.hit{font:600 1rem "Barlow Condensed",sans-serif;font-variant-numeric:tabular-nums;padding:5px 10px;border-radius:8px;background:var(--surface);border:1px solid var(--line)}
+.hit.ok{border-color:var(--green);color:var(--green)}
+.mic-btn{width:100%;margin-top:12px;min-height:54px;font-size:1.25rem}
+.err{color:var(--red);margin-top:8px}
+input[type=range]{padding:0;min-height:auto;border:0;background:none;accent-color:var(--blue)}
+.lugwrap{display:flex;justify-content:center;margin-top:8px}
+.lugwrap svg{width:100%;max-width:340px;height:auto}
+.lug{cursor:pointer}
+.res-slots{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.slot{all:unset;cursor:pointer;border:1px solid var(--line);border-radius:14px;padding:14px;background:var(--surface);text-align:center}
+.slot[aria-pressed="true"]{border-color:var(--blue);box-shadow:0 0 0 3px var(--blue-soft)}
+.slot b{display:block;font:700 2.2rem/1 "Barlow Condensed",sans-serif;font-variant-numeric:tabular-nums;margin:6px 0 2px}
+.slot span{font-size:.82rem;color:var(--muted)}
+.slot em{font-style:normal;font-size:.8rem;color:var(--blue-hi)}
+.interval{text-align:center;margin-top:12px;font:600 1.15rem "Barlow Condensed",sans-serif}
+#toast{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 20px);transform:translateX(-50%) translateY(120px);background:#fff;color:#000;padding:10px 16px;border-radius:10px;font-weight:600;transition:transform .2s,visibility .2s;z-index:30;max-width:90vw;visibility:hidden}
+#toast.show{transform:translateX(-50%) translateY(0);visibility:visible}
+@media (prefers-reduced-motion:reduce){.meter .needle,#toast,.pick-btn i{transition:none}}
+@media (max-width:420px){.grid{grid-template-columns:1fr}.mic-row{grid-template-columns:1fr 1fr auto}}
+
+/* ===== 3D finish ===== */
+input,select,textarea{box-shadow:inset 0 2px 5px rgba(0,0,0,.65)}
+.card{background:linear-gradient(180deg,#12161d,#0b0e13);border-color:rgba(255,255,255,.06);box-shadow:inset 0 1px 0 rgba(255,255,255,.05),0 12px 26px rgba(0,0,0,.55)}
+.btn{background:linear-gradient(180deg,#262e3a 0%,#141920 100%);border:1px solid rgba(255,255,255,.1);color:var(--ink);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.16),inset 0 -2px 0 rgba(0,0,0,.45),0 1px 0 #000,0 6px 16px rgba(0,0,0,.55);
+  text-shadow:0 1px 0 rgba(0,0,0,.6);transition:transform .08s,box-shadow .08s,filter .15s}
+.btn:hover{filter:brightness(1.15);color:#fff;border-color:rgba(141,187,255,.4)}
+.btn:active{transform:translateY(1px);box-shadow:inset 0 2px 6px rgba(0,0,0,.6),0 1px 0 #000}
+.btn.solid,.btn.solid:hover{background:linear-gradient(180deg,#78B0FF 0%,#3B8BFF 45%,#1C58C6 100%);border-color:#86B9FF;color:#fff;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.5),inset 0 -2px 0 rgba(0,10,60,.35),0 1px 0 #000,0 8px 22px rgba(59,139,255,.38)}
+.btn.solid:active{box-shadow:inset 0 2px 8px rgba(0,10,60,.5),0 1px 0 #000}
+.btn.ghost{color:var(--muted)}
+.btn.danger.armed{background:linear-gradient(180deg,#ff8a80,#cf3328);border-color:#ff9a90;color:#fff}
+.tile,.sq,.mode,.list-item,.slot{background:linear-gradient(165deg,#1d2430 0%,#0d1117 72%);border:1px solid rgba(255,255,255,.08);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.12),inset 0 -1px 0 rgba(0,0,0,.6),0 2px 0 #000,0 16px 32px rgba(0,0,0,.65);transition:transform .12s,box-shadow .12s,border-color .15s}
+.tile:hover,.sq:hover,.mode:hover,.list-item:hover{border-color:rgba(141,187,255,.5)}
+.tile:active,.sq:active,.mode:active,.list-item:active{transform:translateY(2px) scale(.995);box-shadow:inset 0 1px 0 rgba(255,255,255,.06),0 1px 0 #000,0 4px 10px rgba(0,0,0,.6)}
+.tile.primary{background:linear-gradient(165deg,#78B0FF 0%,#3B8BFF 42%,#1A50B5 100%);border-color:#86B9FF;box-shadow:inset 0 1px 0 rgba(255,255,255,.45),0 2px 0 #000,0 18px 36px rgba(59,139,255,.35)}
+.sq::before,.mode::before{content:"";position:absolute;inset:0;border-radius:inherit;background:linear-gradient(180deg,rgba(255,255,255,.07),transparent 42%);pointer-events:none}
+.sq-ini{background:linear-gradient(180deg,#78B0FF,#1F5DCC);box-shadow:inset 0 1px 0 rgba(255,255,255,.5),0 6px 14px rgba(59,139,255,.4)}
+.sq.add{background:transparent;box-shadow:none}
+.chip{background:linear-gradient(180deg,#202733,#12161c);border-color:rgba(255,255,255,.09);box-shadow:inset 0 1px 0 rgba(255,255,255,.1),0 3px 8px rgba(0,0,0,.5)}
+.chip[aria-pressed="true"]{background:linear-gradient(180deg,#78B0FF,#2563D6);border-color:#86B9FF;box-shadow:inset 0 1px 0 rgba(255,255,255,.45),0 4px 12px rgba(59,139,255,.35)}
+.tabs{box-shadow:inset 0 2px 8px rgba(0,0,0,.8)}
+.tabs button[aria-selected="true"]{background:linear-gradient(180deg,#2a3446,#161b24);box-shadow:inset 0 1px 0 rgba(255,255,255,.14),inset 0 -2px 0 var(--blue),0 3px 8px rgba(0,0,0,.6)}
+.pick-btn,.pick-opt,.x,.song .ctrl button{background:linear-gradient(180deg,#1c222c,#0e1218);box-shadow:inset 0 1px 0 rgba(255,255,255,.08),0 2px 6px rgba(0,0,0,.5)}
+.pick-opt.on{background:linear-gradient(180deg,#244a85,#15315c);border-color:var(--blue)}
+.readout{box-shadow:inset 0 1px 0 rgba(255,255,255,.07),0 16px 34px rgba(0,0,0,.6)}
+.mode .ico{width:46px;height:46px;color:var(--blue-hi);margin-bottom:auto;filter:drop-shadow(0 4px 10px rgba(59,139,255,.4))}
+.mode{min-height:170px}
+/* splash */
+#splash{position:fixed;inset:0;z-index:100;background:radial-gradient(60% 45% at 50% 42%,rgba(59,139,255,.22),transparent 70%),#000;display:grid;place-items:center;transition:opacity .45s ease}
+#splash.out{opacity:0;pointer-events:none}
+.sp-inner{text-align:center}
+.sp-logo{width:min(46vw,190px);height:auto;filter:drop-shadow(0 0 26px rgba(59,139,255,.45))}
+.sp-ring{stroke-dasharray:491;stroke-dashoffset:491;animation:spDraw 1.1s .15s cubic-bezier(.6,0,.2,1) forwards}
+.sp-lugs rect{opacity:0;animation:spFade .3s forwards}
+.sp-lugs rect:nth-child(1){animation-delay:.85s}.sp-lugs rect:nth-child(2){animation-delay:.92s}.sp-lugs rect:nth-child(3){animation-delay:.99s}.sp-lugs rect:nth-child(4){animation-delay:1.06s}
+.sp-lugs rect:nth-child(5){animation-delay:1.13s}.sp-lugs rect:nth-child(6){animation-delay:1.2s}.sp-lugs rect:nth-child(7){animation-delay:1.27s}.sp-lugs rect:nth-child(8){animation-delay:1.34s}
+.sp-wave{stroke-dasharray:300;stroke-dashoffset:300;animation:spDraw .8s 1.2s ease-out forwards}
+.sp-word{font:700 clamp(2.3rem,11vw,3.4rem)/1 "Barlow Condensed",sans-serif;letter-spacing:.02em;margin-top:20px;opacity:0;transform:translateY(8px);animation:spUp .6s 1.5s forwards;background:linear-gradient(180deg,#fff 30%,#a9bbd4);-webkit-background-clip:text;background-clip:text;color:transparent}
+.sp-tag{color:var(--blue-hi);margin-top:8px;opacity:0;animation:spUp .6s 1.8s forwards}
+@keyframes spDraw{to{stroke-dashoffset:0}} @keyframes spFade{to{opacity:1}} @keyframes spUp{to{opacity:1;transform:none}}
+/* drum graphic + string tuner */
+.drumwrap{display:flex;justify-content:center;margin:8px 0}
+.drumsvg{width:100%;max-width:380px;height:auto;filter:drop-shadow(0 20px 30px rgba(0,0,0,.75))}
+.drumsvg .lug{cursor:pointer}
+.pulse{animation:pulse 1.2s ease-in-out infinite}
+@keyframes pulse{50%{opacity:.3}}
+.strings{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:14px}
+.str{min-width:52px;min-height:46px;border-radius:12px;border:1px solid rgba(255,255,255,.1);background:linear-gradient(180deg,#262e3a,#141920);box-shadow:inset 0 1px 0 rgba(255,255,255,.15),0 4px 10px rgba(0,0,0,.5);font:700 1.15rem "Barlow Condensed",sans-serif;cursor:pointer;color:var(--ink)}
+.str[aria-pressed="true"]{border-color:var(--blue);box-shadow:inset 0 1px 0 rgba(255,255,255,.2),0 0 0 3px var(--blue-soft)}
+.str.near{border-color:var(--blue);color:var(--blue-hi);box-shadow:inset 0 1px 0 rgba(255,255,255,.2),0 0 14px rgba(59,139,255,.45)}
+.str.hot{background:linear-gradient(180deg,#A9CDB3,#1d8a54);color:#fff;border-color:#74e7ad}
+.bignote{font:700 clamp(4.5rem,26vw,8rem)/.9 "Barlow Condensed",sans-serif;color:#fff;text-shadow:0 0 30px rgba(59,139,255,.55)}
+.bignote.stale{color:var(--muted);text-shadow:none}
+.capo{display:inline-block;margin-top:10px;padding:4px 12px;border-radius:999px;background:var(--blue-soft);color:var(--blue-hi);font-weight:600;font-size:.9rem}
+.str-row{display:grid;grid-template-columns:6.5rem 1fr;gap:10px;align-items:center;margin-bottom:8px}
+.str-no{color:var(--muted);font-weight:500}
+.song .tun{grid-column:2/4;display:grid;grid-template-columns:1fr 6.5rem;gap:6px}
+.mic-card{padding:10px}
+.song .keyrow{grid-column:2/4;display:grid;grid-template-columns:1fr auto auto;gap:6px}
+.sheet-ov{position:fixed;inset:0;z-index:40;background:rgba(0,0,0,.6);backdrop-filter:blur(4px);display:flex;align-items:flex-end;justify-content:center;animation:fadeIn .2s ease}
+.sheet{width:100%;max-width:640px;max-height:88vh;overflow:auto;background:linear-gradient(180deg,#171d27,#0b0e13);border:1px solid rgba(255,255,255,.1);border-bottom:0;border-radius:22px 22px 0 0;padding:10px 16px calc(env(safe-area-inset-bottom,0px) + 18px);box-shadow:0 -20px 50px rgba(0,0,0,.7),inset 0 1px 0 rgba(255,255,255,.1);animation:slideUp .28s cubic-bezier(.2,.8,.2,1)}
+.sheet .grab{width:44px;height:5px;border-radius:3px;background:var(--line-strong);margin:2px auto 12px}
+.sheet h3{margin:0;font:700 1.5rem/1.1 "Barlow Condensed",sans-serif}
+.sheet .lead{color:var(--blue-hi);margin:4px 0 12px;font-size:.92rem}
+.rec{display:grid;grid-template-columns:1fr auto;gap:2px 12px;align-items:center;padding:11px 12px;border-radius:12px;background:var(--field);border:1px solid var(--line);margin-bottom:8px}
+.rec.anchor{border-color:var(--blue)}
+.rec .nm{font:600 1.1rem "Barlow Condensed",sans-serif}
+.rec .nt{grid-row:1/3;grid-column:2;text-align:right;font:700 1.9rem/1 "Barlow Condensed",sans-serif;color:#fff}
+.rec .nt small{display:block;font:500 .82rem Barlow,sans-serif;color:var(--blue-hi);margin-top:3px}
+.rec .iv{color:var(--muted);font-size:.85rem}
+.rec .fbar{grid-column:1/-1;height:5px;border-radius:3px;background:var(--surface-2);overflow:hidden;margin-top:6px}
+.rec .fbar{height:8px;border-radius:4px;background:#0a0c10;border:1px solid var(--line)}
+.rec .fbar i{display:block;height:100%;border-radius:4px;background:linear-gradient(90deg,#E0322A 0%,#FF7A62 45%,#FFD9D2 75%,#FFFFFF 100%);box-shadow:0 0 10px rgba(255,90,70,.35)}
+.rec .cp{color:var(--blue-hi);font-weight:600}
+.legend{display:flex;align-items:center;gap:8px;font-size:.8rem;color:var(--muted);margin:2px 0 8px}
+.legend i{flex:0 0 90px;height:6px;border-radius:3px;background:linear-gradient(90deg,#E0322A,#FF7A62 45%,#fff)}
+/* ===== area colours + navigation ===== */
+:root{--accent:#3B8BFF}
+.bar{border-bottom:2px solid color-mix(in srgb,var(--accent) 55%,transparent);box-shadow:0 8px 20px -12px color-mix(in srgb,var(--accent) 60%,transparent)}
+.back{color:var(--accent)}
+.crumbs{display:flex;gap:2px;align-items:center;font-size:.8rem;white-space:nowrap;overflow-x:auto;scrollbar-width:none}
+.crumbs::-webkit-scrollbar{display:none}
+.crumbs button{all:unset;cursor:pointer;color:var(--accent);font-weight:600;padding:1px 2px;border-radius:4px}
+.crumbs button:focus-visible{outline:2px solid var(--accent)}
+.crumbs span{color:var(--muted);padding:0 2px}
+main h2{position:relative;padding-left:12px}
+main h2::before{content:"";position:absolute;left:0;top:.18em;bottom:.18em;width:4px;border-radius:2px;background:var(--accent)}
+.list-item::before{background:var(--accent)}
+.tgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:6px}
+.atile{all:unset;box-sizing:border-box;cursor:pointer;position:relative;display:flex;flex-direction:column;justify-content:space-between;gap:12px;min-height:138px;padding:16px;border-radius:20px;overflow:hidden;
+  background:linear-gradient(160deg,color-mix(in srgb,var(--c) 26%,#161b23) 0%,#0d1117 78%);border:1px solid color-mix(in srgb,var(--c) 45%,transparent);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.12),0 2px 0 #000,0 14px 30px rgba(0,0,0,.6);transition:transform .12s,box-shadow .12s}
+.atile:active{transform:translateY(2px) scale(.99)}
+.atile:focus-visible{outline:2px solid var(--c);outline-offset:3px}
+.atile::after{content:"";position:absolute;right:-26px;top:-26px;width:96px;height:96px;border-radius:50%;background:radial-gradient(circle,color-mix(in srgb,var(--c) 35%,transparent),transparent 70%)}
+.at-ico{width:44px;height:44px;border-radius:13px;display:grid;place-items:center;color:#fff;background:linear-gradient(180deg,color-mix(in srgb,var(--c) 85%,#fff),color-mix(in srgb,var(--c) 75%,#000));box-shadow:inset 0 1px 0 rgba(255,255,255,.45),0 6px 14px color-mix(in srgb,var(--c) 45%,transparent)}
+.at-ico svg{width:24px;height:24px}
+.atile b{display:block;font:700 1.35rem/1.05 "Barlow Condensed",sans-serif}
+.atile small{display:block;color:var(--muted);font-size:.84rem;margin-top:3px}
+.mode.colored{border-color:color-mix(in srgb,var(--c) 45%,transparent);background:linear-gradient(160deg,color-mix(in srgb,var(--c) 22%,#161b23),#0d1117 75%)}
+.mode.colored::after{border-color:color-mix(in srgb,var(--c) 20%,transparent)}
+.mode.colored .ico,.mode.colored em{color:var(--c)}
+.mode .ico.sm{width:40px;height:40px}
+#tabbar{position:fixed;left:0;right:0;bottom:0;z-index:15;background:rgba(6,8,11,.94);backdrop-filter:blur(14px);border-top:1px solid var(--line);display:flex;justify-content:center;gap:2px;padding:6px 6px calc(env(safe-area-inset-bottom,0px) + 6px)}
+#tabbar[hidden]{display:none}
+#tabbar button{all:unset;cursor:pointer;flex:1;max-width:120px;display:flex;flex-direction:column;align-items:center;gap:3px;padding:5px 2px;border-radius:12px;color:var(--muted);font:600 .7rem Barlow,sans-serif}
+#tabbar button svg{width:24px;height:24px}
+#tabbar button[aria-current="page"]{color:var(--c);background:color-mix(in srgb,var(--c) 15%,transparent)}
+#tabbar button:focus-visible{outline:2px solid var(--c)}
+body.has-tabs main{padding-bottom:120px}
+body.has-tabs #toast{bottom:calc(env(safe-area-inset-bottom,0px) + 86px)}
+.avg{font:600 1.05rem "Barlow Condensed",sans-serif;margin:4px 0 10px}
+@keyframes slideUp{from{transform:translateY(40px);opacity:0}} @keyframes fadeIn{from{opacity:0}}
+@media (prefers-reduced-motion:reduce){.sheet,.sheet-ov{animation:none}}
+.song .ai{grid-column:1/-1;margin-top:6px;background:linear-gradient(180deg,#141a24,#0b0e13);border:1px solid var(--line-strong);border-radius:14px;padding:12px;box-shadow:inset 0 1px 0 rgba(255,255,255,.06)}
+.ai-hd{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;align-items:center}
+.ai-meta{font:600 1.1rem "Barlow Condensed",sans-serif;color:var(--blue-hi);margin:12px 0 8px}
+.ai-secs{display:flex;flex-direction:column;gap:6px;margin-top:8px}
+.ai-sec{display:grid;grid-template-columns:6.5rem 1fr;gap:2px 10px;padding:9px 11px;border-radius:10px;background:var(--field);border:1px solid var(--line)}
+.ai-sec b{font:600 1.02rem "Barlow Condensed",sans-serif;color:var(--muted)}
+.ai-ch{font:600 1.12rem "Barlow Condensed",sans-serif;color:#fff;letter-spacing:.02em;word-break:break-word}
+.ai-sec small{grid-column:2;color:var(--muted)}
+.ai-tip{font-size:.92rem;margin:10px 0 0}
+.ai-note{color:var(--muted);font-size:.78rem;margin:8px 0 0}
+.pick-group{font:600 .78rem Barlow,sans-serif;letter-spacing:.06em;text-transform:uppercase;color:var(--blue-hi);margin:8px 2px 2px}
+.pick-group:first-child{margin-top:0}
+@media (prefers-reduced-motion:reduce){.sp-ring,.sp-wave{animation:none;stroke-dashoffset:0}.sp-lugs rect,.sp-word,.sp-tag{animation:none;opacity:1;transform:none}.pulse{animation:none}.btn,.tile,.sq,.mode,.list-item{transition:none}}
+
+/* ===== refined, quieter palette ===== */
+:root{--blue:#5D84BD;--blue-hi:#B4C6DF;--blue-soft:rgba(93,132,189,.16);--green:#86B394;--green-soft:rgba(134,179,148,.14);--red:#CF7F72;--red-soft:rgba(207,127,114,.14);--accent:#88A3C4}
+.bar{border-bottom:1px solid color-mix(in srgb,var(--accent) 45%,var(--line));box-shadow:none}
+.hz,.bignote{text-shadow:none}
+.readout{background:linear-gradient(180deg,#15181d,#0d0f13);box-shadow:inset 0 1px 0 rgba(255,255,255,.05),0 10px 24px rgba(0,0,0,.5)}
+input,select,textarea{box-shadow:inset 0 1px 3px rgba(0,0,0,.6)}
+.btn{background:linear-gradient(180deg,#1f242c,#14171c);border-color:rgba(255,255,255,.1);box-shadow:inset 0 1px 0 rgba(255,255,255,.08),0 1px 0 #000,0 4px 10px rgba(0,0,0,.45);text-shadow:none}
+.btn:hover{filter:none;border-color:rgba(255,255,255,.24);color:#fff}
+.btn.solid,.btn.solid:hover,.tile.primary{background:linear-gradient(180deg,#6788B8,#4B6B9B);border-color:#7895C0;color:#fff;box-shadow:inset 0 1px 0 rgba(255,255,255,.22),0 1px 0 #000,0 4px 12px rgba(0,0,0,.45)}
+.btn.danger.armed{background:linear-gradient(180deg,#B9685C,#8E4A40);border-color:#C47A6E}
+.chip{background:#14171c;box-shadow:none;border-color:rgba(255,255,255,.12)}
+.chip[aria-pressed="true"]{background:#273241;border-color:#6F8DB8;color:#E6ECF5;box-shadow:none}
+.tabs{box-shadow:inset 0 1px 4px rgba(0,0,0,.6)}
+.tabs button[aria-selected="true"]{background:#1d222a;box-shadow:inset 0 -2px 0 var(--accent)}
+.pick-btn,.pick-opt,.x,.song .ctrl button{background:#14171c;box-shadow:none}
+.pick-opt.on{background:#222b38;border-color:#6F8DB8}
+.pick-panel{border-color:color-mix(in srgb,var(--accent) 55%,transparent);background:#121418}
+.card,.song .ai{background:#101216;box-shadow:none;border-color:rgba(255,255,255,.07)}
+.sq,.mode,.list-item,.slot,.tile,.atile,.mode.colored{background:linear-gradient(180deg,#15181d,#0f1115);border:1px solid rgba(255,255,255,.07);box-shadow:inset 0 1px 0 rgba(255,255,255,.04),0 8px 20px rgba(0,0,0,.45)}
+.sq::before,.mode::before,.mode::after,.atile::after{display:none}
+.sq:hover,.mode:hover,.list-item:hover,.atile:hover{border-color:rgba(255,255,255,.18)}
+.sq-ini{background:#20262f;color:var(--blue-hi);box-shadow:none;border:1px solid rgba(255,255,255,.08)}
+.sq.add{background:transparent;box-shadow:none;border:1px dashed rgba(255,255,255,.18)}
+.mode.colored{border-left:3px solid color-mix(in srgb,var(--c) 75%,transparent)}
+.mode.colored:hover{border-color:rgba(255,255,255,.18);border-left-color:var(--c)}
+.mode .ico{filter:none}
+.mode b{font-size:2.1rem}
+.atile{min-height:120px;border-top:2px solid color-mix(in srgb,var(--c) 70%,transparent)}
+.atile:hover{border-top-color:var(--c)}
+.at-ico{width:40px;height:40px;border-radius:11px;background:transparent;color:var(--c);border:1px solid color-mix(in srgb,var(--c) 40%,transparent);box-shadow:none}
+.at-ico svg{width:22px;height:22px}
+.atile b{font-size:1.28rem}
+#tabbar{background:rgba(5,6,8,.96)}
+#tabbar button[aria-current="page"]{background:transparent;color:var(--c);box-shadow:inset 0 2px 0 var(--c);border-radius:0 0 10px 10px}
+.str{background:#171a20;box-shadow:none}
+.str.hot{background:#3E5E48;border-color:var(--green);color:#EAF3EC}
+.str.near{box-shadow:none;border-color:#6F8DB8;color:var(--blue-hi)}
+.slot[aria-pressed="true"]{box-shadow:0 0 0 2px var(--blue-soft)}
+.sheet{background:#111317;box-shadow:0 -16px 40px rgba(0,0,0,.7)}
+.rec{background:#0c0e11}
+.rec .fbar i{background:linear-gradient(90deg,#A8382E 0%,#D4887A 45%,#EFDCD4 78%,#FAF7F4 100%);box-shadow:none}
+.legend i{background:linear-gradient(90deg,#A8382E,#D4887A 45%,#FAF7F4)}
+#splash{background:#000}
+.sp-logo{filter:none}
+.sp-word{background:linear-gradient(180deg,#F4F2EE 30%,#B9C0C9);-webkit-background-clip:text;background-clip:text}
+.drumsvg{filter:drop-shadow(0 14px 22px rgba(0,0,0,.7))}
+.capo{background:rgba(136,163,196,.12)}
+
+
+/* ===== mixing console ===== */
+.console-wrap{margin:4px -14px 0;overflow-x:auto;padding:4px 14px 14px;-webkit-overflow-scrolling:touch}
+.console{display:inline-flex;align-items:stretch;background:linear-gradient(180deg,#1c1f24,#121418);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:10px 6px;box-shadow:inset 0 1px 0 rgba(255,255,255,.06),0 14px 30px rgba(0,0,0,.6)}
+.strip{width:74px;flex:none;display:flex;flex-direction:column;align-items:center;gap:8px;padding:4px 5px 6px;border-right:1px solid rgba(0,0,0,.65);box-shadow:1px 0 0 rgba(255,255,255,.035);transition:opacity .15s}
+.strip:last-child{border-right:0;box-shadow:none}
+.strip.bus{background:rgba(162,145,184,.06)}
+.strip.master{width:84px;background:rgba(255,255,255,.035);border-radius:0 8px 8px 0}
+.strip.dim{opacity:.4}
+.console .sep{width:8px;flex:none}
+.ins{width:100%;height:20px;border-radius:4px;background:#0a0b0e;border:1px solid rgba(255,255,255,.06);display:flex;align-items:center;gap:3px;padding:0 4px;font:600 10px/1 "Barlow Condensed",sans-serif;overflow:hidden;white-space:nowrap}
+.ins i{font-style:normal;color:var(--k);letter-spacing:.04em;flex:none}
+.ins span{color:#cfd6df;overflow:hidden;text-overflow:ellipsis}
+.ins.empty{opacity:.3}
+.knob-wrap{display:flex;flex-direction:column;align-items:center;gap:3px;font:600 9px "Barlow Condensed",sans-serif;color:var(--muted);letter-spacing:.1em}
+.knob{width:36px;height:36px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#4c535e,#1c1f25 70%);box-shadow:0 3px 6px rgba(0,0,0,.6),inset 0 1px 0 rgba(255,255,255,.18);position:relative;touch-action:none;cursor:ns-resize}
+.knob::after{content:"";position:absolute;left:50%;top:4px;width:2px;height:11px;margin-left:-1px;border-radius:1px;background:var(--kc,#ECE6DA);transform-origin:50% 14px;transform:rotate(var(--a,0deg))}
+.knob.ro{cursor:default}
+.knob:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.kval{color:#d9dee6;font-size:10px;letter-spacing:0;font-variant-numeric:tabular-nums}
+.ms{display:flex;gap:4px}
+.ms button{width:27px;height:22px;border-radius:4px;border:1px solid rgba(255,255,255,.1);background:#16191e;font:700 10px "Barlow Condensed",sans-serif;color:var(--muted);cursor:pointer}
+.ms button.m[aria-pressed="true"]{background:#8E4A40;color:#fff;border-color:#C47A6E}
+.ms button.s[aria-pressed="true"]{background:#C4A36E;color:#1a1408;border-color:#d9bd8e}
+.dbv{font:600 11px "Barlow Condensed",sans-serif;color:#e9edf3;font-variant-numeric:tabular-nums;background:#0a0b0e;border-radius:3px;padding:2px 5px;min-width:42px;text-align:center}
+.fader{position:relative;width:100%;height:210px;touch-action:none;cursor:ns-resize;border-radius:4px}
+.fader:focus-visible{outline:2px solid var(--accent)}
+.fader .slot{position:absolute;left:58%;top:6px;bottom:6px;width:4px;margin-left:-2px;border-radius:2px;background:#040506;box-shadow:inset 0 1px 2px #000,0 1px 0 rgba(255,255,255,.05)}
+.fader .tick{position:absolute;left:32%;right:16%;height:1px;background:rgba(255,255,255,.09)}
+.fader .tick b{position:absolute;left:-20px;top:-6px;width:18px;text-align:right;font:500 8.5px "Barlow Condensed",sans-serif;color:#6c7480}
+.fader .tick.zero{background:rgba(255,255,255,.22)}
+.fader .cap{position:absolute;left:58%;width:34px;height:22px;margin:-11px 0 0 -17px;border-radius:3px;pointer-events:none;
+  background:linear-gradient(180deg,#ece9e3 0%,#c2bdb3 44%,#6f6b64 50%,#c9c4ba 56%,#efece6 100%);box-shadow:0 4px 8px rgba(0,0,0,.65)}
+.strip.bus .cap{background:linear-gradient(180deg,#d9d0e6 0%,#a99cbd 44%,#5d5470 50%,#ab9fc0 56%,#ddd5ea 100%)}
+.strip.master .cap{background:linear-gradient(180deg,#e9b3aa 0%,#c27b70 44%,#6e3a33 50%,#c47f74 56%,#ecbcb3 100%)}
+.scribble{width:100%;background:var(--tape);color:var(--tape-ink);font:400 12.5px/1.1 "Permanent Marker","Comic Sans MS",cursive;text-align:center;padding:5px 3px 4px;transform:rotate(-1.5deg);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;border:0;cursor:pointer;
+  clip-path:polygon(0 8%,4% 0,50% 6%,96% 0,100% 10%,98% 50%,100% 92%,95% 100%,50% 94%,4% 100%,0 90%,2% 50%)}
+.strip:nth-child(even) .scribble{transform:rotate(1.2deg)}
+.src{font-size:9px;color:var(--muted);text-align:center;width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-top:-4px}
+
+
+/* ===== kit photo ===== */
+.kp-wrap{position:relative;width:fit-content;max-width:100%;margin:0 auto;border-radius:14px;overflow:visible;user-select:none;-webkit-user-select:none}
+.kp-wrap img{display:block;max-width:100%;max-height:62vh;border-radius:14px;border:1px solid rgba(255,255,255,.08);box-shadow:0 12px 28px rgba(0,0,0,.6)}
+.kp-tuner .kp-wrap img{max-height:36vh}
+.kp-wrap.edit{cursor:crosshair}
+.kp-wrap.edit img{outline:2px dashed color-mix(in srgb,var(--accent) 70%,transparent);outline-offset:3px}
+.kp-mark{all:unset;position:absolute;transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;z-index:2}
+.kp-mark:focus-visible .kp-dot{outline:2px solid #fff;outline-offset:2px}
+.kp-dot{width:22px;height:22px;border-radius:50%;background:var(--pc);border:3px solid rgba(0,0,0,.55);box-shadow:0 0 0 2px var(--pc),0 4px 10px rgba(0,0,0,.6)}
+.kp-mark.sel .kp-dot{box-shadow:0 0 0 2px #fff,0 0 0 6px color-mix(in srgb,var(--accent) 70%,transparent),0 4px 10px rgba(0,0,0,.6)}
+.kp-tag{background:rgba(8,10,13,.86);backdrop-filter:blur(6px);border:1px solid rgba(255,255,255,.14);border-radius:8px;padding:3px 7px;text-align:center;white-space:nowrap;position:absolute;top:28px}
+.kp-mark.l .kp-tag{left:-8px}.kp-mark.r .kp-tag{right:-8px}
+.kp-tag b{display:block;font:600 .8rem/1.1 "Barlow Condensed",sans-serif;color:#fff}
+.kp-tag small{display:block;font:600 .74rem/1.1 "Barlow Condensed",sans-serif;color:var(--pc);font-variant-numeric:tabular-nums}
+.kp-mark.sel{z-index:3}
+.kp-mark.sel .kp-tag{border-color:color-mix(in srgb,var(--accent) 80%,transparent)}
+.kp-tag.big{padding:5px 10px}
+.kp-tag.big strong{display:block;font:700 1.25rem/1.05 "Barlow Condensed",sans-serif;color:var(--pc);font-variant-numeric:tabular-nums}
+.kp-tag.big small{color:var(--muted)}
+.kp-tag{top:24px;padding:2px 6px}
+.kp-dot{width:18px;height:18px}
+.kp-temp{position:absolute;width:26px;height:26px;margin:-13px 0 0 -13px;border-radius:50%;border:2px dashed #fff;background:color-mix(in srgb,var(--accent) 40%,transparent);pointer-events:none;animation:pulse 1.2s ease-in-out infinite}
+.kp-hint{text-align:center;color:var(--muted);font-size:.85rem;margin:8px 0 14px}
+.kp-assign{margin-top:12px}
+.kp-assign .chips{margin-top:8px}
+.kp-loading{padding:40px;text-align:center;color:var(--muted)}
+.file-btn{display:inline-flex;align-items:center;justify-content:center}
+</style>
+</head>
+<body>
+<div id="splash" aria-hidden="true"><div class="sp-inner">
+<svg class="sp-logo" viewBox="0 0 200 200"><defs><linearGradient id="spg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#C9D5E6"/><stop offset="1" stop-color="#5D7FAF"/></linearGradient><radialGradient id="sph" cx="45%" cy="35%" r="70%"><stop offset="0" stop-color="#262e3a"/><stop offset="1" stop-color="#05070a"/></radialGradient></defs>
+<circle cx="100" cy="100" r="74" fill="url(#sph)"/><circle class="sp-ring" cx="100" cy="100" r="78" fill="none" stroke="url(#spg)" stroke-width="6" transform="rotate(-90 100 100)"/>
+<g class="sp-lugs" fill="#E9EEF5"><rect x="96" y="6" width="8" height="15" rx="3" transform="rotate(0 100 100)"/><rect x="96" y="6" width="8" height="15" rx="3" transform="rotate(45 100 100)"/><rect x="96" y="6" width="8" height="15" rx="3" transform="rotate(90 100 100)"/><rect x="96" y="6" width="8" height="15" rx="3" transform="rotate(135 100 100)"/><rect x="96" y="6" width="8" height="15" rx="3" transform="rotate(180 100 100)"/><rect x="96" y="6" width="8" height="15" rx="3" transform="rotate(225 100 100)"/><rect x="96" y="6" width="8" height="15" rx="3" transform="rotate(270 100 100)"/><rect x="96" y="6" width="8" height="15" rx="3" transform="rotate(315 100 100)"/></g>
+<path class="sp-wave" d="M44 100 C56 60 68 60 78 100 S 100 140 112 100 S 132 72 142 100 S 152 112 158 100" fill="none" stroke="#fff" stroke-width="5" stroke-linecap="round"/></svg>
+<div class="sp-word">Tech Assistent</div><div class="sp-tag">Drums, Bass und Gitarre</div></div></div>
+<header class="bar" id="bar"></header>
+<main id="app"></main>
+<div id="toast" role="status" aria-live="polite"></div>
+<script>
+/* ================= helpers ================= */
+const LS_KEY = 'drumtech-v1';
+const newId = () => Math.random().toString(36).slice(2, 8) + Date.now().toString(36).slice(-5);
+function h(tag, props, ...kids) {
+  const el = document.createElement(tag); let val;
+  for (const [k, v] of Object.entries(props || {})) {
+    if (v == null || v === false) continue;
+    if (k === 'class') el.className = v;
+    else if (k === 'value') val = v;
+    else if (k.startsWith('on') && typeof v === 'function') el.addEventListener(k.slice(2).toLowerCase(), v);
+    else el.setAttribute(k, v === true ? '' : v);
+  }
+  for (const c of kids.flat(Infinity)) { if (c == null || c === false) continue; el.append(c.nodeType ? c : document.createTextNode(String(c))); }
+  if (val !== undefined) el.value = val;
+  return el;
+}
+const svg = (tag, attrs = {}, ...kids) => { const el = document.createElementNS('http://www.w3.org/2000/svg', tag); for (const [k, v] of Object.entries(attrs)) if (v != null) el.setAttribute(k, v); kids.flat().forEach(c => c != null && el.append(c.nodeType ? c : document.createTextNode(String(c)))); return el; };
+const plural = (n, one, many) => `${n} ${n === 1 ? one : many}`;
+const fmtDate = d => { if (!d) return ''; const x = new Date(d + 'T12:00:00'); return isNaN(x) ? d : x.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' }); };
+const fmtHz = f => f == null || isNaN(f) ? '–' : (Math.round(f * 10) / 10).toLocaleString('de-DE', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+const fmtNum = (n, d = 1) => n.toLocaleString('de-DE', { minimumFractionDigits: d, maximumFractionDigits: d });
+const initials = n => (n || '?').trim().split(/\s+/).slice(0, 2).map(w => w[0]).join('').toUpperCase();
+function toast(msg) { const t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(toast.t); toast.t = setTimeout(() => t.classList.remove('show'), 2200); }
+
+/* ================= data ================= */
+const DRUM_TYPES = ['Bassdrum', 'Snare', 'Tom', 'Standtom', 'Sonstige'];
+const DEFAULT_LUGS = { Bassdrum: 10, Snare: 10, Tom: 6, Standtom: 8, Sonstige: 8 };
+const RANGES = { Bassdrum: [35, 130], Snare: [130, 450], Tom: [70, 320], Standtom: [45, 180], Alles: [35, 500] };
+const KINDS = { live: ['Konzert', 'Tour', 'Festival', 'TV / Video', 'Probe'], studio: ['Album', 'Single', 'Session', 'Soundtrack', 'Sample-Aufnahme'] };
+
+const HEADS = {
+  Remo: {
+    bd: { bat: ['Powerstroke P3 Clear', 'Powerstroke P3 Coated', 'Powerstroke P3 Ebony', 'Powerstroke P4 Clear', 'Powerstroke P4 Coated', 'Emperor Clear', 'Emperor Coated', 'Ambassador Clear', 'Ambassador Coated', 'Pinstripe Clear', 'Fiberskyn Powerstroke P3'],
+          res: ['Powerstroke P3 Ebony (mit Port)', 'Powerstroke P3 Smooth White', 'Powerstroke P3 Coated', 'Ambassador Smooth White', 'Ambassador Ebony', 'Ambassador Coated', 'Ambassador Clear'] },
+    sn: { bat: ['Ambassador Coated', 'Ambassador X Coated', 'Ambassador X14 Coated', 'Ambassador Vintage Coated', 'Controlled Sound Coated Black Dot', 'Emperor Coated', 'Emperor X Coated', 'Powerstroke 77 Coated', 'Powerstroke P3 Coated', 'Vintage A Coated', 'Fiberskyn Ambassador'],
+          res: ['Ambassador Hazy Snare Side', 'Diplomat Hazy Snare Side', 'Emperor Hazy Snare Side', 'Ambassador Clear Snare Side'] },
+    tom: { bat: ['Emperor Clear', 'Emperor Coated', 'Emperor Vintage Coated', 'Emperor X Coated', 'Ambassador Clear', 'Ambassador Coated', 'Pinstripe Clear', 'Pinstripe Coated', 'Controlled Sound Clear Black Dot', 'Fiberskyn Ambassador'],
+           res: ['Ambassador Clear', 'Ambassador Coated', 'Diplomat Clear', 'Emperor Clear'] }
+  },
+  Evans: {
+    bd: { bat: ['EMAD Clear', 'EMAD Coated', 'EMAD2 Clear', 'EMAD Heavyweight Clear', 'EQ4 Clear', 'EQ4 Frosted', 'EQ3 Clear', 'GMAD Clear', 'Calftone'],
+          res: ['EQ3 Resonant Black (mit Port)', 'EQ3 Resonant Smooth White', 'EMAD Resonant Black', 'EMAD Resonant Smooth White', 'Calftone'] },
+    sn: { bat: ['G1 Coated', 'G2 Coated', 'G14 Coated', 'UV1 Coated', 'UV2 Coated', 'Genera HD Dry', 'HD Dry', 'Power Center Reverse Dot', 'Calftone'],
+          res: ['Hazy 300 Snare Side', 'Hazy 200 Snare Side', 'Hazy 500 Snare Side', 'Clear 300 Snare Side'] },
+    tom: { bat: ['G1 Clear', 'G1 Coated', 'G2 Clear', 'G2 Coated', 'EC2 Clear', 'EC2S Frosted', 'UV1 Coated', 'UV2 Coated', 'Hydraulic Glass', 'Calftone'],
+           res: ['Resonant Clear', 'EC Resonant', 'G1 Clear', 'Resonant Black', 'Calftone'] }
+  },
+  Aquarian: {
+    bd: { bat: ['Super-Kick I Clear', 'Super-Kick II Clear', 'Super-Kick 10 Clear', 'Force I Clear', 'Response 2 Clear', 'Response 2 Coated'],
+          res: ['Regulator Black', 'Regulator Black (mit Port)', 'Classic Clear'] },
+    sn: { bat: ['Hi-Energy Coated', 'Texture Coated', 'Response 2 Coated', 'Focus-X Coated', 'Hi-Velocity Coated'],
+          res: ['Classic Clear Snare Side 3 mil', 'Hi-Performance Snare Bottom'] },
+    tom: { bat: ['Performance II Clear', 'Performance II Coated', 'Response 2 Clear', 'Response 2 Coated', 'Studio-X Clear', 'Studio-X Coated', 'Texture Coated'],
+           res: ['Classic Clear', 'Texture Coated'] }
+  }
+};
+const headCat = t => t === 'Bassdrum' ? 'bd' : t === 'Snare' ? 'sn' : 'tom';
+
+const STAGES = {
+  'Preamp': ['Gain', 'Phantom 48 V', 'Pad', 'Hochpass', 'Polarität'],
+  'EQ': ['Hochpass', 'Tiefpass', 'Low', 'Low-Mid', 'High-Mid', 'High'],
+  'Kompressor': ['Threshold', 'Ratio', 'Attack', 'Release', 'Gain Reduction', 'Make-up'],
+  'Gate / Expander': ['Threshold', 'Range', 'Attack', 'Hold', 'Release', 'Sidechain-Filter'],
+  'Sättigung': ['Drive', 'Charakter', 'Mix', 'Output'],
+  'Transient Designer': ['Attack', 'Sustain', 'Output'],
+  'Hall': ['Typ', 'Pre-Delay', 'Decay', 'Mix', 'Hochpass', 'Tiefpass'],
+  'Delay': ['Zeit', 'Feedback', 'Mix', 'Filter'],
+  'Sonstiges': ['Einstellung']
+};
+const PH = { 'Gain': '+42 dB', 'Phantom 48 V': 'an / aus', 'Pad': '−20 dB', 'Hochpass': '80 Hz', 'Tiefpass': '12 kHz', 'Polarität': 'normal / gedreht', 'Low': '60 Hz +3 dB', 'Low-Mid': '400 Hz −4 dB, Q 2', 'High-Mid': '3 kHz +2 dB', 'High': '10 kHz Shelf +2 dB',
+  'Threshold': '−18 dB', 'Ratio': '4:1', 'Attack': '10 ms', 'Release': '100 ms', 'Gain Reduction': '3–5 dB', 'Make-up': '+3 dB', 'Range': '−20 dB', 'Hold': '50 ms', 'Sidechain-Filter': 'HP 150 Hz',
+  'Drive': '30 %', 'Charakter': 'Tube / Tape', 'Mix': '30 %', 'Output': '−2 dB', 'Sustain': '−3 dB', 'Typ': 'Plate / Room', 'Pre-Delay': '20 ms', 'Decay': '1,2 s', 'Zeit': '1/8', 'Feedback': '20 %', 'Filter': 'HP 300 Hz', 'Einstellung': '' };
+const GEAR = {
+  'Preamp': ['Neve 1073', 'Neve 1084', 'API 512c', 'API 312', 'SSL 4000 E Kanal', 'Telefunken V76', 'Universal Audio 610', 'Focusrite ISA', 'Chandler TG2', 'Grace m101', 'Rupert Neve Portico 511'],
+  'EQ': ['API 550A', 'API 560', 'Neve 1073 EQ', 'Pultec EQP-1A', 'SSL E-Channel EQ', 'Maag EQ4', 'FabFilter Pro-Q 3', 'FabFilter Pro-Q 4', 'Waves SSL E-Channel', 'UAD Pultec EQP-1A'],
+  'Kompressor': ['Universal Audio 1176', 'Teletronix LA-2A', 'Empirical Labs Distressor EL8', 'dbx 160', 'SSL Bus Compressor', 'API 2500', 'Fairchild 670', 'Neve 33609', 'FabFilter Pro-C 2', 'Waves CLA-76', 'UAD 1176', 'Cytomic The Glue'],
+  'Gate / Expander': ['Drawmer DS201', 'dbx 904', 'SSL Kanal-Gate', 'FabFilter Pro-G', 'Waves C1 Gate'],
+  'Sättigung': ['Soundtoys Decapitator', 'FabFilter Saturn 2', 'Thermionic Culture Vulture', 'Elysia Karacter', 'Kush Omega'],
+  'Transient Designer': ['SPL Transient Designer', 'Waves Trans-X', 'Oxford TransMod', 'NI Transient Master'],
+  'Hall': ['Bricasti M7', 'Lexicon 480L', 'EMT 140 Plate', 'Valhalla VintageVerb', 'Valhalla Room', 'UAD EMT 140', 'Altiverb', 'FabFilter Pro-R 2'],
+  'Delay': ['Soundtoys EchoBoy', 'Roland RE-201', 'Valhalla Delay', 'Waves H-Delay'],
+  'Sonstiges': []
+};
+const BUS_PRESETS = {
+  'Drum-Bus': { sources: 'Alle Drum-Kanäle', stages: ['Kompressor', 'EQ'] },
+  'Parallel-Kompression': { sources: 'Kick, Snare, Toms, Room', stages: ['Kompressor', 'EQ'] },
+  'Hall-Send': { sources: 'Snare, Toms', stages: ['Hall', 'EQ'] },
+  'Delay-Send': { sources: 'Snare', stages: ['Delay'] },
+  'Leerer Bus': { sources: '', stages: [] }
+};
+const newStage = kind => ({ id: newId(), kind, gearType: ['Hall', 'Delay'].includes(kind) ? 'Plugin' : 'Hardware', gear: '', vals: {} });
+
+/* ================= state + persistence ================= */
+let S = { artists: [], updated: 0 };
+let syncMode = 'local', docRef = null, saveTimer = null;
+function normalize() {
+  if (!Array.isArray(S.artists)) S.artists = [];
+  S.artists.forEach(a => {
+    a.productions ||= []; a.setlists ||= []; a.tunings ||= []; a.instruments ||= []; a.instChains ||= {};
+    ['guitar', 'bass'].forEach(k => { a.instChains[k] ||= { channels: [], busses: [] }; });
+    a.productions.forEach(p => {
+      if (!p.mode) p.mode = p.type === 'Studio' ? 'studio' : 'live';
+      if (!p.kind) p.kind = p.type && p.type !== 'Studio' && p.type !== 'Live' ? p.type : KINDS[p.mode][0];
+      p.drums ||= []; p.mics ||= []; p.chain ||= { channels: [], busses: [] };
+      p.chain.channels ||= []; p.chain.busses ||= [];
+      p.drums.forEach(d => { d.lugsTop ||= []; d.lugsBottom ||= []; if (!d.lugs) d.lugs = DEFAULT_LUGS[d.type] || 8; });
+    });
+    a.setlists.forEach(s => { s.mode ||= 'live'; s.songs ||= []; s.songs.forEach(x => { x.gt ||= {}; x.bs ||= {}; }); });
+  });
+}
+try { const t = localStorage.getItem(LS_KEY); if (t) S = JSON.parse(t); } catch (e) {}
+normalize();
+function touch() {
+  S.updated = Date.now();
+  try { localStorage.setItem(LS_KEY, JSON.stringify(S)); } catch (e) {}
+  clearTimeout(saveTimer); saveTimer = setTimeout(pushRemote, 700);
+}
+async function pushRemote() {
+  if (!docRef) return;
+  try { await docRef.set({ json: JSON.stringify(S), updated: S.updated || Date.now() }); syncMode = 'account'; } catch (e) { syncMode = 'local'; }
+}
+async function initRemote() {
+  if (!window.claude || typeof window.claude.use !== 'function') return;
+  try {
+    const [db, user] = await Promise.all([window.claude.use('db'), window.claude.use('user')]);
+    if (!db || !user) return;
+    const uid = await user.id(); if (!uid) return;
+    docRef = db.doc(`data/users/${uid}/state`); dbH = db; uidG = uid;
+    const snap = await docRef.get();
+    syncMode = 'account';
+    if (snap.exists) {
+      const remote = JSON.parse(snap.data().json || '{}');
+      if ((remote.updated || 0) >= (S.updated || 0)) {
+        S = remote; normalize();
+        try { localStorage.setItem(LS_KEY, JSON.stringify(S)); } catch (e) {}
+        if (route.view !== 'tuner') render(true);
+      } else pushRemote();
+    } else if (S.artists.length) pushRemote();
+  } catch (e) { syncMode = 'local'; }
+}
+
+/* ================= routing ================= */
+let route = { view: 'artists', mode: 'live', inst: 'drums' };
+const artist = () => S.artists.find(a => a.id === route.artistId);
+const modeName = () => route.mode === 'studio' ? 'Studio' : 'Live';
+const prods = () => artist().productions.filter(p => p.mode === route.mode);
+const openSet = new Set();
+function nav(view, params = {}) {
+  if (['tuner', 'quick', 'gtuner'].includes(route.view) && view !== route.view) Tuner.stop();
+  route = { ...route, ...params, view };
+  render();
+}
+function render(keepScroll) {
+  const y = window.scrollY;
+  const bar = document.getElementById('bar'), app = document.getElementById('app');
+  bar.replaceChildren(); app.replaceChildren();
+  const views = { artists: viewArtists, mode: viewMode, home: viewHome, kits: viewKits, kit: viewKit, chains: viewChains, chain: viewChain, console: viewConsole, setlists: viewSetlists, setlist: viewSetlist, tuner: viewTuner,
+    inst: viewInst, drumMenu: viewDrumMenu, quick: viewQuick, ghome: viewGHome, tunings: viewTunings, tuning: viewTuning, ginsts: viewGInsts, ginst: viewGInst, gtuner: viewGTuner };
+  if (route.view !== 'artists' && !artist()) route.view = 'artists';
+  const v = views[route.view]();
+  if (v.back) bar.append(h('button', { class: 'back', type: 'button', onclick: v.back, 'aria-label': 'Zurück' }, '‹'));
+  document.documentElement.style.setProperty('--accent', areaColor());
+  const crumbs = artist() && !['artists', 'mode'].includes(route.view) ? [[artist().name, () => nav('mode')], [modeName(), () => nav('inst')]] : null;
+  if (crumbs && route.view !== 'inst') crumbs.push([instName(), () => nav(route.inst === 'drums' ? 'drumMenu' : 'ghome')]);
+  bar.append(h('div', { class: 't' }, h('h1', {}, v.title),
+    crumbs ? h('nav', { class: 'crumbs', 'aria-label': 'Pfad' }, crumbs.map(([l, go], i) => [i ? h('span', { 'aria-hidden': 'true' }, '›') : null, h('button', { type: 'button', onclick: go }, l)]))
+      : (v.sub ? h('div', { class: 'sub' }, v.sub) : null)));
+  renderTabs();
+  app.append(...[v.body].flat(Infinity).filter(x => x != null && x !== false));
+  window.scrollTo(0, keepScroll ? y : 0);
+}
+
+/* ================= form helpers ================= */
+function delBtn(label, onConfirm, cls = '') {
+  const b = h('button', { class: 'btn ghost danger ' + cls, type: 'button' }, label); let armed = false, t;
+  b.addEventListener('click', () => {
+    if (armed) { clearTimeout(t); onConfirm(); return; }
+    armed = true; b.textContent = 'Wirklich löschen?'; b.classList.add('armed');
+    t = setTimeout(() => { armed = false; b.textContent = label; b.classList.remove('armed'); }, 3000);
+  });
+  return b;
+}
+function field(label, value, onInput, o = {}) {
+  const type = o.type || 'text';
+  const inp = h('input', { type, value: value ?? '', placeholder: o.placeholder, inputmode: o.inputmode, step: o.step, min: o.min, max: o.max, list: o.list,
+    oninput: e => { const v = e.target.value; onInput(type === 'number' ? (v === '' ? null : parseFloat(v.replace(',', '.'))) : v); touch(); },
+    onchange: o.onchange });
+  return h('label', { class: 'field' + (o.wide ? ' wide' : '') }, h('span', {}, label), o.after ? h('div', { class: 'with-btn' }, inp, o.after) : inp);
+}
+function selectField(label, value, options, onChange, o = {}) {
+  const sel = h('select', { value, onchange: e => { onChange(e.target.value); touch(); } }, options.map(x => typeof x === 'string' ? h('option', { value: x }, x) : h('option', { value: x.value }, x.label)));
+  return h('label', { class: 'field' + (o.wide ? ' wide' : '') }, h('span', {}, label), sel);
+}
+const areaField = (label, value, onInput) => h('label', { class: 'field wide' }, h('span', {}, label), h('textarea', { value: value || '', oninput: e => { onInput(e.target.value); touch(); } }));
+
+/* ================= view: artists ================= */
+function viewArtists() {
+  const adding = route.addingArtist || !S.artists.length;
+  const inp = h('input', { id: 'newArtist', placeholder: 'Name des Künstlers oder der Band', 'aria-label': 'Name des Künstlers' });
+  const add = () => {
+    const name = inp.value.trim(); if (!name) { inp.focus(); return; }
+    const a = { id: newId(), name, productions: [], setlists: [] };
+    S.artists.push(a); normalize(); touch(); route.addingArtist = false; nav('mode', { artistId: a.id });
+  };
+  inp.addEventListener('keydown', e => { if (e.key === 'Enter') add(); });
+  const tiles = S.artists.map(a => h('button', { class: 'sq', type: 'button', onclick: () => nav('mode', { artistId: a.id }) },
+    h('span', { class: 'sq-ini', 'aria-hidden': 'true' }, initials(a.name)),
+    h('span', {}, h('span', { class: 'sq-name' }, a.name), h('br'), h('span', { class: 'sq-meta' }, plural(a.productions.length, 'Produktion', 'Produktionen')))));
+  tiles.push(h('button', { class: 'sq add', type: 'button', onclick: () => { route.addingArtist = true; render(true); setTimeout(() => document.getElementById('newArtist')?.focus(), 0); } },
+    h('span', { class: 'sq-plus', 'aria-hidden': 'true' }, '+'), h('span', { class: 'sq-meta' }, 'Künstler hinzufügen')));
+  return {
+    title: 'Tech Assistent', sub: 'Künstler wählen',
+    body: [
+      h('div', { class: 'sq-grid' }, tiles),
+      adding && h('div', { class: 'card', style: 'margin-top:16px' },
+        h('label', { class: 'field' }, h('span', {}, 'Neuer Künstler'), inp),
+        h('div', { class: 'row' }, h('button', { class: 'btn solid', type: 'button', onclick: add }, 'Künstler anlegen'),
+          S.artists.length ? h('button', { class: 'btn ghost', type: 'button', onclick: () => { route.addingArtist = false; render(true); } }, 'Abbrechen') : null))
+    ]
+  };
+}
+
+/* ================= view: mode ================= */
+function viewMode() {
+  const a = artist();
+  const cnt = m => a.productions.filter(p => p.mode === m).length;
+  const modeBtn = (m, title, desc) => h('button', { class: 'mode colored', style: `--c:${MODE_C[m]}`, type: 'button', onclick: () => nav('inst', { mode: m }) }, areaIcon(m === 'live' ? 'live' : 'studio', 'ico sm'),
+    h('b', {}, title), h('span', {}, desc), h('em', {}, plural(cnt(m), 'Produktion', 'Produktionen')));
+  return {
+    title: a.name, sub: 'Live oder Studio?', back: () => nav('artists'),
+    body: [
+      h('div', { class: 'modes' },
+        modeBtn('live', 'Live', 'Konzerte, Touren, Festivals und TV'),
+        modeBtn('studio', 'Studio', 'Aufnahmen mit Drumkit und Recording Chain')),
+      h('h2', {}, 'Künstler bearbeiten'),
+      h('div', { class: 'card' },
+        field('Name', a.name, v => a.name = v, { onchange: () => render(true) }),
+        h('div', { class: 'row' }, delBtn('Künstler löschen', () => { S.artists = S.artists.filter(x => x.id !== a.id); touch(); nav('artists'); }))),
+      h('p', { class: 'foot' }, syncMode === 'account' ? 'Deine Daten werden automatisch in deinem Konto gespeichert und sind auf allen Geräten verfügbar.' : 'Deine Daten werden automatisch auf diesem Gerät gespeichert.')
+    ]
+  };
+}
+
+/* ================= view: home ================= */
+function viewHome() {
+  const a = artist(), ps = prods(), studio = route.mode === 'studio';
+  const drums = ps.reduce((n, p) => n + p.drums.length, 0);
+  const sets = a.setlists.filter(s => s.mode === route.mode).length;
+  const chainCount = ps.reduce((n, p) => n + p.chain.channels.length, 0);
+  return {
+    title: 'Drums', back: () => nav('drumMenu'),
+    body: h('div', { class: 'tgrid' },
+      atile('quick', 'Quick Tuning', 'Schnell stimmen', () => nav('quick')),
+      atile('tuner', 'Tuner', 'Pitch, Lugs, Resonanz', () => nav('tuner', { target: null, tunerFrom: 'home' })),
+      atile('kits', 'Drumkits', `${plural(ps.length, 'Produktion', 'Produktionen')}, ${plural(drums, 'Trommel', 'Trommeln')}`, () => nav('kits')),
+      atile('setlists', 'Setlisten', plural(sets, 'Setliste', 'Setlisten'), () => nav('setlists')),
+      studio && atile('chain', 'Recording Chain', plural(chainCount, 'Kanal', 'Kanäle'), () => nav('chains', { toConsole: false })),
+      studio && atile('console', 'Mischpult', 'Kanalzüge mit Fadern', () => { const ps2 = prods(); if (ps2.length === 1) nav('console', { chainOwner: 'prod', prodId: ps2[0].id }); else nav('chains', { toConsole: true }); }))
+  };
+}
+
+/* ================= view: kits ================= */
+function newProduction(mode) { return { id: newId(), mode, kind: KINDS[mode][0], name: '', date: '', venue: '', kit: '', notes: '', drums: [], mics: [], chain: { channels: [], busses: [] } }; }
+function viewKits() {
+  const a = artist(), ps = prods();
+  const create = () => { const p = newProduction(route.mode); a.productions.unshift(p); touch(); nav('kit', { prodId: p.id }); };
+  return {
+    title: 'Drumkits', sub: `${a.name}, ${modeName()}`, back: () => nav('home'),
+    body: [
+      h('button', { class: 'btn solid', type: 'button', onclick: create }, 'Neue Produktion anlegen'),
+      h('div', { style: 'height:16px' }),
+      ps.length ? ps.map(p => h('button', { class: 'list-item', type: 'button', onclick: () => nav('kit', { prodId: p.id }) },
+        h('b', {}, p.name || 'Unbenannte Produktion'),
+        h('span', {}, [p.kind, fmtDate(p.date), p.kit, plural(p.drums.length, 'Trommel', 'Trommeln')].filter(Boolean).join(', '))))
+        : h('div', { class: 'empty' }, route.mode === 'studio' ? 'Noch keine Studioproduktion. Leg eine an, zum Beispiel ein Album oder eine Session.' : 'Noch keine Liveproduktion. Leg eine an, zum Beispiel eine Tour oder ein Festival.')
+    ]
+  };
+}
+
+const NAME_SUGGEST = { Bassdrum: ['Bassdrum', 'Kick', 'Sub-Kick', 'Bassdrum 2'], Snare: ['Snare', 'Main-Snare', 'Side-Snare', 'Piccolo-Snare'], Tom: ['Tom 1', 'Tom 2', 'Tom 3', 'Rack-Tom', 'Hänge-Tom'], Standtom: ['Standtom', 'Standtom 2', 'Floor-Tom'], Sonstige: ['Gong-Drum', 'Timbale', 'Octoban', 'Effekt-Snare'] };
+function nameField(p, d) {
+  const dl = 'nm-' + d.id, auto = () => autoName(p, d, d.type);
+  const inp = h('input', { value: d.name, list: dl, placeholder: auto(), 'aria-label': 'Bezeichnung',
+    oninput: e => { const v = e.target.value; d.name = v; d.customName = !!v.trim() && v !== auto(); touch(); },
+    onchange: () => { if (!d.name.trim()) { d.name = auto(); d.customName = false; touch(); } render(true); } });
+  const reset = d.customName ? h('button', { class: 'btn small', type: 'button', title: 'Bezeichnung wieder automatisch setzen', onclick: e => { e.preventDefault(); d.customName = false; d.name = auto(); touch(); render(true); } }, 'Auto') : null;
+  return h('div', { class: 'field' }, h('span', {}, 'Bezeichnung (anpassbar)'), reset ? h('div', { class: 'with-btn' }, inp, reset) : inp,
+    h('datalist', { id: dl }, (NAME_SUGGEST[d.type] || []).map(n => h('option', { value: n }))));
+}
+function autoName(p, d, type) {
+  if (type === 'Bassdrum' || type === 'Snare') { const same = p.drums.filter(x => x.type === type); return same.length > 1 ? `${type} ${same.indexOf(d) + 1}` : type; }
+  if (type === 'Tom' || type === 'Standtom') { const same = p.drums.filter(x => x.type === type); const i = same.indexOf(d) + 1; return type === 'Tom' ? `Tom ${i}` : (same.length > 1 ? `Standtom ${i}` : 'Standtom'); }
+  return d.name || 'Trommel';
+}
+function newDrum(type = 'Tom', size = '') { return { id: newId(), name: '', type, size, lugs: DEFAULT_LUGS[type], headTop: '', headBottom: '', pitchTop: null, pitchBottom: null, lugsTop: [], lugsBottom: [], mic: '' }; }
+
+const MICS = {
+  'Shure': [['Beta 91A', 'bd'], ['Beta 52A', 'bd'], ['SM7B', 'bd amp room'], ['SM57', 'sn tom amp'], ['Beta 57A', 'sn tom amp'], ['Beta 56A', 'sn tom'], ['Beta 98AMP', 'sn tom'], ['Beta 181', 'sn oh'], ['SM81', 'oh ac'], ['KSM137', 'oh ac'], ['KSM32', 'oh room amp ac']],
+  'Sennheiser': [['e602 II', 'bd'], ['e901', 'bd'], ['MD 421 II', 'bd sn tom amp'], ['e604', 'sn tom'], ['e904', 'sn tom'], ['e905', 'sn tom'], ['e906', 'amp sn'], ['MD 441', 'sn amp oh'], ['e614', 'oh ac'], ['e914', 'oh ac']],
+  'Neumann': [['U 47 fet', 'bd room amp'], ['U 87 Ai', 'oh room amp ac'], ['U 67', 'oh room amp'], ['TLM 103', 'oh room amp ac'], ['TLM 102', 'amp oh'], ['KM 184', 'oh ac'], ['KM 185', 'oh ac']],
+  'AKG': [['D112 MkII', 'bd'], ['D12 VR', 'bd'], ['D40', 'sn tom amp'], ['C414 XLII', 'oh room amp bd ac'], ['C414 XLS', 'oh room amp ac'], ['C451 B', 'oh ac'], ['C214', 'oh room amp ac'], ['C411 PP', 'ac']],
+  'Audix': [['D6', 'bd'], ['D4', 'tom bd'], ['D2', 'tom'], ['i5', 'sn amp'], ['Micro-D', 'sn tom'], ['ADX51', 'oh']],
+  'Beyerdynamic': [['TG D71', 'bd'], ['TG D70', 'bd'], ['M 88 TG', 'bd amp'], ['M 201 TG', 'sn tom amp'], ['TG D58', 'sn tom'], ['M 160', 'oh room amp'], ['MC 930', 'oh ac']],
+  'Electro-Voice': [['RE20', 'bd amp'], ['RE320', 'bd tom amp'], ['N/D868', 'bd'], ['N/D468', 'sn tom']],
+  'Royer': [['R-121', 'oh room amp'], ['R-10', 'amp oh'], ['SF-24', 'oh room']],
+  'Coles': [['4038', 'oh room amp']],
+  'Telefunken': [['M82', 'bd amp'], ['M80', 'sn amp'], ['M81', 'sn tom'], ['M60 FET', 'oh ac'], ['ELA M 251E', 'oh room ac']],
+  'DPA': [['4099', 'sn tom ac'], ['2011', 'sn tom oh'], ['4011', 'oh room ac']],
+  'Earthworks': [['DM20', 'sn tom'], ['SR25', 'oh ac']],
+  'Radial': [['JDI', 'di'], ['J48', 'di'], ['ProDI', 'di']],
+  'Countryman': [['Type 85', 'di']],
+  'Avalon': [['U5', 'di']]
+};
+function catPicker(o) {
+  let cur = o.value || '', showAll = false;
+  const ph = o.placeholder || 'Auswählen';
+  const valEl = h('span', { class: cur ? '' : 'ph' }, cur || ph);
+  const btn = h('button', { class: 'pick-btn', type: 'button', 'aria-expanded': 'false' }, valEl, h('i', { 'aria-hidden': 'true' }, '▾'));
+  const panel = h('div', { class: 'pick-panel', hidden: true });
+  const close = () => { panel.hidden = true; btn.setAttribute('aria-expanded', 'false'); };
+  const choose = v => { cur = v; valEl.textContent = v || ph; valEl.className = v ? '' : 'ph'; close(); o.onPick(v); touch(); };
+  function brands() {
+    panel.replaceChildren(
+      h('div', { class: 'pick-title' }, o.title || 'Hersteller'),
+      h('div', { class: 'pick-grid' }, o.brands(showAll).map(b => h('button', { class: 'pick-opt brand' + (cur.startsWith(b + ' ') ? ' on' : ''), type: 'button', onclick: () => types(b) }, b)),
+        h('button', { class: 'pick-opt brand', type: 'button', onclick: custom }, 'Eigene Eingabe')),
+      h('div', { class: 'row' },
+        o.canShowAll ? h('button', { class: 'linkbtn', type: 'button', onclick: () => { showAll = !showAll; brands(); } }, showAll ? (o.fitLabel || 'Nur passende Modelle zeigen') : (o.allLabel || 'Alle Hersteller und Modelle zeigen')) : null,
+        cur ? h('button', { class: 'linkbtn', type: 'button', onclick: () => choose('') }, 'Auswahl entfernen') : null));
+  }
+  function types(b) {
+    panel.replaceChildren(
+      h('div', { class: 'pick-title' }, h('button', { class: 'linkbtn', type: 'button', onclick: brands }, '‹ ' + (o.backLabel || 'Hersteller')), h('span', {}, b)),
+      h('div', { class: 'pick-list' }, o.items(b, showAll).map(t => { if (t && typeof t === 'object') return h('div', { class: 'pick-group' }, t.h); const v = o.pickValue ? o.pickValue(b, t) : `${b} ${t}`; return h('button', { class: 'pick-opt' + (cur === v ? ' on' : ''), type: 'button', onclick: () => choose(v) }, t); })));
+  }
+  function custom() {
+    const inp = h('input', { value: cur, placeholder: 'Hersteller und Typ' });
+    inp.addEventListener('keydown', e => { if (e.key === 'Enter') choose(inp.value.trim()); });
+    panel.replaceChildren(h('div', { class: 'pick-title' }, h('button', { class: 'linkbtn', type: 'button', onclick: brands }, '‹ ' + (o.backLabel || 'Hersteller')), h('span', {}, 'Eigene Eingabe')),
+      h('div', { class: 'add-row' }, inp, h('button', { class: 'btn solid', type: 'button', onclick: () => choose(inp.value.trim()) }, 'Übernehmen')));
+    inp.focus();
+  }
+  btn.addEventListener('click', () => { if (!panel.hidden) { close(); return; } brands(); panel.hidden = false; btn.setAttribute('aria-expanded', 'true'); });
+  return h('div', { class: 'field' + (o.wide === false ? '' : ' wide') }, o.label ? h('span', {}, o.label) : null, btn, panel);
+}
+const KIT_DB = {
+  'Sonor': [['SQ2', 'SQ1', 'AQ2', 'AQ1', 'ProLite', 'Vintage Series', 'Teardrop', 'Kompressor Snare', 'Benny Greb Signature Snare'], ['Teardrop (Original 50er/60er)', 'Phonic', 'Signature (Horst Link)', 'Hilite', 'Sonorlite', 'Designer', 'Delite', 'Force 3007', 'Force 2000', 'Champion']],
+  'Ludwig': [['Classic Maple', 'Legacy Mahogany', 'Keystone', 'NeuSonic', 'Continental', 'Breakbeats', 'Element Evolution', 'Black Beauty Snare', 'Supraphonic Snare', 'Acrolite Classic Snare'], ['Classic Maple (60er/70er)', 'Super Classic', 'Vistalite', 'Club Date', 'Downbeat', 'WFL', 'Black Beauty (Vintage)', 'Supraphonic 400 (Vintage)', 'Acrolite (Vintage)']],
+  'Gretsch': [['USA Custom', 'Broadkaster', 'Brooklyn', 'Renown', 'Catalina Club', 'Energy', 'Full Range Snare'], ['Round Badge', 'Stop Sign Badge', 'Progressive Jazz']],
+  'DW': [["Collector's Series", 'Design Series', 'Performance Series', 'Jazz Series', 'DWe'], ["Collector's Series (80er/90er)", 'Edge Snare (Original)']],
+  'Pearl': [['Masters Maple Reserve', 'Masterworks', 'Reference Pure', 'Session Studio Select', 'Decade Maple', 'President Series Deluxe', 'Export', 'Roadshow', 'Crystal Beat', 'Sensitone Snare', 'Reference Snare'], ['CZX', 'MLX', 'BLX', 'GLX', 'Export (80er)', 'President (60er)', 'Free Floating Snare (Original)']],
+  'Tama': [['Starclassic Maple', 'Starclassic Walnut/Birch', 'Starclassic Performer', 'Superstar Classic', 'Imperialstar', 'Club-Jam', 'S.L.P. Snare', 'Starphonic Snare'], ['Superstar (70er/80er)', 'Imperialstar (Vintage)', 'Granstar', 'Artstar', 'Swingstar', 'Rockstar']],
+  'Yamaha': [['Recording Custom', 'Absolute Hybrid Maple', 'Tour Custom', 'Live Custom', 'Stage Custom Birch', 'Rydeen'], ['Recording Custom (Original 70er bis 2000er)', 'Maple Custom', 'Maple Custom Absolute', 'Birch Custom Absolute', 'Beech Custom']],
+  'Mapex': [['Saturn', 'Armory', 'Mars', 'Black Panther Snare'], ['Orion', 'Pro M']],
+  'Premier': [['Genista', 'Artist', 'Modern Classic'], ['Resonator', 'Signia', 'Olympic', 'Royal Ace Snare', '2000 Snare']],
+  'Rogers': [['Dyna-Sonic Snare', 'Holiday'], ['Holiday (60er)', 'Dyna-Sonic (Vintage)', 'Big R']],
+  'Slingerland': [[], ['Radio King', 'Artist', 'Spitfire']],
+  'Camco': [[], ['Oaklawn', 'Los Angeles']],
+  'Leedy': [[], ['Broadway', 'Shelly Manne']],
+  'Craviotto': [['Solid Shell Kit', 'Solid Shell Snare'], []],
+  'C&C': [['Player Date', 'Gladstone', 'Custom Maple'], []],
+  'Noble & Cooley': [['Star Series', 'Alloy Classic Snare'], []],
+  'Canopus': [['Yaiba', 'Neo-Vintage', 'R.F.M.'], []],
+  'British Drum Co': [['Legend', 'Lounge', 'Pro'], []],
+  'Ayotte': [['Custom', 'Drumsmith'], []]
+};
+const GUITAR_DB = {
+  'Fender': [['American Professional II Stratocaster', 'American Ultra Stratocaster', 'American Vintage II Stratocaster', 'Player Stratocaster', 'Custom Shop Stratocaster', 'American Professional II Telecaster', 'American Vintage II Telecaster', 'Player Telecaster', 'Jazzmaster', 'Jaguar', 'Mustang'], ['Stratocaster (Pre-CBS, 50er/60er)', 'Stratocaster (70er)', 'Telecaster (50er)', 'Esquire', 'Jazzmaster (60er)']],
+  'Gibson': [['Les Paul Standard', 'Les Paul Custom', 'Les Paul Junior', 'Les Paul Special', 'SG Standard', 'SG Special', 'ES-335', 'ES-339', 'Flying V', 'Explorer', 'Firebird', 'J-45', 'Hummingbird', 'SJ-200'], ['Les Paul Standard (1958 bis 1960)', 'Les Paul Goldtop (50er)', 'Les Paul Custom (Black Beauty, 50er)', 'ES-335 (60er)', 'SG (60er)', 'Custom Shop Historic Reissue']],
+  'Epiphone': [['Les Paul Standard', 'SG Standard', 'Casino', 'Sheraton', 'Riviera'], ['Casino (60er)']],
+  'PRS': [['Custom 24', 'Custom 22', 'McCarty 594', 'Silver Sky', 'SE Custom 24'], []],
+  'Gretsch': [['White Falcon', 'Country Gentleman', 'Duo Jet', 'Electromatic'], ['6120 (50er)', 'Duo Jet (50er)']],
+  'Rickenbacker': [['330', '360', '620'], ['325 (60er)', '360/12 (60er)']],
+  'Duesenberg': [['Starplayer TV', 'Paloma', 'Fullerton'], []],
+  'Music Man': [['Axis', 'JP15', 'Majesty', 'Cutlass', 'St. Vincent'], []],
+  'Ibanez': [['RG', 'JEM', 'AZ Prestige', 'Artcore'], ['Roadstar II (80er)']],
+  'ESP': [['Eclipse', 'Horizon', 'LTD EC-1000'], []],
+  'Schecter': [['Hellraiser', 'C-1'], []],
+  'Jackson': [['Soloist', 'Dinky', 'Rhoads'], []],
+  'Yamaha': [['Revstar', 'Pacifica', 'SG', 'LL16'], ['SG-2000 (70er/80er)']],
+  'Framus': [['Panthera'], []],
+  'Martin': [['D-28', 'D-18', 'HD-28', '000-28', 'OM-28'], ['D-28 (Vintage)']],
+  'Taylor': [['814ce', '314ce', '214ce', 'GS Mini'], []],
+  'Guild': [['D-55', 'Starfire'], []]
+};
+const BASS_DB = {
+  'Fender': [['American Professional II Precision Bass', 'American Ultra Precision Bass', 'American Vintage II Precision Bass', 'Player Precision Bass', 'American Professional II Jazz Bass', 'American Ultra Jazz Bass', 'American Vintage II Jazz Bass', 'Player Jazz Bass', 'Mustang Bass', 'Jaguar Bass'], ['Precision Bass (50er/60er)', 'Precision Bass (70er)', 'Jazz Bass (60er)', 'Jazz Bass (70er)']],
+  'Squier': [['Classic Vibe Precision Bass', 'Classic Vibe Jazz Bass'], []],
+  'Music Man': [['StingRay 4', 'StingRay 5', 'Sterling', 'Bongo'], ['StingRay (Pre-Ernie Ball, 70er)']],
+  'Gibson': [['Thunderbird', 'SG Standard Bass'], ['EB-0', 'EB-3', 'Thunderbird (60er)']],
+  'Rickenbacker': [['4003'], ['4001 (70er)']],
+  'Höfner': [['500/1 Violin Bass', 'Club Bass'], ['500/1 (60er)']],
+  'Warwick': [['Corvette', 'Thumb', 'Streamer', 'Star Bass'], []],
+  'Sandberg': [['California VM', 'California TT'], []],
+  'Sadowsky': [['MetroLine', 'NYC'], []],
+  'Lakland': [['44-94', 'Skyline'], []],
+  'Spector': [['NS-2', 'Euro'], []],
+  'Fodera': [['Emperor', 'Monarch'], []],
+  'Ibanez': [['SR', 'BTB'], []],
+  'Yamaha': [['BB', 'TRBX'], ['BB (80er)']],
+  'Marleaux': [['Consat'], []]
+};
+const STRING_DB = {
+  'Ernie Ball': [['Regular Slinky', 'g'], ['Super Slinky', 'g'], ['Hybrid Slinky', 'g'], ['Power Slinky', 'g'], ['Skinny Top Heavy Bottom Slinky', 'g'], ['Cobalt Slinky', 'g'], ['Paradigm Slinky', 'g'], ['M-Steel', 'g'], ['Earthwood Phosphor Bronze', 'a'], ['Regular Slinky Bass', 'b'], ['Super Slinky Bass', 'b'], ['Cobalt Bass', 'b'], ['Flatwound Bass', 'b']],
+  "D'Addario": [['XL Nickel Wound (EXL)', 'g'], ['NYXL', 'g'], ['XS Coated', 'g a'], ['XT', 'g a'], ['Chromes Flat Wound', 'g'], ['Phosphor Bronze (EJ)', 'a'], ['80/20 Bronze', 'a'], ['XL Nickel Bass (EXL)', 'b'], ['NYXL Bass', 'b'], ['Chromes Flatwound Bass', 'b'], ['ProSteels Bass', 'b']],
+  'Elixir': [['Nanoweb', 'g'], ['Optiweb', 'g'], ['Polyweb', 'g'], ['Nanoweb Phosphor Bronze', 'a'], ['Nanoweb 80/20 Bronze', 'a'], ['Nanoweb Bass', 'b']],
+  'Dunlop': [['Nickel Wound', 'g'], ['Heavy Core', 'g'], ['Super Bright Bass', 'b'], ['Flatwound Bass', 'b']],
+  'GHS': [['Boomers', 'g b'], ['Burnished Nickel Rockers', 'g'], ['Pressurewound Bass', 'b'], ['Precision Flats Bass', 'b']],
+  'DR': [['Pure Blues', 'g'], ['Tite-Fit', 'g'], ['Hi-Beam', 'g'], ['Black Beauties', 'g b'], ['Sunbeam', 'a'], ['Hi-Beam Bass', 'b'], ['Lo-Rider Bass', 'b'], ['Fat-Beams Bass', 'b']],
+  'Fender': [['Super 250', 'g'], ['Pure Nickel 150', 'g'], ['Original Bullets', 'g'], ['7250 Nickel Bass', 'b'], ['9050 Flatwound Bass', 'b']],
+  'Gibson': [['Vintage Reissue', 'g'], ['Brite Wires', 'g']],
+  'Rotosound': [['Swing Bass 66', 'b'], ['Jazz Bass 77 (Flatwound)', 'b'], ['Nexus Bass', 'b']],
+  'La Bella': [["Deep Talkin' Bass Flats", 'b'], ["Hard Rockin' Steel Bass", 'b']],
+  'Thomastik-Infeld': [['Jazz Swing (Flatwound)', 'g'], ['Power-Bright Bass', 'b'], ['Jazz Flat Bass', 'b']],
+  'Martin': [['Authentic Acoustic', 'a'], ['Lifespan 2.0', 'a']]
+};
+const GAUGES = {
+  guitar: { 'Extra Light': ['08–38', '09–42', '09–46'], 'Light': ['10–46', '10–52'], 'Medium': ['11–48', '11–49', '11–52'], 'Heavy': ['12–52', '12–56', '13–56', '13–62'], '7 Saiten': ['09–54', '10–56', '10–59', '10–62'], '8 Saiten': ['09–65', '10–74'], 'Akustik': ['10–47', '11–52', '12–53', '13–56'] },
+  bass: { '4 Saiten': ['40–95', '40–100', '45–100', '45–105', '50–105', '50–110'], '5 Saiten': ['40–120', '45–125', '45–130', '50–135'], '6 Saiten': ['30–125', '32–130'] }
+};
+function stringPicker(i) {
+  const want = i.inst === 'bass' ? ['b'] : ['g', 'a'];
+  const fit = b => STRING_DB[b].filter(s => s[1].split(' ').some(t => want.includes(t))).map(s => s[0]);
+  return catPicker({ label: 'Saiten (Hersteller / Serie)', value: i.strings, placeholder: 'Saiten auswählen', title: 'Hersteller', onPick: v => { i.strings = v; },
+    brands: () => Object.keys(STRING_DB).filter(b => fit(b).length), items: fit });
+}
+function gaugePicker(i) {
+  const g = GAUGES[i.inst === 'bass' ? 'bass' : 'guitar'];
+  return catPicker({ label: 'Saitenstärke', value: i.gauge, placeholder: 'Stärke auswählen', title: 'Satz', onPick: v => { i.gauge = v; },
+    brands: () => Object.keys(g), items: b => g[b], pickValue: (b, t) => t });
+}
+function seriesItems(db, b, newLabel) { const [nw, vt] = db[b]; return [...(nw.length ? [{ h: newLabel }, ...nw] : []), ...(vt.length ? [{ h: 'Vintage' }, ...vt] : [])]; }
+function modelPicker(label, value, onPick, db, placeholder, newLabel = 'Aktuelle Serien') {
+  return catPicker({ label, value, onPick, placeholder, title: 'Hersteller', brands: () => Object.keys(db), items: b => seriesItems(db, b, newLabel) });
+}
+const SHELL_DIA = {
+  Bassdrum: [16, 18, 20, 22, 23, 24, 26, 28], Snare: [10, 12, 13, 14, 15], Tom: [6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17], Standtom: [13, 14, 15, 16, 17, 18, 19, 20],
+  all: [6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 22, 23, 24, 26, 28]
+};
+const SHELL_DEPTH = {
+  Bassdrum: ['10', '12', '14', '16', '17', '18', '20', '22', '24'], Snare: ['3', '3,5', '4', '4,5', '5', '5,5', '6', '6,5', '7', '8'],
+  Tom: ['5', '5,5', '6', '6,5', '7', '7,5', '8', '9', '10', '11', '12', '13', '14'], Standtom: ['12', '13', '14', '15', '16', '17', '18', '20'],
+  all: ['3', '3,5', '4', '5', '5,5', '6', '6,5', '7', '8', '9', '10', '11', '12', '13', '14', '15', '16', '17', '18', '20', '22', '24']
+};
+function sizePicker(d) {
+  const cat = SHELL_DIA[d.type] ? d.type : 'all';
+  return catPicker({ label: 'Kesselgröße', value: d.size, placeholder: 'Größe wählen', wide: false, canShowAll: cat !== 'all',
+    allLabel: 'Alle Größen zeigen', fitLabel: 'Nur typische Größen zeigen', backLabel: 'Durchmesser',
+    get title() { return 'Durchmesser'; },
+    brands: all => (all ? SHELL_DIA.all : SHELL_DIA[cat]).map(n => n + '″'),
+    items: (b, all) => [{ h: `Tiefe bei ${b}` }, ...(all ? SHELL_DEPTH.all : SHELL_DEPTH[cat]).map(t => `× ${t}″`), 'nur Durchmesser'],
+    pickValue: (b, t) => t === 'nur Durchmesser' ? b : `${b.replace('″', '')} ${t}`,
+    onPick: v => { d.size = v; } });
+}
+function headPicker(d, side) {
+  const label = side === 'top' ? 'Schlagfell' : 'Resonanzfell', key = side === 'top' ? 'headTop' : 'headBottom';
+  const cat = headCat(d.type), part = side === 'top' ? 'bat' : 'res';
+  return catPicker({ label, value: d[key], placeholder: 'Fell auswählen', title: `Hersteller für ${d.type === 'Sonstige' ? 'Tom-Felle' : d.type} (${label})`,
+    onPick: v => d[key] = v, brands: () => Object.keys(HEADS), items: b => HEADS[b][cat][part] });
+}
+function micPicker(label, value, onPick, uses) {
+  const fit = (b, all) => MICS[b].filter(m => all || !uses || m[1].split(' ').some(u => uses.includes(u))).map(m => m[0]);
+  return catPicker({ label, value, onPick, placeholder: uses && uses.length === 1 && uses[0] === 'di' ? 'DI-Box auswählen' : 'Mikrofon auswählen', title: 'Hersteller', canShowAll: !!uses,
+    brands: all => Object.keys(MICS).filter(b => fit(b, all).length), items: fit });
+}
+const micUses = t => t === 'Bassdrum' ? ['bd'] : t === 'Snare' ? ['sn'] : t === 'Sonstige' ? null : ['tom'];
+
+function viewKit() {
+  const a = artist(); const p = a.productions.find(x => x.id === route.prodId);
+  if (!p) { route.view = 'kits'; return viewKits(); }
+  const tuneBtn = (d, side) => h('button', { class: 'btn small', type: 'button', title: 'Mit dem Tuner stimmen', onclick: () => nav('tuner', { target: `${p.id}|${d.id}`, side, tunerFrom: 'kit' }) }, 'Stimmen');
+  const drumCard = (d, i) => h('div', { class: 'card' },
+    h('div', { class: 'drum-head' }, h('span', { class: 'tape sm' + (i % 2 ? ' tilt' : '') }, d.name || `Trommel ${i + 1}`),
+      delBtn('Entfernen', () => { p.drums = p.drums.filter(x => x !== d); touch(); render(true); }, 'small')),
+    h('div', { class: 'grid' },
+      selectField('Kategorie', d.type, DRUM_TYPES, v => {
+        const prev = d.type; d.type = v; d.lugs = DEFAULT_LUGS[v];
+        d.customName = false;
+        const auto = x => x === d || (!x.customName && (/^(Bassdrum|Snare|Tom|Standtom)( \d+)?$/.test(x.name || '') || !x.name));
+        p.drums.forEach(x => { if ((x.type === v || x.type === prev) && auto(x)) x.name = autoName(p, x, x.type); });
+        render(true);
+      }),
+      nameField(p, d),
+      sizePicker(d),
+      modelPicker('Hersteller / Serie dieser Trommel', d.make, v => d.make = v, KIT_DB, p.kit ? `Wie Kit: ${p.kit}` : 'Hersteller und Serie wählen'),
+      field('Stimmschrauben pro Seite', d.lugs, v => d.lugs = v, { type: 'number', inputmode: 'numeric', min: 3, max: 16 }),
+      headPicker(d, 'top'),
+      headPicker(d, 'bottom'),
+      field('Pitch Schlagfell (Hz)', d.pitchTop, v => { d.pitchTop = v; d.pitchTopAt = Date.now(); }, { type: 'number', step: '0.1', inputmode: 'decimal', after: tuneBtn(d, 'top') }),
+      field('Pitch Resonanzfell (Hz)', d.pitchBottom, v => d.pitchBottom = v, { type: 'number', step: '0.1', inputmode: 'decimal', after: tuneBtn(d, 'bottom') }),
+      field('Ziel Schlagfell (Hz)', d.targetTop, v => d.targetTop = v, { type: 'number', step: '0.1', inputmode: 'decimal', placeholder: 'z. B. aus der Tuning-Empfehlung', wide: true }),
+      micPicker('Mikrofon', d.mic, v => d.mic = v, micUses(d.type))
+    ),
+    (d.lugsTop.some(x => x) || d.lugsBottom.some(x => x)) ? h('p', { class: 'muted', style: 'margin:10px 0 0;font-size:.85rem' }, 'Lug-Werte gespeichert: ' + [d.lugsTop.some(x => x) && 'Schlagfell', d.lugsBottom.some(x => x) && 'Resonanzfell'].filter(Boolean).join(' und ')) : null);
+  const micRows = p.mics.map(m => h('div', { class: 'card mic-card' },
+    h('div', { class: 'with-btn' },
+      h('input', { value: m.pos, placeholder: 'Position, z. B. Overhead L', 'aria-label': 'Position', oninput: e => { m.pos = e.target.value; touch(); } }),
+      h('button', { class: 'x', type: 'button', 'aria-label': 'Mikrofon entfernen', onclick: () => { p.mics = p.mics.filter(x => x !== m); touch(); render(true); } }, '×')),
+    h('div', { style: 'margin-top:8px' }, micPicker(null, m.mic, v => m.mic = v, ['oh', 'room']))));
+  const addDrum = type => { const d = newDrum(type); p.drums.push(d); d.name = autoName(p, d, type); touch(); render(true); };
+  return {
+    title: p.name || 'Neue Produktion', sub: `${a.name}, ${modeName()}`, back: () => nav('kits'),
+    body: [
+      h('div', { class: 'card' }, h('div', { class: 'grid' },
+        field('Name der Produktion', p.name, v => p.name = v, { wide: true, placeholder: route.mode === 'studio' ? 'z. B. Albumaufnahme 2026' : 'z. B. Sommertour 2026', onchange: () => render(true) }),
+        selectField('Art', p.kind, KINDS[p.mode], v => p.kind = v),
+        field('Datum', p.date, v => p.date = v, { type: 'date' }),
+        field(route.mode === 'studio' ? 'Studio' : 'Ort / Venue', p.venue, v => p.venue = v, { placeholder: route.mode === 'studio' ? 'z. B. Hansa Studios' : 'z. B. Columbiahalle' }),
+        modelPicker('Schlagzeug (Hersteller / Serie)', p.kit, v => { p.kit = v; setTimeout(() => render(true)); }, KIT_DB, 'Hersteller und Serie wählen'),
+        areaField('Notizen', p.notes, v => p.notes = v))),
+      p.mode === 'studio' ? h('button', { class: 'btn solid', type: 'button', style: 'width:100%', onclick: () => nav('chain', { prodId: p.id, chainFrom: 'kit', chainOwner: 'prod' }) }, `Recording Chain öffnen (${plural(p.chain.channels.length, 'Kanal', 'Kanäle')})`) : null,
+      h('h2', {}, 'Kit-Foto'), kitPhotoSection(p),
+      h('h2', {}, 'Trommeln', h('small', {}, plural(p.drums.length, 'Trommel', 'Trommeln'))),
+      p.drums.length ? h('button', { class: 'btn solid', type: 'button', style: 'width:100%;margin-bottom:12px', onclick: () => showTuningSheet(p) }, 'Tuning-Empfehlung: Intervalle und Tonarten') : null,
+      p.drums.length ? p.drums.map(drumCard) : h('div', { class: 'empty' }, 'Noch keine Trommeln. Füge sie einzeln hinzu oder starte mit einem Standard-Set.'),
+      h('div', { class: 'row' },
+        ['Bassdrum', 'Snare', 'Tom', 'Standtom'].map(t => h('button', { class: 'btn small', type: 'button', onclick: () => addDrum(t) }, '+ ' + t)),
+        !p.drums.length && h('button', { class: 'btn small ghost', type: 'button', onclick: () => {
+          [['Bassdrum', '22 × 18″'], ['Snare', '14 × 5,5″'], ['Tom', '10 × 8″'], ['Tom', '12 × 9″'], ['Standtom', '16 × 16″']].forEach(([t, s]) => { const d = newDrum(t, s); p.drums.push(d); d.name = autoName(p, d, t); });
+          touch(); render(true);
+        } }, 'Standard-Set (5 Trommeln)')),
+      h('h2', {}, 'Weitere Mikrofone', h('small', {}, 'Overheads, Room, Hi-Hat …')),
+      micRows.length ? micRows : null,
+      h('button', { class: 'btn', type: 'button', onclick: () => { p.mics.push({ pos: '', mic: '' }); touch(); render(true); } }, 'Mikrofon hinzufügen'),
+      h('div', { class: 'row', style: 'margin-top:32px' },
+        h('button', { class: 'btn ghost', type: 'button', onclick: () => {
+          const c = JSON.parse(JSON.stringify(p)); c.id = newId(); c.name = (p.name || 'Produktion') + ' (Kopie)'; c.drums.forEach(d => d.id = newId());
+          a.productions.unshift(c); touch(); toast('Produktion dupliziert'); nav('kit', { prodId: c.id });
+        } }, 'Duplizieren'),
+        delBtn('Produktion löschen', () => { a.productions = a.productions.filter(x => x !== p); touch(); nav('kits'); }))
+    ]
+  };
+}
+
+/* ================= recording chain ================= */
+function viewChains() {
+  const a = artist(), ps = prods();
+  return {
+    title: 'Recording Chain', sub: `${a.name}, Studio`, back: () => nav('home'),
+    body: [
+      h('p', { class: 'muted', style: 'margin-top:0' }, 'Wähle die Produktion, deren Signalkette du bearbeiten willst.'),
+      ps.length ? ps.map(p => h('button', { class: 'list-item', type: 'button', onclick: () => nav(route.toConsole ? 'console' : 'chain', { prodId: p.id, chainFrom: 'chains', chainOwner: 'prod' }) },
+        h('b', {}, p.name || 'Unbenannte Produktion'),
+        h('span', {}, `${plural(p.chain.channels.length, 'Kanal', 'Kanäle')}, ${plural(p.chain.busses.length, 'Bus', 'Busse')}`)))
+        : [h('div', { class: 'empty' }, 'Noch keine Studioproduktion vorhanden.'),
+           h('button', { class: 'btn solid', type: 'button', onclick: () => { const p = newProduction('studio'); a.productions.unshift(p); touch(); nav('kit', { prodId: p.id }); } }, 'Studioproduktion anlegen')]
+    ]
+  };
+}
+const GEAR_DB = {
+  'Preamp': {
+    'Neve': [['1073', 'hw'], ['1084', 'hw'], ['1073LB (500er)', 'hw']], 'API': [['512c', 'hw'], ['312', 'hw'], ['3124+', 'hw']],
+    'SSL': [['VHD Pre', 'hw'], ['E-Series Kanal', 'hw']], 'Universal Audio': [['610 Solo', 'hw'], ['4-710d', 'hw'], ['Apollo Unison', 'hw'], ['Neve 1073 Preamp', 'pl'], ['610-B Tube Preamp', 'pl']],
+    'Focusrite': [['ISA One', 'hw'], ['ISA 428', 'hw']], 'Rupert Neve Designs': [['Portico 511', 'hw'], ['Shelford Channel', 'hw']],
+    'Telefunken': [['V76', 'hw']], 'Chandler': [['TG2', 'hw']], 'Grace Design': [['m101', 'hw'], ['m801', 'hw']],
+    'Millennia': [['HV-3D', 'hw']], 'Avalon': [['VT-737sp', 'hw']], 'Great River': [['MP-2NV', 'hw']]
+  },
+  'EQ': {
+    'API': [['550A', 'hw'], ['550B', 'hw'], ['560', 'hw']], 'Neve': [['1073', 'hw'], ['1081', 'hw'], ['1084', 'hw']],
+    'SSL': [['E-Series EQ', 'hw'], ['G-Series EQ', 'hw'], ['Native Channel Strip 2', 'pl']], 'Pultec': [['EQP-1A', 'hw'], ['MEQ-5', 'hw']],
+    'Maag': [['EQ4', 'hw']], 'Tube-Tech': [['PE 1C', 'hw']], 'Manley': [['Massive Passive', 'hw']], 'GML': [['8200', 'hw']],
+    'Chandler': [['TG12345', 'hw'], ['Curve Bender', 'hw']],
+    'FabFilter': [['Pro-Q 3', 'pl'], ['Pro-Q 4', 'pl']],
+    'Universal Audio': [['Pultec EQP-1A', 'pl'], ['Neve 1073', 'pl'], ['API Vision Channel Strip', 'pl'], ['Helios Type 69', 'pl']],
+    'Waves': [['SSL E-Channel', 'pl'], ['SSL G-Equalizer', 'pl'], ['API 550', 'pl'], ['PuigTec EQP-1A', 'pl'], ['Scheps 73', 'pl']],
+    'Plugin Alliance': [['Maag EQ4', 'pl'], ['bx_digital V3', 'pl']], 'Slate Digital': [['Infinity EQ', 'pl']], 'Avid': [['EQ III', 'pl']]
+  },
+  'Kompressor': {
+    'Universal Audio': [['1176LN', 'hw'], ['Teletronix LA-2A', 'hw'], ['175B', 'hw'], ['1176 Collection', 'pl'], ['Teletronix LA-2A Collection', 'pl'], ['Fairchild 660/670', 'pl'], ['SSL 4000 G Bus Compressor', 'pl']],
+    'Empirical Labs': [['Distressor EL8', 'hw'], ['Distressor EL8-X', 'hw'], ['FATSO', 'hw']], 'dbx': [['160A', 'hw'], ['165A', 'hw']],
+    'SSL': [['G-Series Bus Compressor', 'hw'], ['Native Bus Compressor 2', 'pl']], 'API': [['2500', 'hw'], ['527', 'hw']],
+    'Neve': [['33609', 'hw'], ['2254', 'hw']], 'Fairchild': [['660', 'hw'], ['670', 'hw']], 'Chandler': [['TG1', 'hw'], ['Zener Limiter', 'hw']],
+    'Tube-Tech': [['CL 1B', 'hw']], 'Manley': [['Variable Mu', 'hw']], 'Shadow Hills': [['Mastering Compressor', 'hw']],
+    'FabFilter': [['Pro-C 2', 'pl'], ['Pro-MB', 'pl']],
+    'Waves': [['CLA-76', 'pl'], ['CLA-2A', 'pl'], ['SSL G-Master Buss Compressor', 'pl'], ['API 2500', 'pl'], ['dbx 160', 'pl'], ['Renaissance Compressor', 'pl']],
+    'Cytomic': [['The Glue', 'pl']], 'Softube': [['Tube-Tech CL 1B', 'pl'], ['FET Compressor', 'pl']], 'Arturia': [['Comp FET-76', 'pl'], ['Comp VCA-65', 'pl']],
+    'Slate Digital': [['FG-Stress', 'pl']]
+  },
+  'Gate / Expander': {
+    'Drawmer': [['DS201', 'hw']], 'dbx': [['904', 'hw']], 'SSL': [['E-Series Gate', 'hw']],
+    'FabFilter': [['Pro-G', 'pl']], 'Waves': [['C1 Gate', 'pl']], 'Sonnox': [['Oxford Drum Gate', 'pl']]
+  },
+  'Sättigung': {
+    'Soundtoys': [['Decapitator', 'pl'], ['Radiator', 'pl']], 'FabFilter': [['Saturn 2', 'pl']], 'Kush Audio': [['Omega', 'pl']],
+    'Thermionic Culture': [['Culture Vulture', 'hw']], 'Elysia': [['Karacter', 'hw']], 'Black Box Analog Design': [['HG-2', 'hw']],
+    'Plugin Alliance': [['Black Box HG-2', 'pl']], 'Universal Audio': [['Studer A800', 'pl'], ['Ampex ATR-102', 'pl']]
+  },
+  'Transient Designer': {
+    'SPL': [['Transient Designer', 'hw']], 'Waves': [['Trans-X', 'pl'], ['Smack Attack', 'pl']], 'Sonnox': [['Oxford TransMod', 'pl']], 'Native Instruments': [['Transient Master', 'pl']]
+  },
+  'Hall': {
+    'Bricasti': [['M7', 'hw']], 'Lexicon': [['480L', 'hw'], ['PCM96', 'hw'], ['PCM Native Reverb', 'pl']], 'EMT': [['140 Plate', 'hw'], ['250', 'hw']],
+    'Valhalla': [['VintageVerb', 'pl'], ['Room', 'pl'], ['Plate', 'pl']], 'Universal Audio': [['EMT 140', 'pl'], ['Lexicon 224', 'pl'], ['Capitol Chambers', 'pl']],
+    'FabFilter': [['Pro-R 2', 'pl']], 'Audio Ease': [['Altiverb 8', 'pl']], 'Liquidsonics': [['Seventh Heaven', 'pl']], 'Waves': [['H-Reverb', 'pl'], ['Abbey Road Chambers', 'pl']]
+  },
+  'Delay': {
+    'Roland': [['RE-201 Space Echo', 'hw']], 'Strymon': [['TimeLine', 'hw']], 'Eventide': [['H3000', 'hw']],
+    'Soundtoys': [['EchoBoy', 'pl']], 'Valhalla': [['Delay', 'pl']], 'Waves': [['H-Delay', 'pl']], 'FabFilter': [['Timeless 3', 'pl']], 'Universal Audio': [['Galaxy Tape Echo', 'pl']]
+  }
+};
+function gearPicker(st) {
+  const db = GEAR_DB[st.kind];
+  if (!db) return field('Gerät / Plugin', st.gear, v => st.gear = v, { wide: true, placeholder: 'Gerät oder Plugin eintragen', onchange: () => render(true) });
+  const want = () => st.gearType === 'Plugin' ? 'pl' : 'hw';
+  const fit = (b, all) => db[b].filter(m => all || m[1] === want()).map(m => m[0]);
+  return catPicker({ label: 'Gerät / Plugin', value: st.gear, placeholder: `${st.kind} auswählen oder eintragen`, canShowAll: true,
+    get title() { return `Hersteller (${st.gearType === 'Plugin' ? 'Plugins' : 'Hardware'})`; },
+    brands: all => Object.keys(db).filter(b => fit(b, all).length), items: fit,
+    onPick: v => { st.gear = v; for (const b in db) for (const [m, t] of db[b]) if (`${b} ${m}` === v) st.gearType = t === 'pl' ? 'Plugin' : 'Hardware'; setTimeout(() => render(true)); } });
+}
+function stageBlock(st, list) {
+  const fields = STAGES[st.kind] || STAGES.Sonstiges;
+  const i = list.indexOf(st);
+  const move = dir => { const j = i + dir; if (j < 0 || j >= list.length) return; [list[i], list[j]] = [list[j], list[i]]; touch(); render(true); };
+  return h('div', { class: 'stage-blk' },
+    h('div', { class: 'stage-hd' }, h('b', {}, st.kind),
+      h('div', { class: 'seg', role: 'group', 'aria-label': 'Art des Geräts' }, ['Hardware', 'Plugin'].map(t => h('button', { type: 'button', 'aria-pressed': String(st.gearType === t),
+        onclick: () => { st.gearType = t; touch(); render(true); } }, t))),
+      h('button', { class: 'x sm', type: 'button', 'aria-label': 'Nach oben', onclick: () => move(-1) }, '▲'),
+      h('button', { class: 'x sm', type: 'button', 'aria-label': 'Nach unten', onclick: () => move(1) }, '▼'),
+      h('button', { class: 'x sm', type: 'button', 'aria-label': 'Stufe entfernen', onclick: () => { list.splice(list.indexOf(st), 1); touch(); render(true); } }, '×')),
+    h('div', { class: 'grid' },
+      gearPicker(st),
+      fields.map(f => field(f, st.vals[f], v => st.vals[f] = v, { placeholder: PH[f] || '' }))));
+}
+function chainCard(ch, arr, isBus) {
+  const summary = ch.stages.length ? ch.stages.map(s => s.gear || s.kind).join(' › ') : 'Noch keine Stufen';
+  const addSel = h('select', { 'aria-label': 'Stufe hinzufügen', onchange: e => { if (!e.target.value) return; ch.stages.push(newStage(e.target.value)); openSet.add(ch.id); touch(); render(true); } },
+    h('option', { value: '' }, '+ Stufe hinzufügen …'), Object.keys(STAGES).map(k => h('option', { value: k }, k)));
+  const flow = [];
+  ch.stages.forEach((s, i) => { if (i) flow.push(h('div', { class: 'arrow', 'aria-hidden': 'true' }, '↓')); flow.push(stageBlock(s, ch.stages)); });
+  return h('details', { class: 'chain', open: openSet.has(ch.id), ontoggle: e => e.target.open ? openSet.add(ch.id) : openSet.delete(ch.id) },
+    h('summary', {}, h('span', { class: 'ch-name' }, ch.name || (isBus ? 'Unbenannter Bus' : 'Unbenannter Kanal')), h('span', { class: 'ch-sum' }, (ch.source ? ch.source + ': ' : '') + summary)),
+    h('div', { class: 'ch-body' },
+      h('div', { class: 'grid' },
+        field(isBus ? 'Name des Busses' : 'Kanal', ch.name, v => ch.name = v, { placeholder: isBus ? 'z. B. Drum-Bus' : 'z. B. Kick In', onchange: () => render(true) }),
+        isBus ? field('Quellen', ch.source, v => ch.source = v, { placeholder: 'z. B. Kick, Snare, Toms', onchange: () => render(true) }) : micPicker('Mikrofon / Quelle', ch.source, v => { ch.source = v; setTimeout(() => render(true)); }, route.chainOwner === 'inst' ? ['amp', 'di', 'ac'] : ['bd', 'sn', 'tom', 'oh', 'room'])),
+      ch.stages.length ? h('div', { class: 'flow' }, flow) : null,
+      h('div', { style: 'margin-top:12px' }, addSel),
+      h('div', { style: 'margin-top:12px' }, areaField('Notizen', ch.notes, v => ch.notes = v)),
+      h('div', { class: 'row' }, delBtn(isBus ? 'Bus löschen' : 'Kanal löschen', () => { arr.splice(arr.indexOf(ch), 1); touch(); render(true); }, 'small'))));
+}
+function viewChain() {
+  const a = artist(); const instOwned = route.chainOwner === 'inst';
+  const p = instOwned ? null : a.productions.find(x => x.id === route.prodId);
+  if (!instOwned && !p) { route.view = 'chains'; return viewChains(); }
+  const C = instOwned ? a.instChains[route.inst] : p.chain;
+  const fromKit = () => {
+    let n = 0;
+    p.drums.forEach(d => { if (!C.channels.some(c => c.name === d.name)) { C.channels.push({ id: newId(), name: d.name, source: d.mic, stages: [newStage('Preamp')], notes: '' }); n++; } });
+    p.mics.forEach(m => { if (m.pos && !C.channels.some(c => c.name === m.pos)) { C.channels.push({ id: newId(), name: m.pos, source: m.mic, stages: [newStage('Preamp')], notes: '' }); n++; } });
+    touch(); toast(n ? `${plural(n, 'Kanal', 'Kanäle')} übernommen` : 'Alle Kanäle sind schon vorhanden'); render(true);
+  };
+  const busSel = h('select', { 'aria-label': 'Bus hinzufügen', onchange: e => {
+    const k = e.target.value; if (!k) return; const pr = BUS_PRESETS[k];
+    const b = { id: newId(), name: k === 'Leerer Bus' ? '' : k, source: pr.sources, stages: pr.stages.map(newStage), notes: '' };
+    C.busses.push(b); openSet.add(b.id); touch(); render(true);
+  } }, h('option', { value: '' }, '+ Bus oder Effekt hinzufügen …'), Object.keys(BUS_PRESETS).map(k => h('option', { value: k }, k)));
+  return {
+    title: 'Recording Chain', sub: instOwned ? `${a.name}, ${instName()}` : (p.name || 'Unbenannte Produktion'),
+    back: () => instOwned ? nav('ghome') : route.chainFrom === 'kit' ? nav('kit', { prodId: p.id }) : nav('chains'),
+    body: [
+      h('button', { class: 'btn solid', type: 'button', style: 'width:100%;margin-bottom:6px', onclick: () => nav('console') }, 'Als Mischpult anzeigen'),
+      h('h2', { style: 'margin-top:14px' }, 'Kanäle', h('small', {}, plural(C.channels.length, 'Kanal', 'Kanäle'))),
+      C.channels.length ? C.channels.map(c => chainCard(c, C.channels, false)) : h('div', { class: 'empty' }, instOwned ? 'Noch keine Kanäle. Leg zum Beispiel Amp-Mikrofone und DI an.' : 'Noch keine Kanäle. Übernimm sie aus dem Drumkit oder leg sie einzeln an.'),
+      h('div', { class: 'row' },
+        instOwned ? null : h('button', { class: 'btn solid', type: 'button', disabled: !(p.drums.length || p.mics.length), onclick: fromKit }, 'Kanäle aus Drumkit übernehmen'),
+        h('button', { class: 'btn', type: 'button', onclick: () => { const c = { id: newId(), name: '', source: '', stages: [newStage('Preamp')], notes: '' }; C.channels.push(c); openSet.add(c.id); touch(); render(true); } }, 'Kanal hinzufügen')),
+      h('h2', {}, 'Busse und Effekte', h('small', {}, plural(C.busses.length, 'Bus', 'Busse'))),
+      C.busses.length ? C.busses.map(b => chainCard(b, C.busses, true)) : h('div', { class: 'empty' }, 'Noch keine Busse. Leg zum Beispiel einen Drum-Bus oder einen Hall-Send an.'),
+      busSel
+    ]
+  };
+}
+
+/* ================= setlists ================= */
+function viewSetlists() {
+  const a = artist(), studio = route.mode === 'studio';
+  const list = a.setlists.filter(s => s.mode === route.mode);
+  const create = () => { const s = { id: newId(), mode: route.mode, name: '', date: '', venue: '', prodId: '', songs: [] }; a.setlists.unshift(s); touch(); nav('setlist', { setId: s.id }); };
+  return {
+    title: 'Setlisten', sub: `${a.name}, ${modeName()}`, back: () => nav(route.inst === 'drums' ? 'home' : 'ghome'),
+    body: [
+      h('button', { class: 'btn solid', type: 'button', onclick: create }, 'Neue Setliste anlegen'),
+      h('div', { style: 'height:16px' }),
+      list.length ? list.map(s => h('button', { class: 'list-item', type: 'button', onclick: () => nav('setlist', { setId: s.id }) },
+        h('b', {}, s.name || 'Unbenannt'),
+        h('span', {}, [fmtDate(s.date), s.venue, plural(s.songs.length, 'Song', 'Songs')].filter(Boolean).join(', '))))
+        : h('div', { class: 'empty' }, 'Noch keine Setliste gespeichert.')
+    ]
+  };
+}
+function viewSetlist() {
+  const a = artist(); const s = a.setlists.find(x => x.id === route.setId);
+  if (!s) { route.view = 'setlists'; return viewSetlists(); }
+  const studio = s.mode === 'studio';
+  const songInp = h('input', { placeholder: 'Songtitel', 'aria-label': 'Neuer Songtitel' });
+  const addSong = () => { const t = songInp.value.trim(); if (!t) { songInp.focus(); return; } s.songs.push({ id: newId(), title: t, bpm: null, note: '', gt: {}, bs: {} }); touch(); render(true); setTimeout(() => document.querySelector('[aria-label="Neuer Songtitel"]')?.focus(), 0); };
+  songInp.addEventListener('keydown', e => { if (e.key === 'Enter') addSong(); });
+  const move = (i, dir) => { const j = i + dir; if (j < 0 || j >= s.songs.length) return; [s.songs[i], s.songs[j]] = [s.songs[j], s.songs[i]]; touch(); render(true); };
+  const ik = route.inst === 'guitar' ? 'gt' : route.inst === 'bass' ? 'bs' : null;
+  const tunRow = song => ik ? h('div', { class: 'tun' },
+    h('select', { 'aria-label': 'Stimmung', value: song[ik].tuningId || '', onchange: e => { song[ik].tuningId = e.target.value; touch(); } }, h('option', { value: '' }, 'Stimmung …'), a.tunings.filter(t => t.inst === route.inst).map(t => h('option', { value: t.id }, t.name || 'Unbenannt'))),
+    h('select', { 'aria-label': 'Kapo', value: String(song[ik].capo || 0), onchange: e => { song[ik].capo = +e.target.value; touch(); } }, CAPO_OPTS.map(o => h('option', { value: o.value }, o.label)))) : null;
+  const keyRow = song => h('div', { class: 'keyrow' },
+    h('select', { 'aria-label': 'Tonart', value: song.key || '', onchange: e => { song.key = e.target.value; touch(); } }, h('option', { value: '' }, 'Tonart / Key …'), KEYS.map(k => h('option', { value: k.v }, k.l))),
+    h('button', { class: 'btn small', type: 'button', 'aria-expanded': String(aiOpen.has(song.id)), onclick: () => { aiOpen.has(song.id) ? aiOpen.delete(song.id) : aiOpen.add(song.id); render(true); } }, aiOpen.has(song.id) ? 'Schließen' : 'Akkorde und Struktur'),
+    route.inst === 'drums' ? h('button', { class: 'btn small', type: 'button', onclick: () => {
+      const pp = a.productions.find(x => x.id === s.prodId);
+      if (!pp) { toast('Ordne der Setliste oben zuerst ein Drumkit zu.'); return; }
+      showTuningSheet(pp, { songId: song.id });
+    } }, 'Tom-Tuning') : null);
+  const aiResult = (song, r) => {
+    if (r.known === false) return h('p', { class: 'muted' }, 'Claude kennt diesen Song nicht sicher genug, um verlässliche Angaben zu machen. Prüf Titel und Schreibweise oder trag die Infos selbst ein.');
+    const meta = [r.key && `Tonart ${r.key}`, r.bpm && `${r.bpm} BPM`, r.capo ? `Kapo ${r.capo}. Bund` : '', r.tuning && `Stimmung: ${r.tuning}`].filter(Boolean).join(', ');
+    const canKey = r.key && KEY_NAMES.includes(r.key) && song.key !== r.key, canBpm = r.bpm && !song.bpm;
+    return h('div', {},
+      meta ? h('div', { class: 'ai-meta' }, meta) : null,
+      (canKey || canBpm) ? h('button', { class: 'btn small', type: 'button', onclick: () => { if (canKey) song.key = r.key; if (canBpm) song.bpm = Math.round(+r.bpm) || null; touch(); render(true); } }, 'Tonart und BPM in die Setliste übernehmen') : null,
+      h('div', { class: 'ai-secs' }, (r.sections || []).map(sec => h('div', { class: 'ai-sec' }, h('b', {}, sec.name || ''), h('span', { class: 'ai-ch' }, sec.chords || ''),
+        (sec.bars || sec.note) ? h('small', {}, [sec.bars, sec.note].filter(Boolean).join(', ')) : null))),
+      r.notes ? h('p', { class: 'ai-tip' }, r.notes) : null,
+      h('p', { class: 'ai-note' }, 'Akkorde in internationaler Schreibweise, B entspricht also dem deutschen H.'));
+  };
+  const aiPanel = song => {
+    if (!aiOpen.has(song.id)) return null;
+    song.ai ||= {};
+    const box = h('div', { class: 'ai' });
+    let instr = song.aiInst || (route.inst === 'bass' ? 'bass' : 'guitar'), busy = false, msg = '';
+    async function fetchIt() {
+      if (!(song.title || '').trim()) { msg = 'Bitte zuerst einen Songtitel eintragen.'; draw(); return; }
+      busy = true; msg = ''; draw();
+      try {
+        const sample = window.claude && typeof window.claude.use === 'function' ? await window.claude.use('sample') : null;
+        if (!sample) throw { code: 'unavailable' };
+        const r = await sample.json(aiPrompt(a.name, song.title, instr), { modelTier: 'default' });
+        if (!r || typeof r !== 'object') throw { code: 'invalid_json' };
+        r.fetched = Date.now(); song.ai[instr] = r; touch();
+      } catch (e) {
+        const c = e && e.code;
+        msg = c === 'unavailable' ? 'Diese Funktion ist in dieser Ansicht nicht verfügbar. Öffne die App über claude.ai und melde dich an.'
+          : c === 'not_granted' ? 'Der Zugriff auf Claude wurde nicht erlaubt.'
+          : c === 'rate_limited' ? 'Gerade zu viele Anfragen. Versuch es in ein paar Minuten noch einmal.'
+          : 'Das hat nicht geklappt. Versuch es noch einmal.';
+      }
+      busy = false; draw();
+    }
+    function draw() {
+      const r = song.ai[instr];
+      box.replaceChildren(...[
+        h('div', { class: 'ai-hd' },
+          chipGroup([['guitar', 'Gitarre'], ['bass', 'Bass']], instr, v => { instr = v; song.aiInst = v; touch(); draw(); }, 'Instrument'),
+          h('button', { class: 'btn solid small', type: 'button', disabled: busy, onclick: fetchIt }, busy ? 'Wird abgerufen …' : r ? 'Neu abrufen' : 'Abrufen')),
+        msg ? h('p', { class: 'err' }, msg) : null,
+        r ? aiResult(song, r) : (!busy && !msg ? h('p', { class: 'muted', style: 'font-size:.9rem' }, `Ruft Tonart, Songstruktur und ${instr === 'bass' ? 'Basstöne' : 'Akkorde'} für „${song.title || 'diesen Song'}“ von ${a.name} ab.`) : null),
+        h('p', { class: 'ai-note' }, 'KI-Vorschlag aus dem Wissen von Claude, kein Live-Abruf aus dem Internet. Bitte vor dem Gig mit dem Original abgleichen. Liedtexte werden nicht angezeigt.')].filter(Boolean));
+    }
+    draw(); return box;
+  };
+  const songs = s.songs.map((song, i) => h('div', { class: 'song' },
+    h('span', { class: 'no' }, i + 1),
+    h('input', { value: song.title, 'aria-label': 'Songtitel', oninput: e => { song.title = e.target.value; touch(); } }),
+    h('input', { value: song.bpm ?? '', type: 'number', inputmode: 'numeric', placeholder: 'BPM', 'aria-label': 'BPM', oninput: e => { song.bpm = e.target.value === '' ? null : +e.target.value; touch(); } }),
+    h('div', { class: 'ctrl' },
+      h('button', { type: 'button', 'aria-label': 'Nach oben', onclick: () => move(i, -1) }, '▲'),
+      h('button', { type: 'button', 'aria-label': 'Nach unten', onclick: () => move(i, 1) }, '▼'),
+      h('button', { type: 'button', 'aria-label': 'Song entfernen', onclick: () => { s.songs.splice(i, 1); touch(); render(true); } }, '×')),
+    h('input', { class: 'note', value: song.note || '', placeholder: studio ? 'Notiz, z. B. Snare-Wechsel, Overdubs' : 'Notiz, z. B. Snare wechseln, Click an', 'aria-label': 'Notiz', oninput: e => { song.note = e.target.value; touch(); } }),
+    keyRow(song), tunRow(song), aiPanel(song)));
+  const prodOpts = [{ value: '', label: 'Keine Zuordnung' }, ...prods().map(p => ({ value: p.id, label: p.name || 'Unbenannte Produktion' }))];
+  return {
+    title: s.name || 'Neue Setliste', sub: `${a.name}, ${modeName()}`, back: () => nav('setlists'),
+    body: [
+      h('div', { class: 'card' }, h('div', { class: 'grid' },
+        field('Name', s.name, v => s.name = v, { wide: true, placeholder: studio ? 'z. B. Album-Tracks' : 'z. B. Festival-Set 60 Min.', onchange: () => render(true) }),
+        field('Datum', s.date, v => s.date = v, { type: 'date' }),
+        field(studio ? 'Studio' : 'Ort', s.venue, v => s.venue = v, { placeholder: studio ? 'z. B. Hansa Studios' : 'z. B. Columbiahalle' }),
+        selectField('Drumkit / Produktion', s.prodId || '', prodOpts, v => s.prodId = v, { wide: true }))),
+      h('h2', {}, 'Songs', h('small', {}, plural(s.songs.length, 'Song', 'Songs'))),
+      songs.length ? songs : h('div', { class: 'empty' }, 'Füge unten den ersten Song hinzu.'),
+      h('div', { class: 'add-row' }, songInp, h('button', { class: 'btn solid', type: 'button', onclick: addSong }, 'Hinzufügen')),
+      h('div', { class: 'row', style: 'margin-top:32px' },
+        h('button', { class: 'btn', type: 'button', disabled: !s.songs.length, onclick: () => showStage(s) }, 'Großansicht'),
+        delBtn('Liste löschen', () => { a.setlists = a.setlists.filter(x => x !== s); touch(); nav('setlists'); }))
+    ]
+  };
+}
+function showStage(s) {
+  const ov = h('div', { class: 'stage', role: 'dialog', 'aria-label': 'Großansicht' },
+    h('button', { class: 'close', type: 'button', onclick: () => ov.remove() }, 'Schließen'),
+    h('ol', {}, s.songs.map(x => h('li', {}, h('div', {}, x.title || '–', (() => { const t = [x.key, x.bpm ? x.bpm + ' BPM' : '', stageTun(x), x.note].filter(Boolean).join(', '); return t ? h('small', {}, t) : null; })())))));
+  document.body.append(ov); ov.querySelector('.close').focus();
+}
+
+/* ================= tuner engine ================= */
+const median = arr => { const s = [...arr].sort((x, y) => x - y); const m = s.length >> 1; return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2; };
+const NOTES = ['C', 'C♯', 'D', 'E♭', 'E', 'F', 'F♯', 'G', 'G♯', 'A', 'B', 'H'];
+function noteOf(f) { const n = 12 * Math.log2(f / 440) + 69; const r = Math.round(n); return { name: NOTES[(r % 12 + 12) % 12] + (Math.floor(r / 12) - 1), cents: Math.round((n - r) * 100) }; }
+const Tuner = {
+  running: false, ctx: null, stream: null, analyser: null, raf: 0,
+  range: 'Alles', threshold: 0.02, recent: [], hits: [], lastF: null, lastT: 0, lastPeakF: null,
+  inHit: false, hitStart: 0, hitPeaks: [], ui: null, onHit: null,
+  decay: null, dAct: false, dPeak: 0, dPeakT: 0,
+  async start() {
+    if (!navigator.mediaDevices?.getUserMedia) throw new Error('nomedia');
+    this.stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false } });
+    this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+    await this.ctx.resume();
+    const src = this.ctx.createMediaStreamSource(this.stream);
+    this.analyser = this.ctx.createAnalyser(); this.analyser.fftSize = 16384; this.analyser.smoothingTimeConstant = 0;
+    src.connect(this.analyser);
+    this.freq = new Float32Array(this.analyser.frequencyBinCount);
+    this.time = new Float32Array(this.analyser.fftSize);
+    this.running = true; this.loop();
+  },
+  stop() {
+    this.running = false; cancelAnimationFrame(this.raf);
+    try { this.stream?.getTracks().forEach(t => t.stop()); } catch (e) {}
+    try { this.ctx?.close(); } catch (e) {}
+    this.stream = this.ctx = this.analyser = null;
+  },
+  binHz() { return this.ctx ? this.ctx.sampleRate / this.analyser.fftSize : 3; },
+  peak() {
+    const bin = this.binHz(), F = this.freq;
+    const [fmin, fmax] = this.customRange || RANGES[this.range];
+    const lo = Math.max(2, Math.floor(fmin / bin)), hi = Math.min(F.length - 3, Math.ceil(fmax / bin));
+    let mi = lo, mv = -Infinity;
+    for (let i = lo; i <= hi; i++) if (F[i] > mv) { mv = F[i]; mi = i; }
+    if (mv < -95) return null;
+    for (let i = lo + 1; i < mi; i++) {
+      const v = F[i];
+      if (v > mv - 10 && v >= F[i - 1] && v >= F[i + 1] && v >= F[i - 2] && v >= F[i + 2]) { mi = i; break; }
+    }
+    const A = F[mi - 1], B = F[mi], C = F[mi + 1];
+    const d = A - 2 * B + C; const p = d ? 0.5 * (A - C) / d : 0;
+    return (mi + Math.max(-0.5, Math.min(0.5, p))) * bin;
+  },
+  yin() {
+    const sr = this.ctx.sampleRate, buf = this.time, len = 8192, off = buf.length - len, D = 4, n = len / D;
+    const x = this.ds || (this.ds = new Float32Array(n));
+    for (let i = 0; i < n; i++) { const j = off + i * D; x[i] = (buf[j] + buf[j + 1] + buf[j + 2] + buf[j + 3]) / 4; }
+    const srd = sr / D, W = n / 2, minLag = Math.max(2, Math.floor(srd / 1400)), maxLag = Math.min(W - 1, Math.floor(srd / 26));
+    const dd = this.dd || (this.dd = new Float32Array(W));
+    let run = 0, best = -1; dd[0] = 1;
+    for (let t = 1; t <= maxLag; t++) { let sm = 0; for (let i = 0; i < W; i++) { const q = x[i] - x[i + t]; sm += q * q; } run += sm; dd[t] = run ? sm * t / run : 1; }
+    for (let t = minLag; t <= maxLag; t++) if (dd[t] < 0.15) { while (t + 1 <= maxLag && dd[t + 1] < dd[t]) t++; best = t; break; }
+    if (best < 0) { let mv = 1; for (let t = minLag; t <= maxLag; t++) if (dd[t] < mv) { mv = dd[t]; best = t; } if (mv > 0.4) return null; }
+    const W2 = 4096, c = best * D, memo = {};
+    const diff = t => { if (memo[t] != null) return memo[t]; let sm = 0; for (let i = 0; i < W2; i++) { const q = buf[off + i] - buf[off + i + t]; sm += q * q; } return memo[t] = sm; };
+    let bt = c, bv = Infinity;
+    for (let t = Math.max(2, c - D - 2); t <= c + D + 2; t++) { const v = diff(t); if (v < bv) { bv = v; bt = t; } }
+    const A = diff(bt - 1), C = diff(bt + 1), den = A - 2 * bv + C, pp = den ? 0.5 * (A - C) / den : 0;
+    return sr / (bt + Math.max(-0.5, Math.min(0.5, pp)));
+  },
+  loop() {
+    if (!this.running) return;
+    this.raf = requestAnimationFrame(() => this.loop());
+    this.analyser.getFloatTimeDomainData(this.time);
+    this.analyser.getFloatFrequencyData(this.freq);
+    const T = this.time, N = 2048; let sum = 0;
+    for (let i = T.length - N; i < T.length; i++) sum += T[i] * T[i];
+    const rms = Math.sqrt(sum / N);
+    const now = performance.now(), thr = this.threshold;
+    if (this.algo === 'string') {
+      if (rms > thr) { const f = this.yin(); if (f) { this.recent.push(f); if (this.recent.length > 5) this.recent.shift(); this.lastF = median(this.recent); this.lastT = now; } }
+      else if (rms < thr * 0.5) this.recent = [];
+      this.ui && this.ui(now); return;
+    }
+    if (rms > thr) {
+      const f = this.peak();
+      if (f) {
+        this.lastPeakF = f;
+        this.recent.push(f); if (this.recent.length > 5) this.recent.shift();
+        this.lastF = median(this.recent); this.lastT = now;
+        if (!this.inHit) { this.inHit = true; this.hitStart = now; this.hitPeaks = []; this.dAct = true; this.dPeak = rms; this.dPeakT = now; }
+        if (this.inHit === true && now - this.hitStart > 60 && now - this.hitStart < 600) this.hitPeaks.push(f);
+      }
+    } else if (rms < thr * 0.5) this.recent = [];
+    if (this.dAct) {
+      if (rms > this.dPeak) { this.dPeak = rms; this.dPeakT = now; }
+      else if (rms < this.dPeak * 0.1) { this.decay = (now - this.dPeakT) / 1000; this.dAct = false; }
+      else if (now - this.dPeakT > 6000) this.dAct = false;
+    }
+    if (this.inHit === true && (now - this.hitStart > 600 || (rms < thr * 0.5 && now - this.hitStart > 150))) {
+      if (this.hitPeaks.length >= 2) { const m = median(this.hitPeaks); this.hits.unshift(m); this.hits = this.hits.slice(0, 8); this.onHit && this.onHit(m); }
+      this.inHit = rms >= thr * 0.5 ? 'wait' : false;
+    }
+    if (this.inHit === 'wait' && rms < thr * 0.5) this.inHit = false;
+    this.ui && this.ui(now);
+  }
+};
+function lugOrder(n, pattern) {
+  const idx = [...Array(n).keys()];
+  if (pattern !== 'star') return idx;
+  if (n % 2) { const o = []; for (let i = 0; i < n; i += 2) o.push(i); for (let i = 1; i < n; i += 2) o.push(i); return o; }
+  const half = n / 2, base = []; for (let i = 0; i < half; i += 2) base.push(i); for (let i = 1; i < half; i += 2) base.push(i);
+  return base.flatMap(i => [i, i + half]);
+}
+
+/* ================= view: tuner ================= */
+function viewTuner() {
+  const a = artist();
+  Tuner.algo = 'drum'; Tuner.customRange = null;
+  route.side ||= 'top'; route.tTab ||= 'pitch';
+  const [pid, did] = (route.target || '').split('|');
+  const p = prods().find(x => x.id === pid); const d = p?.drums.find(x => x.id === did) || null;
+  const sideName = s => s === 'top' ? 'Schlagfell' : 'Resonanzfell';
+  let targetHz = d ? (route.side === 'top' ? (d.targetTop ?? d.pitchTop) : d.pitchBottom) : (route.freeTarget ?? null);
+  if (d && route.lastTarget !== route.target) { Tuner.range = RANGES[d.type] ? d.type : 'Alles'; }
+
+  // lug + resonance state, reloaded when drum or side changes
+  const lugKey = `${route.target}|${route.side}`;
+  if (!route.L || route.L.key !== lugKey) {
+    const n = d ? (d.lugs || DEFAULT_LUGS[d.type]) : (route.L?.n || 8);
+    const stored = d ? (route.side === 'top' ? d.lugsTop : d.lugsBottom) : [];
+    route.L = { key: lugKey, n, vals: Array.from({ length: n }, (_, i) => stored[i] ?? null), sel: 0, pattern: route.L?.pattern || 'clock' };
+  }
+  if (!route.R || route.R.key !== route.target) route.R = { key: route.target, top: d?.pitchTop ?? null, bottom: d?.pitchBottom ?? null, armed: 'top' };
+  route.lastTarget = route.target;
+  const L = route.L, R = route.R;
+
+  // --- target card
+  const opts = [h('option', { value: '' }, 'Frei stimmen (ohne gespeicherte Trommel)')];
+  prods().forEach(pp => { if (pp.drums.length) opts.push(h('optgroup', { label: pp.name || 'Unbenannte Produktion' }, pp.drums.map(dd => h('option', { value: `${pp.id}|${dd.id}` }, dd.name || dd.type)))); });
+  const targetSel = h('select', { 'aria-label': 'Trommel', value: route.target || '', onchange: e => { route.target = e.target.value || null; render(true); } }, opts);
+  const sideChips = h('div', { class: 'chips', role: 'group', 'aria-label': 'Fellseite' }, ['top', 'bottom'].map(s => h('button', { class: 'chip', type: 'button', 'aria-pressed': String(route.side === s), disabled: !d, onclick: () => { route.side = s; render(true); } }, sideName(s))));
+  const hzInp = h('input', { type: 'number', step: '0.1', inputmode: 'decimal', value: targetHz ?? '', placeholder: 'z. B. 110', 'aria-label': 'Zielfrequenz in Hz',
+    oninput: e => { const v = e.target.value; targetHz = v === '' ? null : parseFloat(v); if (!d) route.freeTarget = targetHz; drawLugs(); } });
+  const rangeChips = h('div', { class: 'chips', role: 'group', 'aria-label': 'Frequenzbereich' }, Object.keys(RANGES).map(k =>
+    h('button', { class: 'chip', type: 'button', 'aria-pressed': String(Tuner.range === k), onclick: e => { Tuner.range = k; Tuner.recent = []; rangeChips.querySelectorAll('.chip').forEach(c => c.setAttribute('aria-pressed', String(c === e.currentTarget))); } }, k)));
+  const sens = h('input', { type: 'range', min: '1', max: '10', 'aria-label': 'Empfindlichkeit', value: String(Math.max(1, Math.min(10, Math.round(11 - Math.log10(Tuner.threshold / 0.002) * 4.5)))),
+    oninput: e => { Tuner.threshold = 0.002 * Math.pow(10, (11 - +e.target.value) / 4.5); } });
+
+  // --- kit photo
+  const photoSlot = h('div', { class: 'kp-tuner' });
+  const refreshPhoto = () => photoSlot.replaceChildren(...(p && p.hasPhoto && p.drums.some(x => x.photoPos)
+    ? [kitPhotoView(p, { selId: d?.id, onPick: dd => { route.target = `${p.id}|${dd.id}`; route.side = 'top'; render(true); } }), h('p', { class: 'kp-hint' }, 'Tippe auf eine Trommel im Foto, um zu ihr zu wechseln.')] : []));
+  refreshPhoto();
+  // --- readout
+  const hzEl = h('div', { class: 'hz stale' }, '–', h('small', {}, 'Hz'));
+  const noteEl = h('div', { class: 'notename' }, 'Mikrofon starten und Trommel anschlagen');
+  const errEl = h('div', { class: 'err' });
+  const micBtn = h('button', { class: 'btn solid mic-btn', type: 'button' }, Tuner.running ? 'Mikrofon stoppen' : 'Mikrofon starten');
+
+  // --- pitch pane
+  const needle = h('div', { class: 'needle' });
+  const statusEl = h('div', { class: 'status' });
+  const canvas = h('canvas', { class: 'spec', 'aria-label': 'Frequenzspektrum' });
+  const hitsEl = h('div', { class: 'hits', 'aria-live': 'polite' });
+  const saveBtn = h('button', { class: 'btn', type: 'button', disabled: !Tuner.lastF }, d ? `Als Pitch für ${d.name} (${sideName(route.side)}) speichern` : 'Als Zielfrequenz übernehmen');
+  const renderHits = () => hitsEl.replaceChildren(...(Tuner.hits.length ? Tuner.hits.map(f => h('span', { class: 'hit' + (targetHz && Math.abs(1200 * Math.log2(f / targetHz)) <= 8 ? ' ok' : '') }, fmtHz(f)))
+    : [h('span', { class: 'muted', style: 'font-size:.9rem' }, 'Hier erscheinen die letzten Schläge.')]));
+  renderHits();
+  saveBtn.addEventListener('click', () => {
+    const f = Tuner.hits[0] ?? Tuner.lastF; if (!f) return;
+    const v = Math.round(f * 10) / 10;
+    if (d) { if (route.side === 'top') { d.pitchTop = v; d.pitchTopAt = Date.now(); } else d.pitchBottom = v; touch(); refreshPhoto(); toast(`${fmtHz(v)} Hz gespeichert`); if (route.side === 'top' && p.drums.length > 1) setTimeout(() => showTuningSheet(p, { anchorId: d.id }), 350); }
+    else { route.freeTarget = v; toast(`Ziel auf ${fmtHz(v)} Hz gesetzt`); }
+    targetHz = v; hzInp.value = v; renderHits(); drawLugs();
+  });
+  const pitchPane = h('div', { 'data-pane': 'pitch' },
+    h('div', { class: 'card' },
+      h('div', { class: 'meter', 'aria-hidden': 'true' }, h('div', { class: 'zone' }), h('div', { class: 'center' }), needle),
+      h('div', { class: 'meter-labels' }, h('span', {}, 'zu tief'), h('span', {}, 'zu hoch')),
+      h('div', { class: 'status', style: 'text-align:center' }, statusEl),
+      canvas),
+    h('h2', {}, 'Letzte Schläge'), hitsEl, h('div', { class: 'row' }, saveBtn));
+
+  // --- lug pane
+  const lugSvg = h('div', { class: 'drumwrap' });
+  const lugInfo = h('div', { class: 'interval' });
+  function drawLugs() {
+    const sz = d ? (parseFloat(String(d.size || '').replace(',', '.')) || 14) : 14;
+    lugSvg.replaceChildren(drumGraphic({ n: L.n, size: sz, vals: L.vals, sel: L.sel, onPick: i => { L.sel = i; drawLugs(); },
+      main: L.vals[0] ? fmtHz(L.vals[0]) : '–', sub: L.vals[0] ? 'Referenz in Hz' : 'Schraube 1 ist die Referenz' }));
+    const ord = lugOrder(L.n, L.pattern);
+    lugInfo.textContent = `Nächster Schlag: Schraube ${L.sel + 1}, Reihenfolge ${ord.map(i => i + 1).join('–')}`;
+  }
+  const lugCount = h('select', { 'aria-label': 'Anzahl Stimmschrauben', value: String(L.n), onchange: e => { const n = +e.target.value; L.n = n; L.vals = Array.from({ length: n }, (_, i) => L.vals[i] ?? null); L.sel = 0; if (d) { d.lugs = n; touch(); } drawLugs(); } },
+    [3, 4, 5, 6, 8, 10, 12, 16].map(n => h('option', { value: String(n) }, `${n} Schrauben`)));
+  const patChips = h('div', { class: 'chips', role: 'group', 'aria-label': 'Reihenfolge' }, [['clock', 'Im Uhrzeigersinn'], ['star', 'Sternmuster']].map(([k, l]) =>
+    h('button', { class: 'chip', type: 'button', 'aria-pressed': String(L.pattern === k), onclick: e => { L.pattern = k; patChips.querySelectorAll('.chip').forEach(c => c.setAttribute('aria-pressed', String(c === e.currentTarget))); L.sel = lugOrder(L.n, k)[0]; drawLugs(); } }, l)));
+  const lugPane = h('div', { 'data-pane': 'lugs' },
+    h('div', { class: 'card' },
+      h('div', { class: 'grid' }, h('label', { class: 'field' }, h('span', {}, 'Stimmschrauben'), lugCount), h('div', { class: 'field' }, h('span', {}, 'Reihenfolge'), patChips)),
+      h('div', { class: 'lugwrap' }, lugSvg), lugInfo,
+      h('p', { class: 'muted', style: 'font-size:.85rem;text-align:center;margin:6px 0 0' }, 'Schraube 1 oben ist die Referenz. Alle anderen zeigen ihre Abweichung in Cent, grün liegt innerhalb von ±5 Cent. Tippe eine Schraube an, um sie neu zu messen.')),
+    h('div', { class: 'row' },
+      h('button', { class: 'btn solid', type: 'button', disabled: !d, onclick: () => { const arr = L.vals.map(v => v ? Math.round(v * 10) / 10 : null); if (route.side === 'top') d.lugsTop = arr; else d.lugsBottom = arr; touch(); toast('Lug-Werte gespeichert'); } }, d ? `Lug-Werte für ${d.name} speichern` : 'Trommel wählen zum Speichern'),
+      h('button', { class: 'btn ghost', type: 'button', onclick: () => { L.vals = L.vals.map(() => null); L.sel = lugOrder(L.n, L.pattern)[0]; drawLugs(); } }, 'Zurücksetzen')));
+
+  // --- resonance pane
+  const slotTop = h('button', { class: 'slot', type: 'button' }), slotBot = h('button', { class: 'slot', type: 'button' });
+  const intEl = h('div', { class: 'interval' });
+  function drawRes() {
+    [[slotTop, 'top'], [slotBot, 'bottom']].forEach(([el, k]) => {
+      el.setAttribute('aria-pressed', String(R.armed === k));
+      el.replaceChildren(h('span', {}, sideName(k)), h('b', {}, fmtHz(R[k])), h('em', {}, R.armed === k ? 'Nächster Schlag misst hier' : 'Antippen zum Messen'));
+    });
+    if (R.top && R.bottom) {
+      const semis = 12 * Math.log2(R.bottom / R.top), ratio = R.bottom / R.top;
+      const dir = Math.abs(semis) < 0.15 ? 'gleich hoch wie das Schlagfell' : `${fmtNum(Math.abs(semis))} Halbtöne ${semis > 0 ? 'höher' : 'tiefer'} als das Schlagfell`;
+      intEl.textContent = `Resonanzfell ist ${dir} (Verhältnis ${fmtNum(ratio, 2)})`;
+    } else intEl.textContent = 'Schlag beide Felle nacheinander an, um ihr Verhältnis zu sehen.';
+  }
+  slotTop.addEventListener('click', () => { R.armed = 'top'; drawRes(); });
+  slotBot.addEventListener('click', () => { R.armed = 'bottom'; drawRes(); });
+  const resPane = h('div', { 'data-pane': 'res' },
+    h('div', { class: 'card' }, h('div', { class: 'res-slots' }, slotTop, slotBot), intEl,
+      h('p', { class: 'muted', style: 'font-size:.85rem;text-align:center;margin:8px 0 0' }, 'Gleiche Tonhöhe beider Felle bringt das längste Sustain. Ein Unterschied verkürzt das Ausklingen und erzeugt einen hörbaren Pitch-Bend.')),
+    h('div', { class: 'row' },
+      h('button', { class: 'btn solid', type: 'button', disabled: !d, onclick: () => { if (R.top) d.pitchTop = Math.round(R.top * 10) / 10; if (R.bottom) d.pitchBottom = Math.round(R.bottom * 10) / 10; touch(); toast('Beide Werte gespeichert'); } }, d ? `Beide Werte für ${d.name} speichern` : 'Trommel wählen zum Speichern'),
+      h('button', { class: 'btn ghost', type: 'button', onclick: () => { R.top = R.bottom = null; R.armed = 'top'; drawRes(); } }, 'Zurücksetzen')));
+
+  // --- tabs
+  const panes = { pitch: pitchPane, lugs: lugPane, res: resPane };
+  const tabs = h('div', { class: 'tabs', role: 'tablist' }, [['pitch', 'Pitch'], ['lugs', 'Lugs'], ['res', 'Resonanz']].map(([k, l]) =>
+    h('button', { type: 'button', role: 'tab', 'aria-selected': String(route.tTab === k), onclick: e => { route.tTab = k; tabs.querySelectorAll('button').forEach(b => b.setAttribute('aria-selected', String(b === e.currentTarget))); Object.entries(panes).forEach(([pk, el]) => el.hidden = pk !== k); } }, l)));
+  Object.entries(panes).forEach(([pk, el]) => el.hidden = pk !== route.tTab);
+  drawLugs(); drawRes();
+
+  // --- engine hooks
+  Tuner.onHit = m => {
+    renderHits(); saveBtn.disabled = false;
+    if (route.tTab === 'lugs') {
+      L.vals[L.sel] = m;
+      const ord = lugOrder(L.n, L.pattern); const pos = ord.indexOf(L.sel);
+      L.sel = ord[(pos + 1) % ord.length]; drawLugs();
+    } else if (route.tTab === 'res') {
+      R[R.armed] = m; if (R.armed === 'top' && !R.bottom) R.armed = 'bottom'; drawRes();
+    }
+  };
+  function drawSpectrum() {
+    if (route.tTab !== 'pitch' || !Tuner.running || !canvas.isConnected) return;
+    const dpr = window.devicePixelRatio || 1, W = canvas.clientWidth, H = canvas.clientHeight;
+    if (canvas.width !== Math.round(W * dpr)) { canvas.width = Math.round(W * dpr); canvas.height = Math.round(H * dpr); }
+    const c = canvas.getContext('2d'); c.setTransform(dpr, 0, 0, dpr, 0, 0); c.clearRect(0, 0, W, H);
+    const maxF = Math.min(1000, RANGES[Tuner.range][1] * 2), bin = Tuner.binHz(), last = Math.floor(maxF / bin);
+    const [lo, hi] = RANGES[Tuner.range];
+    c.fillStyle = 'rgba(59,139,255,.08)'; c.fillRect(lo / maxF * W, 0, (hi - lo) / maxF * W, H);
+    c.beginPath();
+    for (let i = 1; i <= last; i++) { const x = i * bin / maxF * W; const y = H - Math.max(0, Math.min(1, (Tuner.freq[i] + 100) / 75)) * (H - 6); i === 1 ? c.moveTo(x, y) : c.lineTo(x, y); }
+    c.strokeStyle = '#7F9FCF'; c.lineWidth = 1.5; c.stroke();
+    if (targetHz > 0 && targetHz < maxF) { const x = targetHz / maxF * W; c.strokeStyle = 'rgba(54,201,126,.8)'; c.setLineDash([4, 4]); c.beginPath(); c.moveTo(x, 0); c.lineTo(x, H); c.stroke(); c.setLineDash([]); }
+    if (Tuner.lastF && performance.now() - Tuner.lastT < 2500) { const x = Tuner.lastF / maxF * W; c.strokeStyle = '#fff'; c.beginPath(); c.moveTo(x, 0); c.lineTo(x, H); c.stroke(); }
+    c.fillStyle = '#8C97A8'; c.font = '11px Barlow, sans-serif';
+    [100, 200, 300, 400, 500, 600, 800].filter(f => f < maxF).forEach(f => c.fillText(f + ' Hz', f / maxF * W + 3, 12));
+  }
+  Tuner.ui = now => {
+    drawSpectrum();
+    if (!Tuner.lastF) return;
+    const fresh = now - Tuner.lastT < 2500;
+    hzEl.firstChild.textContent = fmtHz(Tuner.lastF);
+    hzEl.classList.toggle('stale', !fresh);
+    const n = noteOf(Tuner.lastF);
+    noteEl.textContent = `${n.name} ${n.cents >= 0 ? '+' : '−'}${Math.abs(n.cents)} Cent` + (Tuner.decay ? `, Ausklingen ${fmtNum(Tuner.decay)} s` : '');
+    saveBtn.disabled = false;
+    if (targetHz > 0) {
+      const c = 1200 * Math.log2(Tuner.lastF / targetHz);
+      needle.style.left = (50 + Math.max(-50, Math.min(50, c))) + '%';
+      const ok = Math.abs(c) <= 8;
+      needle.style.background = ok ? 'var(--green)' : 'var(--red)';
+      const diff = Tuner.lastF - targetHz;
+      statusEl.className = 'status ' + (ok ? 'ok' : 'off');
+      statusEl.textContent = ok ? 'Stimmt' : `${c < 0 ? 'Höher stimmen' : 'Tiefer stimmen'} (${diff > 0 ? '+' : '−'}${fmtHz(Math.abs(diff))} Hz)`;
+    } else {
+      needle.style.left = (50 + n.cents) + '%'; needle.style.background = 'var(--blue)';
+      statusEl.className = 'status'; statusEl.textContent = 'Kein Ziel gesetzt';
+    }
+  };
+
+  micBtn.addEventListener('click', async () => {
+    errEl.textContent = '';
+    if (Tuner.running) { Tuner.stop(); micBtn.textContent = 'Mikrofon starten'; return; }
+    try { await Tuner.start(); micBtn.textContent = 'Mikrofon stoppen'; noteEl.textContent = 'Trommel anschlagen …'; }
+    catch (e) {
+      Tuner.stop();
+      errEl.textContent = e && e.name === 'NotAllowedError'
+        ? 'Kein Zugriff auf das Mikrofon. Erlaube den Mikrofonzugriff für diese Seite und versuch es noch einmal.'
+        : 'Das Mikrofon konnte nicht gestartet werden. Öffne die App im Browser deines Handys (Safari oder Chrome) und erlaube den Mikrofonzugriff.';
+    }
+  });
+
+  return {
+    title: 'Tuner', sub: d ? `${d.name}, ${sideName(route.side)}` : `${a.name}, ${modeName()}`,
+    back: () => route.tunerFrom === 'kit' && p ? nav('kit', { prodId: p.id }) : nav('home'),
+    body: [
+      photoSlot,
+      h('div', { class: 'readout' }, hzEl, noteEl),
+      micBtn, errEl,
+      tabs, pitchPane, lugPane, resPane,
+      h('h2', {}, 'Einstellungen'),
+      h('div', { class: 'card' },
+        h('div', { class: 'grid' },
+          h('label', { class: 'field wide' }, h('span', {}, 'Trommel'), targetSel),
+          h('div', { class: 'field' }, h('span', {}, 'Fellseite'), sideChips),
+          h('label', { class: 'field' }, h('span', {}, 'Zielfrequenz (Hz)'), hzInp),
+          h('div', { class: 'field wide' }, h('span', {}, 'Frequenzbereich'), rangeChips),
+          h('label', { class: 'field wide' }, h('span', {}, 'Empfindlichkeit'), sens))),
+      h('p', { class: 'foot' }, 'Tipp: Halte das Handy nah an die Trommel und schlag etwa 3 cm vor jeder Stimmschraube mit gleicher Stärke an. Gemessen wird der Grundton im gewählten Bereich.')
+    ]
+  };
+}
+
+/* ================= instruments, quick tuning, strings ================= */
+const INST = { drums: 'Drums', bass: 'Bass', guitar: 'Gitarre' };
+const instName = () => INST[route.inst] || '';
+const midiName = m => NOTES[((m % 12) + 12) % 12] + (Math.floor(m / 12) - 1);
+const TEMPLATES = {
+  guitar: [
+    { name: 'Standard', strings: [40, 45, 50, 55, 59, 64] }, { name: 'Drop D', strings: [38, 45, 50, 55, 59, 64] },
+    { name: 'Halbton tiefer (E♭-Standard)', strings: [39, 44, 49, 54, 58, 63] }, { name: 'D-Standard', strings: [38, 43, 48, 53, 57, 62] },
+    { name: 'Drop C', strings: [36, 43, 48, 53, 57, 62] }, { name: 'DADGAD', strings: [38, 45, 50, 55, 57, 62] },
+    { name: 'Open G', strings: [38, 43, 50, 55, 59, 62] }, { name: 'Open D', strings: [38, 45, 50, 54, 57, 62] },
+    { name: '7-Saiter Standard', strings: [35, 40, 45, 50, 55, 59, 64] }],
+  bass: [
+    { name: 'Standard (4 Saiten)', strings: [28, 33, 38, 43] }, { name: '5-Saiter Standard', strings: [23, 28, 33, 38, 43] },
+    { name: 'Drop D', strings: [26, 33, 38, 43] }, { name: 'Halbton tiefer (E♭-Standard)', strings: [27, 32, 37, 42] },
+    { name: 'D-Standard', strings: [26, 31, 36, 41] }, { name: 'Drop C', strings: [24, 31, 36, 41] }]
+};
+const NOTE_RANGE = { guitar: [28, 72], bass: [18, 55] };
+const CAPO_OPTS = Array.from({ length: 13 }, (_, k) => ({ value: String(k), label: k ? `Kapo ${k}. Bund` : 'Ohne Kapo' }));
+function stageTun(x) {
+  const ik = route.inst === 'guitar' ? 'gt' : route.inst === 'bass' ? 'bs' : null; if (!ik || !x[ik]) return '';
+  const t = artist().tunings.find(tt => tt.id === x[ik].tuningId);
+  return [t?.name, x[ik].capo ? `Kapo ${x[ik].capo}` : ''].filter(Boolean).join(', ');
+}
+const tileBtn = (title, desc, onclick, primary) => h('button', { class: 'tile' + (primary ? ' primary' : ''), type: 'button', onclick }, h('b', {}, title), h('span', {}, desc), h('i', {}, '›'));
+function chipGroup(opts, cur, onSel, label) {
+  const g = h('div', { class: 'chips', role: 'group', 'aria-label': label }, opts.map(([k, l]) => h('button', { class: 'chip', type: 'button', 'aria-pressed': String(cur === k),
+    onclick: e => { g.querySelectorAll('.chip').forEach(c => c.setAttribute('aria-pressed', String(c === e.currentTarget))); onSel(k); } }, l)));
+  return g;
+}
+function sensField() {
+  const r = h('input', { type: 'range', min: '1', max: '10', 'aria-label': 'Empfindlichkeit', value: String(Math.max(1, Math.min(10, Math.round(11 - Math.log10(Tuner.threshold / 0.002) * 4.5)))),
+    oninput: e => { Tuner.threshold = 0.002 * Math.pow(10, (11 - +e.target.value) / 4.5); } });
+  return h('label', { class: 'field' }, h('span', {}, 'Empfindlichkeit'), r);
+}
+const micErr = e => e && e.name === 'NotAllowedError'
+  ? 'Kein Zugriff auf das Mikrofon. Erlaube den Mikrofonzugriff für diese Seite und versuch es noch einmal.'
+  : 'Das Mikrofon konnte nicht gestartet werden. Öffne die App im Browser deines Handys (Safari oder Chrome) und erlaube den Mikrofonzugriff.';
+function micButton(errEl, startText = 'Messung starten') {
+  const b = h('button', { class: 'btn solid mic-btn', type: 'button' }, Tuner.running ? 'Messung stoppen' : startText);
+  b.addEventListener('click', async () => {
+    errEl.textContent = '';
+    if (Tuner.running) { Tuner.stop(); b.textContent = startText; return; }
+    try { await Tuner.start(); b.textContent = 'Messung stoppen'; } catch (e) { Tuner.stop(); errEl.textContent = micErr(e); }
+  });
+  return b;
+}
+function meterEl(needle) {
+  return [h('div', { class: 'meter', 'aria-hidden': 'true' }, h('div', { class: 'zone' }), h('div', { class: 'center' }), needle),
+    h('div', { class: 'meter-labels' }, h('span', {}, 'zu tief'), h('span', {}, 'zu hoch'))];
+}
+function instIcon(k) {
+  if (k === 'drums') return svg('svg', { viewBox: '0 0 48 48', class: 'ico', 'aria-hidden': 'true' },
+    svg('ellipse', { cx: 24, cy: 15, rx: 18, ry: 6, fill: 'none', stroke: 'currentColor', 'stroke-width': 2.5 }),
+    svg('path', { d: 'M6 15v15c0 3.3 8 6 18 6s18-2.7 18-6V15', fill: 'none', stroke: 'currentColor', 'stroke-width': 2.5 }),
+    svg('path', { d: 'M10 21l5 13M38 21l-5 13M24 21v15', stroke: 'currentColor', 'stroke-width': 1.5, opacity: .6 }));
+  const n = k === 'bass' ? 4 : 6, pegs = [];
+  for (let i = 0; i < n; i++) pegs.push(svg('circle', { cx: i < n / 2 ? 14 : 34, cy: 9 + (i % (n / 2)) * (k === 'bass' ? 9 : 6.5), r: 2.6, fill: 'currentColor' }));
+  return svg('svg', { viewBox: '0 0 48 48', class: 'ico', 'aria-hidden': 'true' },
+    svg('path', { d: 'M18 4h12l-1.5 26h-9z', fill: 'none', stroke: 'currentColor', 'stroke-width': 2.5, 'stroke-linejoin': 'round' }),
+    svg('path', { d: 'M24 30v15', stroke: 'currentColor', 'stroke-width': 3.5, 'stroke-linecap': 'round' }), pegs);
+}
+function viewInst() {
+  const a = artist();
+  const card = (k, title, desc) => h('button', { class: 'mode colored', style: `--c:${INST_C[k]}`, type: 'button', onclick: () => nav(k === 'drums' ? 'drumMenu' : 'ghome', { inst: k }) }, instIcon(k), h('b', {}, title), h('span', {}, desc));
+  return {
+    title: a.name, sub: `${modeName()}: Instrument wählen`, back: () => nav('mode'),
+    body: h('div', { class: 'modes' },
+      card('drums', 'Drums', 'Tuning, Drumkits, Felle, Mikrofone' + (route.mode === 'studio' ? ', Recording Chain' : '')),
+      card('bass', 'Bass', 'Stimmgerät, Stimmungen, Instrumente'),
+      card('guitar', 'Gitarre', 'Stimmgerät, Stimmungen, Kapo, Instrumente'))
+  };
+}
+function viewDrumMenu() {
+  const a = artist();
+  return {
+    title: a.name, sub: `${modeName()}, Drums`, back: () => nav('inst'),
+    body: h('div', { class: 'modes' },
+      h('button', { class: 'mode colored', style: `--c:${AREA.quick[0]}`, type: 'button', onclick: () => nav('quick') }, areaIcon('quick', 'ico sm'), h('b', {}, 'Quick Tuning'), h('span', {}, 'Nur stimmen: Größe und Stimmschrauben wählen, Grundton messen oder Schrauben abgleichen')),
+      h('button', { class: 'mode colored', style: `--c:${INST_C.drums}`, type: 'button', onclick: () => nav('home') }, areaIcon('kits', 'ico sm'), h('b', {}, 'Alle Features'), h('span', {}, 'Tuner, Drumkits, Felle, Mikrofone, Setlisten' + (route.mode === 'studio' ? ' und Recording Chain' : ''))))
+  };
+}
+
+let dgSeq = 0;
+function drumGraphic({ n, size = 14, vals = [], sel = -1, onPick, main = '', sub = '', tol = 5 }) {
+  const id = 'dg' + (++dgSeq), c = 170, R = 74 + (Math.min(26, Math.max(6, size)) - 6) * 2.5, ref = vals[0];
+  const kids = [svg('defs', {},
+    svg('radialGradient', { id: id + 'h', cx: '42%', cy: '34%', r: '75%' }, svg('stop', { offset: '0', 'stop-color': '#2c3440' }), svg('stop', { offset: '1', 'stop-color': '#07090c' })),
+    svg('linearGradient', { id: id + 'c', x1: '0', y1: '0', x2: '1', y2: '1' }, svg('stop', { offset: '0', 'stop-color': '#f4f7fa' }), svg('stop', { offset: '.45', 'stop-color': '#7f8996' }), svg('stop', { offset: '.7', 'stop-color': '#e2e8ef' }), svg('stop', { offset: '1', 'stop-color': '#545d69' })))];
+  kids.push(svg('circle', { cx: c, cy: c, r: R + 9, fill: 'none', stroke: `url(#${id}c)`, 'stroke-width': 9 }));
+  kids.push(svg('circle', { cx: c, cy: c, r: R + 4.5, fill: `url(#${id}h)` }));
+  kids.push(svg('circle', { cx: c, cy: c, r: R - 8, fill: 'none', stroke: 'rgba(255,255,255,.05)' }));
+  kids.push(svg('text', { x: c, y: c - R * 0.55, 'text-anchor': 'middle', fill: '#566173', 'font-size': 11, 'font-family': 'Barlow, sans-serif' }, size + '″'));
+  for (let i = 0; i < n; i++) {
+    const deg = -90 + i * 360 / n, ang = deg * Math.PI / 180;
+    const lx = c + (R + 24) * Math.cos(ang), ly = c + (R + 24) * Math.sin(ang), v = vals[i];
+    let fill = '#1b212b', stroke = '#4a5566', txt = '#8C97A8', label = '', lc = '#8C97A8';
+    if (i === 0 && v) { fill = '#4B6B9B'; stroke = '#B4C6DF'; txt = '#fff'; label = 'Ref.'; lc = '#B4C6DF'; }
+    else if (v && ref) {
+      const ct = 1200 * Math.log2(v / ref), ok = Math.abs(ct) <= tol, r = Math.round(ct);
+      fill = ok ? '#3E5E48' : '#6B3A33'; stroke = ok ? '#86B394' : '#CF7F72'; txt = '#fff'; lc = ok ? '#A9CDB3' : '#E3A196';
+      label = (r >= 0 ? '+' : '−') + Math.abs(r) + ' ct';
+    } else if (v) label = fmtHz(v);
+    const g = svg('g', { class: 'lug', tabindex: onPick ? 0 : null, role: onPick ? 'button' : null, 'aria-label': `Stimmschraube ${i + 1}${i === 0 ? ' (Referenz)' : ''}${label ? ', ' + label : ''}` });
+    g.append(svg('rect', { x: lx - 7, y: ly - 15, width: 14, height: 30, rx: 6, fill: `url(#${id}c)`, transform: `rotate(${deg + 90} ${lx} ${ly})` }));
+    if (i === sel) g.append(svg('circle', { cx: lx, cy: ly, r: 18, fill: 'none', stroke: '#7F9FCF', 'stroke-width': 3, class: 'pulse' }));
+    g.append(svg('circle', { cx: lx, cy: ly, r: 12, fill, stroke, 'stroke-width': 2 }));
+    g.append(svg('text', { x: lx, y: ly + 4, 'text-anchor': 'middle', fill: txt, 'font-size': 12, 'font-weight': 700, 'font-family': 'Barlow Condensed, sans-serif' }, i + 1));
+    if (label) { const tx = c + (R - 20) * Math.cos(ang), ty = c + (R - 20) * Math.sin(ang); g.append(svg('text', { x: tx, y: ty + 4, 'text-anchor': 'middle', fill: lc, 'font-size': n > 10 ? 10 : 12, 'font-weight': 600, 'font-family': 'Barlow Condensed, sans-serif' }, label)); }
+    if (onPick) { g.addEventListener('click', () => onPick(i)); g.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onPick(i); } }); }
+    kids.push(g);
+  }
+  kids.push(svg('text', { class: 'dg-main', x: c, y: c + 8, 'text-anchor': 'middle', fill: '#fff', 'font-size': 36, 'font-weight': 700, 'font-family': 'Barlow Condensed, sans-serif' }, main));
+  kids.push(svg('text', { class: 'dg-sub', x: c, y: c + 27, 'text-anchor': 'middle', fill: '#8C97A8', 'font-size': 11, 'font-family': 'Barlow, sans-serif' }, sub));
+  return svg('svg', { viewBox: '0 0 340 340', role: 'img', 'aria-label': `Trommel mit ${n} Stimmschrauben`, class: 'drumsvg' }, kids);
+}
+
+const SIZES = [6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 22, 23, 24, 26, 28];
+function quickRange(size, mode) {
+  const b = size <= 10 ? [90, 400] : size <= 14 ? [70, 420] : size <= 18 ? [45, 220] : [35, 130];
+  return mode === 'lugs' ? [b[0], Math.min(900, b[1] * 2.2)] : b;
+}
+function viewQuick() {
+  const a = artist();
+  const Q = route.Q ||= { size: 14, n: 8, mode: 'lugs', vals: Array(8).fill(null), sel: 0, auto: true, target: null };
+  Tuner.algo = 'drum'; Tuner.customRange = quickRange(Q.size, Q.mode);
+  const isL = Q.mode === 'lugs', tol = 5;
+  const reset = () => { Q.vals = Array(Q.n).fill(null); Q.sel = 0; };
+  const sizeSel = h('select', { 'aria-label': 'Trommelgröße', value: String(Q.size), onchange: e => { Q.size = +e.target.value; render(true); } }, SIZES.map(sz => h('option', { value: String(sz) }, sz + '″')));
+  const lugSel = h('select', { 'aria-label': 'Anzahl Stimmschrauben', value: String(Q.n), onchange: e => { Q.n = +e.target.value; reset(); render(true); } }, [4, 5, 6, 8, 10, 12, 16].map(n => h('option', { value: String(n) }, n + ' Schrauben')));
+  const modeChips = chipGroup([['lugs', 'Schrauben abgleichen'], ['fund', 'Grundton messen']], Q.mode, v => { Q.mode = v; render(true); }, 'Messart');
+  const wrap = h('div', { class: 'drumwrap' }), info = h('div', { class: 'interval' });
+  const live = h('div', { class: 'notename', style: 'text-align:center' }), status = h('div', { class: 'status', style: 'text-align:center' });
+  const errEl = h('div', { class: 'err' }), needle = h('div', { class: 'needle' });
+  const draw = () => {
+    wrap.replaceChildren(drumGraphic({ n: Q.n, size: Q.size, vals: isL ? Q.vals : [], sel: isL ? Q.sel : -1, onPick: isL ? i => { Q.sel = i; draw(); } : null, tol,
+      main: isL ? (Q.vals[0] ? fmtHz(Q.vals[0]) : '–') : (Tuner.lastF ? fmtHz(Tuner.lastF) : '–'),
+      sub: isL ? (Q.vals[0] ? 'Referenz in Hz' : 'Schraube 1 ist die Referenz') : 'Grundton in Hz' }));
+    info.textContent = isL ? `Halte das Handy über Schraube ${Q.sel + 1}${Q.sel === 0 ? ' (oben, Referenz)' : ''} und schlag dort an.` : 'Halte das Handy über die Mitte und schlag die Trommel in der Mitte an.';
+  };
+  const lugMsg = (i, m) => {
+    const ref = Q.vals[0];
+    if (i === 0) return [`Referenz gemessen: ${fmtHz(m)} Hz`, ''];
+    if (!ref) return [`Schraube ${i + 1}: ${fmtHz(m)} Hz. Miss noch Schraube 1 als Referenz.`, ''];
+    const ct = 1200 * Math.log2(m / ref), r = Math.round(ct), sgn = (r >= 0 ? '+' : '−') + Math.abs(r);
+    return Math.abs(ct) <= tol ? [`Schraube ${i + 1}: ${sgn} Cent, passt`, 'ok'] : [`Schraube ${i + 1}: ${sgn} Cent, ${ct < 0 ? 'etwas anziehen' : 'etwas lösen'}`, 'off'];
+  };
+  Tuner.onHit = m => {
+    if (Q.mode !== 'lugs') return;
+    const i = Q.sel; Q.vals[i] = m;
+    const [txt, cls] = lugMsg(i, m); status.textContent = txt; status.className = 'status ' + cls;
+    if (Q.auto) Q.sel = (Q.sel + 1) % Q.n;
+    draw();
+  };
+  Tuner.ui = now => {
+    if (!Tuner.lastF) return;
+    const fresh = now - Tuner.lastT < 2500, n = noteOf(Tuner.lastF);
+    if (isL) {
+      const ref = Q.vals[0];
+      if (!fresh) { live.textContent = ''; return; }
+      const ct = ref && Q.sel !== 0 ? Math.round(1200 * Math.log2(Tuner.lastF / ref)) : null;
+      live.textContent = `Live: ${fmtHz(Tuner.lastF)} Hz` + (ct != null ? `, ${ct >= 0 ? '+' : '−'}${Math.abs(ct)} Cent zur Referenz` : '');
+      return;
+    }
+    const mainEl = wrap.querySelector('.dg-main'); if (mainEl) { mainEl.textContent = fmtHz(Tuner.lastF); mainEl.setAttribute('fill', fresh ? '#fff' : '#8C97A8'); }
+    live.textContent = `${n.name} ${n.cents >= 0 ? '+' : '−'}${Math.abs(n.cents)} Cent` + (Tuner.decay ? `, Ausklingen ${fmtNum(Tuner.decay)} s` : '');
+    if (Q.target > 0) {
+      const c = 1200 * Math.log2(Tuner.lastF / Q.target), ok = Math.abs(c) <= 8;
+      needle.style.left = (50 + Math.max(-50, Math.min(50, c))) + '%'; needle.style.background = ok ? 'var(--green)' : 'var(--red)';
+      status.className = 'status ' + (ok ? 'ok' : 'off'); status.textContent = ok ? 'Stimmt' : (c < 0 ? 'Höher stimmen' : 'Tiefer stimmen');
+    } else { needle.style.left = (50 + n.cents) + '%'; needle.style.background = 'var(--blue)'; status.className = 'status'; status.textContent = ''; }
+  };
+  draw();
+  return {
+    title: 'Quick Tuning', sub: `${a.name}, ${modeName()}`, back: () => nav('drumMenu'),
+    body: [
+      h('div', { class: 'card' }, h('div', { class: 'grid' },
+        h('label', { class: 'field' }, h('span', {}, 'Trommelgröße'), sizeSel),
+        h('label', { class: 'field' }, h('span', {}, 'Stimmschrauben'), lugSel),
+        h('div', { class: 'field wide' }, h('span', {}, 'Messart'), modeChips))),
+      wrap, info, live, status,
+      !isL && h('div', { class: 'card', style: 'margin-top:10px' }, meterEl(needle),
+        h('label', { class: 'field', style: 'margin-top:10px' }, h('span', {}, 'Zielfrequenz (optional, Hz)'),
+          h('input', { type: 'number', step: '0.1', inputmode: 'decimal', value: Q.target ?? '', placeholder: 'z. B. 110', oninput: e => { Q.target = e.target.value === '' ? null : parseFloat(e.target.value); } }))),
+      micButton(errEl), errEl,
+      isL && h('div', { class: 'row' },
+        h('button', { class: 'chip', type: 'button', 'aria-pressed': String(Q.auto), onclick: e => { Q.auto = !Q.auto; e.currentTarget.setAttribute('aria-pressed', String(Q.auto)); } }, 'Automatisch zur nächsten Schraube'),
+        h('button', { class: 'btn ghost small', type: 'button', onclick: () => { reset(); status.textContent = ''; status.className = 'status'; draw(); } }, 'Neu messen')),
+      h('div', { class: 'card', style: 'margin-top:16px' }, sensField()),
+      h('p', { class: 'foot' }, isL ? 'Schlag etwa 3 cm vor jeder Schraube mit gleicher Stärke an. Schraube 1 oben ist die Referenz, alle anderen zeigen ihre Abweichung in Cent. Grün liegt innerhalb von ±5 Cent. Schalte „Automatisch“ aus, um eine Schraube beim Nachstimmen mehrmals zu messen.' : 'Gemessen wird der Grundton der Trommel. Halte das Handy dafür nah über die Mitte des Fells.')
+    ]
+  };
+}
+
+/* ---- bass & guitar ---- */
+function viewGHome() {
+  const a = artist(), inst = route.inst, studio = route.mode === 'studio';
+  const tun = a.tunings.filter(t => t.inst === inst), ins = a.instruments.filter(x => x.inst === inst);
+  const sets = a.setlists.filter(s => s.mode === route.mode).length;
+  return {
+    title: instName(), back: () => nav('inst'),
+    body: h('div', { class: 'tgrid' },
+      atile('tuner', 'Stimmgerät', 'Chromatisch oder nach Stimmung', () => nav('gtuner', { gString: null })),
+      atile('tunings', 'Stimmungen und Kapo', plural(tun.length, 'Stimmung', 'Stimmungen'), () => nav('tunings')),
+      atile('ginsts', 'Instrumente', plural(ins.length, 'Instrument', 'Instrumente'), () => nav('ginsts')),
+      atile('setlists', 'Setlisten', plural(sets, 'Setliste', 'Setlisten'), () => nav('setlists')),
+      studio && atile('chain', 'Recording Chain', plural(a.instChains[inst].channels.length, 'Kanal', 'Kanäle'), () => nav('chain', { chainOwner: 'inst' })),
+      studio && atile('console', 'Mischpult', 'Kanalzüge mit Fadern', () => nav('console', { chainOwner: 'inst' })))
+  };
+}
+function viewTunings() {
+  const a = artist(), inst = route.inst, list = a.tunings.filter(t => t.inst === inst);
+  const tplSel = h('select', { 'aria-label': 'Neue Stimmung aus Vorlage', value: '', onchange: e => {
+    const t = TEMPLATES[inst][+e.target.value]; if (!t) return;
+    const n = { id: newId(), inst, name: t.name, strings: [...t.strings], capo: 0, a4: 440, notes: '' };
+    a.tunings.push(n); touch(); nav('tuning', { tunId: n.id });
+  } }, h('option', { value: '' }, '+ Neue Stimmung aus Vorlage …'), TEMPLATES[inst].map((t, i) => h('option', { value: String(i) }, `${t.name} (${t.strings.map(midiName).join(' ')})`)));
+  return {
+    title: 'Stimmungen und Kapo', sub: `${a.name}, ${instName()}`, back: () => nav('ghome'),
+    body: [tplSel, h('div', { style: 'height:16px' }),
+      list.length ? list.map(t => h('button', { class: 'list-item', type: 'button', onclick: () => nav('tuning', { tunId: t.id }) },
+        h('b', {}, t.name || 'Unbenannt'),
+        h('span', {}, [t.strings.map(midiName).join(' '), t.capo ? `Kapo ${t.capo}. Bund` : 'ohne Kapo', t.a4 && t.a4 !== 440 ? `A = ${t.a4} Hz` : ''].filter(Boolean).join(', '))))
+        : h('div', { class: 'empty' }, 'Noch keine Stimmung gespeichert. Wähle oben eine Vorlage und pass sie an.')]
+  };
+}
+function viewTuning() {
+  const a = artist(); const t = a.tunings.find(x => x.id === route.tunId);
+  if (!t) { route.view = 'tunings'; return viewTunings(); }
+  const [lo, hi] = NOTE_RANGE[t.inst]; const noteOpts = []; for (let m = lo; m <= hi; m++) noteOpts.push(m);
+  const rows = t.strings.map((m, i) => h('div', { class: 'str-row' }, h('span', { class: 'str-no' }, `Saite ${t.strings.length - i}`),
+    h('select', { 'aria-label': `Saite ${t.strings.length - i}`, value: String(m), onchange: e => { t.strings[i] = +e.target.value; touch(); } }, noteOpts.map(n => h('option', { value: String(n) }, midiName(n)))))).reverse();
+  const edit = fn => () => { fn(); touch(); render(true); };
+  return {
+    title: t.name || 'Stimmung', sub: `${a.name}, ${INST[t.inst]}`, back: () => nav('tunings'),
+    body: [
+      h('div', { class: 'card' }, h('div', { class: 'grid' },
+        field('Name', t.name, v => t.name = v, { wide: true, placeholder: 'z. B. Drop D für „Song X“', onchange: () => render(true) }),
+        selectField('Kapo', String(t.capo || 0), CAPO_OPTS, v => t.capo = +v),
+        field('Referenz A4 (Hz)', t.a4, v => t.a4 = v || 440, { type: 'number', step: '0.1', inputmode: 'decimal' }),
+        areaField('Notizen', t.notes, v => t.notes = v))),
+      h('h2', {}, 'Saiten', h('small', {}, plural(t.strings.length, 'Saite', 'Saiten'))),
+      h('div', { class: 'card' }, rows),
+      h('div', { class: 'row' },
+        h('button', { class: 'btn small', type: 'button', disabled: t.strings.length >= 8, onclick: edit(() => t.strings.unshift(Math.max(lo, t.strings[0] - 5))) }, '+ Tiefe Saite'),
+        h('button', { class: 'btn small', type: 'button', disabled: t.strings.length >= 8, onclick: edit(() => t.strings.push(Math.min(hi, t.strings[t.strings.length - 1] + 5))) }, '+ Hohe Saite'),
+        h('button', { class: 'btn small ghost', type: 'button', disabled: t.strings.length <= 3, onclick: edit(() => t.strings.shift()) }, 'Tiefste entfernen'),
+        h('button', { class: 'btn small ghost', type: 'button', disabled: t.strings.length <= 3, onclick: edit(() => t.strings.pop()) }, 'Höchste entfernen')),
+      h('div', { class: 'row', style: 'margin-top:28px' },
+        h('button', { class: 'btn solid', type: 'button', onclick: () => nav('gtuner', { gTun: 's:' + t.id, gTunInst: t.inst, gString: null }) }, 'Im Stimmgerät öffnen'),
+        delBtn('Stimmung löschen', () => { a.tunings = a.tunings.filter(x => x !== t); touch(); nav('tunings'); }))
+    ]
+  };
+}
+function viewGInsts() {
+  const a = artist(), inst = route.inst, list = a.instruments.filter(x => x.inst === inst);
+  const create = () => { const i = { id: newId(), inst, name: '', model: '', gauge: '', tuningId: '', amp: '', ampMic: '', di: '', notes: '' }; a.instruments.push(i); touch(); nav('ginst', { ginstId: i.id }); };
+  return {
+    title: 'Instrumente', sub: `${a.name}, ${instName()}`, back: () => nav('ghome'),
+    body: [h('button', { class: 'btn solid', type: 'button', onclick: create }, 'Instrument anlegen'), h('div', { style: 'height:16px' }),
+      list.length ? list.map(i => h('button', { class: 'list-item', type: 'button', onclick: () => nav('ginst', { ginstId: i.id }) },
+        h('b', {}, i.name || i.model || 'Unbenanntes Instrument'),
+        h('span', {}, [i.model, (i.strings || i.gauge) ? `Saiten ${[i.strings, i.gauge].filter(Boolean).join(' ')}` : '', a.tunings.find(t => t.id === i.tuningId)?.name].filter(Boolean).join(', '))))
+        : h('div', { class: 'empty' }, `Noch kein Instrument gespeichert. Leg zum Beispiel deine Haupt-${instName() === 'Bass' ? 'Bässe' : 'Gitarren'} und Ersatzinstrumente an.`)]
+  };
+}
+function viewGInst() {
+  const a = artist(); const i = a.instruments.find(x => x.id === route.ginstId);
+  if (!i) { route.view = 'ginsts'; return viewGInsts(); }
+  const tunOpts = [{ value: '', label: 'Keine' }, ...a.tunings.filter(t => t.inst === i.inst).map(t => ({ value: t.id, label: t.name || 'Unbenannt' }))];
+  return {
+    title: i.name || i.model || 'Instrument', sub: `${a.name}, ${INST[i.inst]}`, back: () => nav('ginsts'),
+    body: [
+      h('div', { class: 'card' }, h('div', { class: 'grid' },
+        field('Name', i.name, v => i.name = v, { placeholder: i.inst === 'bass' ? 'z. B. Main Bass' : 'z. B. Main Strat', onchange: () => render(true) }),
+        modelPicker('Hersteller und Modell', i.model, v => { i.model = v; setTimeout(() => render(true)); }, i.inst === 'bass' ? BASS_DB : GUITAR_DB, 'Hersteller und Modell wählen', 'Aktuelle Modelle'),
+        stringPicker(i),
+        gaugePicker(i),
+        selectField('Standard-Stimmung', i.tuningId || '', tunOpts, v => i.tuningId = v),
+        field('Amp / Verstärker', i.amp, v => i.amp = v, { wide: true, placeholder: i.inst === 'bass' ? 'z. B. Ampeg SVT' : 'z. B. Vox AC30' }),
+        micPicker('Mikrofon am Amp', i.ampMic, v => i.ampMic = v, ['amp']),
+        micPicker('DI-Box', i.di, v => i.di = v, ['di']),
+        areaField('Notizen', i.notes, v => i.notes = v))),
+      h('div', { class: 'row', style: 'margin-top:24px' }, delBtn('Instrument löschen', () => { a.instruments = a.instruments.filter(x => x !== i); touch(); nav('ginsts'); }))
+    ]
+  };
+}
+function viewGTuner() {
+  Tuner.algo = 'string'; Tuner.customRange = null; Tuner.onHit = null;
+  const a = artist(), inst = route.inst, tpl = TEMPLATES[inst], saved = a.tunings.filter(t => t.inst === inst);
+  if (route.gTunInst !== inst || !route.gTun || (route.gTun.startsWith('s:') && !saved.some(t => 's:' + t.id === route.gTun))) {
+    route.gTun = saved[0] ? 's:' + saved[0].id : 't:0'; route.gTunInst = inst; route.gString = null;
+  }
+  const T = route.gTun.startsWith('s:') ? saved.find(t => 's:' + t.id === route.gTun) : { ...tpl[+route.gTun.slice(2)], capo: 0, a4: 440, tpl: true };
+  let a4 = T.a4 || 440;
+  const sel = h('select', { 'aria-label': 'Stimmung', value: route.gTun, onchange: e => { route.gTun = e.target.value; route.gString = null; render(true); } },
+    saved.length ? h('optgroup', { label: 'Gespeicherte Stimmungen' }, saved.map(t => h('option', { value: 's:' + t.id }, t.name || 'Unbenannt'))) : null,
+    h('optgroup', { label: 'Vorlagen' }, tpl.map((t, i) => h('option', { value: 't:' + i }, t.name))));
+  const autoChip = h('button', { class: 'chip', type: 'button', 'aria-pressed': String(route.gString == null) }, 'Automatisch');
+  const strBtns = T.strings.map((m, i) => h('button', { class: 'str', type: 'button', 'aria-pressed': String(route.gString === i), 'aria-label': `Saite ${T.strings.length - i}, ${midiName(m)}` }, midiName(m)));
+  const syncStr = () => { strBtns.forEach((b, j) => b.setAttribute('aria-pressed', String(route.gString === j))); autoChip.setAttribute('aria-pressed', String(route.gString == null)); };
+  strBtns.forEach((b, i) => b.addEventListener('click', () => { route.gString = route.gString === i ? null : i; syncStr(); }));
+  autoChip.addEventListener('click', () => { route.gString = null; syncStr(); });
+  const noteEl = h('div', { class: 'bignote stale' }, '–'), hzEl = h('div', { class: 'notename' }, 'Messung starten und eine Saite anschlagen');
+  const needle = h('div', { class: 'needle' }), status = h('div', { class: 'status' }), errEl = h('div', { class: 'err' });
+  Tuner.ui = now => {
+    if (!Tuner.lastF) return;
+    const fresh = now - Tuner.lastT < 1500, m = 12 * Math.log2(Tuner.lastF / a4) + 69;
+    let idx = route.gString;
+    if (idx == null) { let bd = 99; T.strings.forEach((sv, i) => { const dd = Math.abs(m - sv); if (dd < bd) { bd = dd; idx = i; } }); if (bd > 2.5) idx = null; }
+    const target = idx != null ? T.strings[idx] : Math.round(m), cents = (m - target) * 100, ok = Math.abs(cents) <= 3;
+    strBtns.forEach((b, j) => { b.classList.toggle('hot', fresh && j === idx && ok); b.classList.toggle('near', fresh && j === idx && !ok); });
+    noteEl.textContent = midiName(target); noteEl.classList.toggle('stale', !fresh);
+    hzEl.textContent = `${fmtHz(Tuner.lastF)} Hz` + (idx != null ? `, Saite ${T.strings.length - idx}` : ', chromatisch');
+    needle.style.left = (50 + Math.max(-50, Math.min(50, cents))) + '%'; needle.style.background = ok ? 'var(--green)' : 'var(--red)';
+    const r = Math.round(cents);
+    status.className = 'status ' + (ok ? 'ok' : 'off');
+    status.textContent = !fresh ? '' : ok ? 'Stimmt' : `${cents < 0 ? 'Höher stimmen' : 'Tiefer stimmen'} (${r > 0 ? '+' : '−'}${Math.abs(r)} Cent)`;
+  };
+  return {
+    title: 'Stimmgerät', sub: `${a.name}, ${instName()}`, back: () => nav('ghome'),
+    body: [
+      h('div', { class: 'card' }, h('div', { class: 'grid' },
+        h('label', { class: 'field wide' }, h('span', {}, 'Stimmung'), sel),
+        h('label', { class: 'field' }, h('span', {}, 'Referenz A4 (Hz)'), h('input', { type: 'number', step: '0.1', inputmode: 'decimal', value: a4, oninput: e => { a4 = parseFloat(e.target.value) || 440; } })),
+        h('div', { class: 'field' }, h('span', {}, 'Saitenwahl'), h('div', { class: 'chips' }, autoChip)))),
+      h('div', { class: 'readout' }, noteEl, hzEl, meterEl(needle), status,
+        h('div', { class: 'strings' }, strBtns),
+        T.capo ? h('div', { class: 'capo' }, `Kapo im ${T.capo}. Bund`) : null),
+      micButton(errEl), errEl,
+      T.tpl ? h('div', { class: 'row' }, h('button', { class: 'btn', type: 'button', onclick: () => {
+        const n = { id: newId(), inst, name: T.name, strings: [...T.strings], capo: 0, a4, notes: '' }; a.tunings.push(n); touch();
+        route.gTun = 's:' + n.id; toast('Stimmung gespeichert'); render(true);
+      } }, 'Als eigene Stimmung speichern')) : null,
+      h('div', { class: 'card', style: 'margin-top:16px' }, sensField()),
+      h('p', { class: 'foot' }, 'Schlag jede Saite einzeln an und halte das Handy nah an Instrument oder Verstärker. Tippe eine Saite an, um gezielt auf sie zu stimmen, sonst erkennt das Stimmgerät die Saite automatisch.')
+    ]
+  };
+}
+
+const KEYS = [
+  ...['C', 'Des', 'D', 'Es', 'E', 'F', 'Fis', 'G', 'As', 'A', 'B', 'H'].map((k, i) => ({ v: `${k}-Dur`, l: `${k}-Dur (${['C', 'D♭', 'D', 'E♭', 'E', 'F', 'F♯', 'G', 'A♭', 'A', 'B♭', 'B'][i]})` })),
+  ...['c', 'cis', 'd', 'es', 'e', 'f', 'fis', 'g', 'gis', 'a', 'b', 'h'].map((k, i) => ({ v: `${k}-Moll`, l: `${k}-Moll (${['Cm', 'C♯m', 'Dm', 'E♭m', 'Em', 'Fm', 'F♯m', 'Gm', 'G♯m', 'Am', 'B♭m', 'Bm'][i]})` }))];
+const KEY_NAMES = KEYS.map(k => k.v);
+const aiOpen = new Set();
+function aiPrompt(artistName, title, instr) {
+  const what = instr === 'bass'
+    ? 'E-Bass: pro Songteil die Basstöne bzw. Grundtöne als Folge (z. B. "E – A – B – A")'
+    : 'Gitarre: pro Songteil die Akkordfolge als Akkordsymbole (z. B. "Em – C – G – D")';
+  return `Du hilfst einem Backliner bei der Vorbereitung. Song: "${title}" von ${artistName}.
+Nenne Tonart, Tempo, eventuell Kapo und Stimmung sowie die Songstruktur mit ${what}.
+Regeln:
+- Gib keinerlei Liedtexte oder Textzeilen aus, auch nicht auszugsweise oder als Abschnittsnamen.
+- Wenn du diesen Song nicht sicher kennst, setze "known" auf false und lass "sections" leer. Erfinde nichts.
+- "key" ist genau einer dieser Werte oder ein leerer String: ${KEY_NAMES.join(', ')} (deutsche Schreibweise: Dur groß, Moll klein, H = englisch B, B = englisch B♭).
+- Akkord- und Tonnamen in "chords" in internationaler Schreibweise (B, Bb, F#m).
+- Abschnittsnamen wie Intro, Strophe, Pre-Chorus, Refrain, Bridge, Solo, Outro, gern mit Wiederholungen in "bars" (z. B. "8 Takte, 2×").
+- "notes": höchstens zwei kurze Spielhinweise auf Deutsch.
+Antworte ausschließlich mit JSON in genau dieser Form:
+{"known":true,"key":"E-Dur","bpm":120,"capo":0,"tuning":"Standard","sections":[{"name":"Intro","chords":"E – A – B","bars":"4 Takte","note":""}],"notes":""}`;
+}
+
+/* ================= tuning recommendations ================= */
+const PCN = { C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11 };
+const acc = a => a === '#' || a === '♯' ? 1 : a === 'b' || a === '♭' ? -1 : 0;
+const GERMAN_PC = { c: 0, cis: 1, des: 1, d: 2, dis: 3, es: 3, e: 4, f: 5, fis: 6, ges: 6, g: 7, gis: 8, as: 8, a: 9, ais: 10, b: 10, h: 11 };
+function parseKey(k) {
+  const m = String(k || '').match(/^([A-Ha-h][a-z]*)-(Dur|Moll)$/); if (!m) return null;
+  const pc = GERMAN_PC[m[1].toLowerCase()]; return pc == null ? null : { pc, minor: m[2] === 'Moll' };
+}
+function chordPCs(sym) {
+  const m = sym.match(/^([A-G])([#b♯♭]?)(.*)$/); if (!m) return null;
+  const root = (PCN[m[1]] + acc(m[2]) + 12) % 12; let q = m[3] || '', bass = null;
+  const sl = q.match(/\/([A-G])([#b♯♭]?)/); if (sl) { bass = (PCN[sl[1]] + acc(sl[2]) + 12) % 12; q = q.slice(0, sl.index); }
+  let iv = /^(dim|°)/.test(q) ? [0, 3, 6] : /^(aug|\+)/.test(q) ? [0, 4, 8] : /^sus2/.test(q) ? [0, 2, 7] : /^sus/.test(q) ? [0, 5, 7] : /^5/.test(q) ? [0, 7] : /^(m(?!aj)|min)/.test(q) ? [0, 3, 7] : [0, 4, 7];
+  if (/maj7|M7|Δ/.test(q)) iv.push(11); else if (/7/.test(q)) iv.push(10);
+  return { pcs: iv.map(x => (root + x) % 12), bass };
+}
+function songProfile(song) {
+  const w = Array(12).fill(0);
+  const keyName = song.key || (KEY_NAMES.includes(song.ai?.guitar?.key) ? song.ai.guitar.key : '') || (KEY_NAMES.includes(song.ai?.bass?.key) ? song.ai.bass.key : '');
+  const k = parseKey(keyName);
+  if (k) {
+    (k.minor ? [0, 2, 3, 5, 7, 8, 10] : [0, 2, 4, 5, 7, 9, 11]).forEach(x => w[(k.pc + x) % 12] = 0.5);
+    w[k.pc] = 1; w[(k.pc + 7) % 12] = 0.9; w[(k.pc + (k.minor ? 3 : 4)) % 12] = 0.8;
+  }
+  const cw = Array(12).fill(0); let cn = 0;
+  ['guitar', 'bass'].forEach(ins => {
+    const r = song.ai?.[ins]; if (!r || r.known === false) return;
+    (r.sections || []).forEach(sec => (String(sec.chords || '').match(/[A-G][#b♯♭]?[^\s–\-,|()]*/g) || []).forEach(tok => {
+      const c = chordPCs(tok); if (!c) return; cn++;
+      c.pcs.forEach((pc, i) => cw[pc] += i === 0 ? 1 : 0.7); if (c.bass != null) cw[c.bass] += 0.5;
+    }));
+  });
+  if (cn) { const mx = Math.max(...cw); for (let i = 0; i < 12; i++) w[i] = k ? 0.4 * w[i] + 0.6 * cw[i] / mx : cw[i] / mx; }
+  return (k || cn) ? { w, key: keyName, chords: cn > 0 } : null;
+}
+const isTomType = d => d.type === 'Tom' || d.type === 'Standtom';
+const midiF = n => 440 * Math.pow(2, (n - 69) / 12);
+const fMidi = f => 69 + 12 * Math.log2(f / 440);
+const diam = (d, fb) => parseFloat(String(d.size || '').replace(',', '.')) || fb;
+const IV_NAMES = ['Prime', 'kleine Sekunde', 'große Sekunde', 'kleine Terz', 'große Terz', 'Quarte', 'Tritonus', 'Quinte', 'kleine Sexte', 'große Sexte', 'kleine Septime', 'große Septime', 'Oktave'];
+function planTuning(p, { anchorId = null, profiles = [] } = {}) {
+  const has = profiles.length > 0;
+  const compat = n => has ? profiles.reduce((sm, pr) => sm + pr.w[((n % 12) + 12) % 12], 0) / profiles.length : 0;
+  const nodeScore = (d, n, fc) => {
+    let sc = (has ? compat(n) : 0) - 0.012 * Math.pow(n - fMidi(fc), 2);
+    if (d.id === anchorId && d.pitchTop) sc -= 0.6 * Math.abs(n - fMidi(d.pitchTop));
+    return sc;
+  };
+  const span = (d, fc, k) => {
+    let lo = Math.ceil(fMidi(fc / k)), hi = Math.floor(fMidi(fc * k));
+    if (d.id === anchorId && d.pitchTop) { const a = Math.round(fMidi(d.pitchTop)); lo = Math.min(lo, a - 2); hi = Math.max(hi, a + 2); }
+    return [lo, hi];
+  };
+  // toms: chain from smallest (highest) to largest (lowest)
+  let fbSize = 10;
+  const toms = p.drums.filter(isTomType).map(d => ({ d, D: diam(d, d.type === 'Standtom' ? 16 : (fbSize += 2) - 2) })).sort((x, y) => x.D - y.D);
+  const C = toms.map(t => { const fc = 1600 / t.D, [lo, hi] = span(t.d, fc, 1.3), out = []; for (let n = lo; n <= hi; n++) out.push({ n, sc: nodeScore(t.d, n, fc) }); return out; });
+  const dp = [], bk = [];
+  C.forEach((list, i) => {
+    dp[i] = []; bk[i] = [];
+    const raw = i ? 12 * Math.log2(toms[i].D / toms[i - 1].D) : 0, ideal = raw < 1 ? 3 : Math.min(7, Math.max(2, Math.round(raw)));
+    list.forEach((c, j) => {
+      if (!i) { dp[i][j] = c.sc; return; }
+      let best = -Infinity, bj = -1;
+      C[i - 1].forEach((pc, k) => { const iv = pc.n - c.n; if (iv < 2 || dp[i - 1][k] === -Infinity) return; const v = dp[i - 1][k] - 0.12 * Math.pow(iv - ideal, 2); if (v > best) { best = v; bj = k; } });
+      dp[i][j] = best === -Infinity ? -Infinity : best + c.sc; bk[i][j] = bj;
+    });
+  });
+  const rows = [];
+  if (toms.length) {
+    const L = toms.length - 1; let j = dp[L].reduce((bi, v, i, arr) => v > arr[bi] ? i : bi, 0);
+    if (dp[L][j] === -Infinity) { // fallback: ignore interval constraint
+      toms.forEach((t, i) => { const b = C[i].reduce((x, y) => y.sc > x.sc ? y : x); rows.push({ d: t.d, n: b.n }); });
+    } else {
+      const picks = []; for (let i = L; i >= 0; i--) { picks[i] = C[i][j].n; j = bk[i][j]; }
+      toms.forEach((t, i) => rows.push({ d: t.d, n: picks[i] }));
+    }
+    rows.forEach((r, i) => { if (i) { const iv = rows[i - 1].n - r.n; r.iv = `${IV_NAMES[Math.min(12, Math.max(0, iv))] || iv + ' Halbtöne'} unter ${rows[i - 1].d.name}`; } });
+  }
+  const tomW = Array(12).fill(0); rows.forEach(r => { tomW[(r.n % 12 + 12) % 12] = 1; const f5 = ((r.n + 7) % 12 + 12) % 12; tomW[f5] = Math.max(tomW[f5], 0.6); });
+  const singles = p.drums.filter(d => d.type === 'Bassdrum' || d.type === 'Snare').map(d => {
+    const D = diam(d, d.type === 'Bassdrum' ? 22 : 14), fc = d.type === 'Bassdrum' ? 1300 / D : 3000 / D, [lo, hi] = span(d, fc, 1.25);
+    let best = null; for (let n = lo; n <= hi; n++) { const sc = nodeScore(d, n, fc) + (has ? 0 : 0.8 * tomW[(n % 12 + 12) % 12]); if (!best || sc > best.sc) best = { n, sc }; }
+    return { d, n: best.n };
+  });
+  const all = [...rows, ...singles]; all.forEach(r => { r.f = midiF(r.n); r.compat = has ? compat(r.n) : null; });
+  return { keyed: has, rows, singles, avg: has && all.length ? all.reduce((sm, r) => sm + r.compat, 0) / all.length : null };
+}
+function showTuningSheet(p, { anchorId, songId } = {}) {
+  const a = artist();
+  const entries = a.setlists.filter(s => s.prodId === p.id).flatMap(s => s.songs.map(song => ({ song, set: s, prof: songProfile(song) }))).filter(e => e.prof);
+  const uniq = []; const seen = new Set(); entries.forEach(e => { if (!seen.has(e.song.id)) { seen.add(e.song.id); uniq.push(e); } });
+  let scope = songId ? (uniq.some(e => e.song.id === songId) ? 's:' + songId : 'none') : (uniq.length ? 'all' : 'none');
+  const tuned = p.drums.filter(d => d.pitchTop).sort((x, y) => (y.pitchTopAt || 0) - (x.pitchTopAt || 0));
+  let anchor = anchorId !== undefined ? anchorId : (tuned[0]?.id || null);
+  let plan = null;
+  const ov = h('div', { class: 'sheet-ov', role: 'dialog', 'aria-modal': 'true', 'aria-label': 'Tuning-Empfehlung' });
+  const sheet = h('div', { class: 'sheet' }); ov.append(sheet);
+  const close = () => { ov.remove(); document.removeEventListener('keydown', esc); if (route.view === 'kit') render(true); };
+  const esc = e => { if (e.key === 'Escape') close(); };
+  ov.addEventListener('click', e => { if (e.target === ov) close(); });
+  document.addEventListener('keydown', esc);
+  const songMissing = songId && scope === 'none' ? (a.setlists.flatMap(s => s.songs).find(x => x.id === songId)) : null;
+  function draw() {
+    const profiles = scope === 'all' ? uniq.map(e => e.prof) : scope.startsWith('s:') ? uniq.filter(e => 's:' + e.song.id === scope).map(e => e.prof) : [];
+    plan = planTuning(p, { anchorId: anchor, profiles });
+    const ad = p.drums.find(d => d.id === anchor);
+    const scopeSel = h('select', { 'aria-label': 'Abstimmen auf', value: scope, onchange: e => { scope = e.target.value; draw(); } },
+      uniq.length ? h('option', { value: 'all' }, `Alle Songs der Setlisten (${uniq.length}), bester Durchschnitt`) : null,
+      uniq.map(e => h('option', { value: 's:' + e.song.id }, `${e.song.title || 'Song'} (${e.prof.key || 'aus Akkorden'})`)),
+      h('option', { value: 'none' }, 'Ohne Tonart, nur Intervalle'));
+    const anchorSel = h('select', { 'aria-label': 'Ausgangstrommel', value: anchor || '', onchange: e => { anchor = e.target.value || null; draw(); } },
+      h('option', { value: '' }, 'Keine, frei vorschlagen'),
+      tuned.map(d => h('option', { value: d.id }, `${d.name} (${fmtHz(d.pitchTop)} Hz)`)));
+    const row = r => h('div', { class: 'rec' + (r.d.id === anchor ? ' anchor' : '') },
+      h('span', { class: 'nm' }, r.d.name + (r.d.size ? `, ${r.d.size}` : '')),
+      h('span', { class: 'nt' }, midiName(r.n), h('small', {}, `${fmtHz(r.f)} Hz`)),
+      h('span', { class: 'iv' }, r.d.id === anchor ? `Ausgangstrommel, gemessen ${fmtHz(r.d.pitchTop)} Hz` : (r.iv || (r.d.type === 'Bassdrum' || r.d.type === 'Snare' ? (plan.keyed ? `passend zur Tonart im ${r.d.type === 'Bassdrum' ? 'Kick' : 'Snare'}-Bereich` : (plan.rows.length ? 'harmoniert mit den Toms' : `typischer ${r.d.type === 'Bassdrum' ? 'Kick' : 'Snare'}-Bereich`)) : ''))),
+      r.compat != null ? h('span', { class: 'iv cp' }, `Passung zur Tonart ${Math.round(r.compat * 100)} %`) : null,
+      (() => { const pos = Math.max(0.05, Math.min(1, Math.log(r.f / 40) / Math.log(260 / 40))); return h('div', { class: 'fbar', title: `${fmtHz(r.f)} Hz` }, h('i', { style: `width:${(pos * 100).toFixed(1)}%;background-size:${(100 / pos).toFixed(1)}% 100%` })); })());
+    sheet.replaceChildren(...[
+      h('div', { class: 'grab' }),
+      h('h3', {}, 'Tuning-Empfehlung'),
+      h('p', { class: 'lead' }, ad ? `Ausgehend von ${ad.name} mit ${fmtHz(ad.pitchTop)} Hz (${midiName(Math.round(fMidi(ad.pitchTop)))})` : `${p.name || 'Drumkit'}: Vorschlag aus Kesselgrößen und Anzahl der Trommeln`),
+      songMissing ? h('p', { class: 'err' }, `Für „${songMissing.title}“ ist noch keine Tonart eingetragen und keine Akkorde abgerufen. Die Empfehlung nutzt deshalb nur Intervalle.`) : null,
+      h('div', { class: 'grid' },
+        h('label', { class: 'field wide' }, h('span', {}, 'Abstimmen auf'), scopeSel),
+        h('label', { class: 'field wide' }, h('span', {}, 'Ausgangstrommel'), anchorSel)),
+      !uniq.length ? h('p', { class: 'muted', style: 'font-size:.88rem' }, 'Tipp: Verknüpfe eine Setliste mit diesem Drumkit und trag dort die Tonarten ein, dann werden die Toms passend zu den Songs gestimmt.') : null,
+      plan.avg != null ? h('div', { class: 'avg' }, `Ø Passung zu ${scope === 'all' ? 'allen Songs' : 'diesem Song'}: ${Math.round(plan.avg * 100)} %`) : null,
+      h('div', { class: 'legend' }, h('span', {}, 'tief'), h('i'), h('span', {}, 'hoch')),
+      plan.rows.length ? h('h2', { style: 'margin:14px 0 8px;font-size:1.1rem' }, 'Toms') : null,
+      plan.rows.map(row),
+      plan.singles.length ? h('h2', { style: 'margin:14px 0 8px;font-size:1.1rem' }, 'Bassdrum und Snare') : null,
+      plan.singles.map(row),
+      h('div', { class: 'row' },
+        h('button', { class: 'btn solid', type: 'button', onclick: () => { [...plan.rows, ...plan.singles].forEach(r => r.d.targetTop = Math.round(r.f * 10) / 10); touch(); toast('Zielwerte übernommen'); close(); } }, 'Als Zielwerte übernehmen'),
+        h('button', { class: 'btn ghost', type: 'button', onclick: close }, 'Schließen')),
+      h('p', { class: 'foot', style: 'margin-top:14px' }, 'Richtwerte für den Grundton des Schlagfells, abgeleitet aus den Kesselgrößen. Jede Trommel klingt in einem gewissen Bereich gut, nimm die Werte als Startpunkt und stimm nach Gehör nach. Die Zielwerte erscheinen danach im Tuner.')
+    ].flat().filter(x => x != null && x !== false));
+  }
+  draw(); document.body.append(ov); sheet.querySelector('select')?.focus();
+}
+
+/* ================= areas, icons, tab bar ================= */
+const AREA = { console: ['#A291B8', 'Mischpult'], tuner: ['#88A3C4', 'Tuner'], quick: ['#8FB0AA', 'Quick'], kits: ['#C4A36E', 'Kits'], chain: ['#A291B8', 'Chain'], setlists: ['#96A981', 'Setlisten'], tunings: ['#C79494', 'Stimmungen'], ginsts: ['#C4A36E', 'Instrumente'] };
+const INST_C = { drums: '#C88B62', bass: '#9C8DB4', guitar: '#83A79D' };
+const MODE_C = { live: '#B87A70', studio: '#7F98AE' };
+const VIEW_AREA = { console: 'chain', tuner: 'tuner', gtuner: 'tuner', quick: 'quick', kits: 'kits', kit: 'kits', chains: 'chain', chain: 'chain', setlists: 'setlists', setlist: 'setlists', tunings: 'tunings', tuning: 'tunings', ginsts: 'ginsts', ginst: 'ginsts' };
+function areaColor() {
+  const k = VIEW_AREA[route.view]; if (k) return AREA[k][0];
+  if (['home', 'drumMenu', 'ghome'].includes(route.view)) return INST_C[route.inst] || '#88A3C4';
+  if (route.view === 'inst') return MODE_C[route.mode];
+  return '#88A3C4';
+}
+const ICON_PATHS = {
+  tuner: ['M4 17a8 8 0 0 1 16 0', 'M12 17l4.5-5.5', 'M12 17h.01'],
+  quick: ['M13 2 4.5 13.5H11L10 22l8.5-11.5H12z'],
+  kits: ['M3.5 8.5c0-1.9 3.8-3.5 8.5-3.5s8.5 1.6 8.5 3.5-3.8 3.5-8.5 3.5-8.5-1.6-8.5-3.5z', 'M3.5 8.5v7c0 1.9 3.8 3.5 8.5 3.5s8.5-1.6 8.5-3.5v-7', 'M7 11.5l2 7M17 11.5l-2 7'],
+  chain: ['M5 4v16M12 4v16M19 4v16', 'M3 9h4M10 15h4M17 7h4'],
+  setlists: ['M9 6h11M9 12h11M9 18h11', 'M4 6h.01M4 12h.01M4 18h.01'],
+  tunings: ['M9 3v6a3 3 0 0 0 6 0V3', 'M12 12v9'],
+  ginsts: ['M13.5 10.5 20 4', 'M18 2l4 4', 'M10 11.5a4.5 4.5 0 1 0 2.5 2.5', 'M9 15h.01'],
+  live: ['M12 3a3 3 0 0 1 3 3v5a3 3 0 0 1-6 0V6a3 3 0 0 1 3-3z', 'M6 11a6 6 0 0 0 12 0', 'M12 17v4'],
+  studio: ['M3 6h18v12H3z', 'M7 10v4M11 9v6M15 11v2M18 10v4'],
+  console: ['M3 4h18v16H3z', 'M8 8v8M12 8v8M16 8v8', 'M6.5 13h3M10.5 10h3M14.5 14h3']
+};
+function areaIcon(k, cls) { return svg('svg', { viewBox: '0 0 24 24', class: cls || '', fill: 'none', stroke: 'currentColor', 'stroke-width': 2, 'stroke-linecap': 'round', 'stroke-linejoin': 'round', 'aria-hidden': 'true' }, (ICON_PATHS[k] || []).map(d => svg('path', { d }))); }
+function atile(k, title, desc, onclick, wide) {
+  return h('button', { class: 'atile', style: `--c:${AREA[k][0]}${wide ? ';grid-column:1/-1;min-height:96px' : ''}`, type: 'button', onclick },
+    h('span', { class: 'at-ico' }, areaIcon(k)), h('span', {}, h('b', {}, title), h('small', {}, desc)));
+}
+function renderTabs() {
+  let tb = document.getElementById('tabbar');
+  if (!tb) { tb = h('nav', { id: 'tabbar', 'aria-label': 'Funktionen' }); document.body.append(tb); }
+  const inArea = artist() && (VIEW_AREA[route.view] || ['home', 'ghome', 'drumMenu'].includes(route.view));
+  if (!inArea) { tb.hidden = true; document.body.classList.remove('has-tabs'); return; }
+  const studio = route.mode === 'studio';
+  const tabs = route.inst === 'drums'
+    ? [['quick', 'Quick', () => nav('quick')], ['tuner', 'Tuner', () => nav('tuner', { target: null, tunerFrom: 'home' })], ['kits', 'Kits', () => nav('kits')], studio && ['chain', 'Chain', () => nav('chains')], ['setlists', 'Setlisten', () => nav('setlists')]]
+    : [['tuner', 'Stimmgerät', () => nav('gtuner', { gString: null })], ['tunings', 'Stimmungen', () => nav('tunings')], ['ginsts', 'Instrumente', () => nav('ginsts')], studio && ['chain', 'Chain', () => nav('chain', { chainOwner: 'inst' })], ['setlists', 'Setlisten', () => nav('setlists')]];
+  const cur = VIEW_AREA[route.view];
+  tb.replaceChildren(...tabs.filter(Boolean).map(([k, l, go]) => h('button', { type: 'button', style: `--c:${AREA[k][0]}`, 'aria-current': cur === k ? 'page' : null, onclick: go }, areaIcon(k), l)));
+  tb.hidden = false; document.body.classList.add('has-tabs');
+}
+
+/* ================= mixing console ================= */
+const STAGE_UI = { 'Preamp': ['PRE', '#C4A36E'], 'EQ': ['EQ', '#88A3C4'], 'Kompressor': ['CMP', '#C79494'], 'Gate / Expander': ['GATE', '#96A981'], 'Sättigung': ['SAT', '#C88B62'], 'Transient Designer': ['TRN', '#8FB0AA'], 'Hall': ['REV', '#A291B8'], 'Delay': ['DLY', '#A291B8'], 'Sonstiges': ['FX', '#8C97A8'] };
+const FADER_PTS = [[0, -100], [.05, -60], [.14, -40], [.25, -30], [.40, -20], [.58, -10], [.70, -5], [.82, 0], [.92, 5], [1, 10]];
+function posToDb(p) { if (p <= .01) return null; for (let i = 1; i < FADER_PTS.length; i++) { const [p1, d1] = FADER_PTS[i], [p0, d0] = FADER_PTS[i - 1]; if (p <= p1) { const d = d0 + (d1 - d0) * (p - p0) / (p1 - p0); return d < -90 ? null : d; } } return 10; }
+function dbToPos(db) { if (db == null || db <= -90) return 0; for (let i = 1; i < FADER_PTS.length; i++) { const [p1, d1] = FADER_PTS[i], [p0, d0] = FADER_PTS[i - 1]; if (db <= d1) return p0 + (p1 - p0) * (db - d0) / (d1 - d0); } return 1; }
+const fmtDb = db => db == null ? '−∞' : db === 0 ? '0' : (db > 0 ? '+' : db < 0 ? '−' : '') + (Math.abs(db) < 10 ? fmtNum(Math.abs(db)) : Math.round(Math.abs(db)));
+const capTop = p => `calc(6px + (100% - 12px) * ${(1 - p).toFixed(4)})`;
+function consoleOwner() {
+  const a = artist();
+  if (route.chainOwner === 'inst') return { C: a.instChains[route.inst], p: null, name: instName() };
+  const p = a.productions.find(x => x.id === route.prodId);
+  return p ? { C: p.chain, p, name: p.name || 'Unbenannte Produktion' } : null;
+}
+function faderEl(obj, label) {
+  const readout = h('div', { class: 'dbv' }), cap = h('div', { class: 'cap' });
+  const ticks = [[10, '+10'], [5, '5'], [0, '0'], [-10, '10'], [-20, '20'], [-30, '30'], [-40, '40'], [-60, '60'], [null, '∞']].map(([db, l]) =>
+    h('div', { class: 'tick' + (db === 0 ? ' zero' : ''), style: `top:${capTop(dbToPos(db))}` }, h('b', {}, l)));
+  const fd = h('div', { class: 'fader', tabindex: 0, role: 'slider', 'aria-label': `Fader ${label}`, 'aria-valuemin': -90, 'aria-valuemax': 10 }, h('div', { class: 'slot' }), ticks, cap);
+  const place = () => { cap.style.top = capTop(dbToPos(obj.fader)); readout.textContent = fmtDb(obj.fader); fd.setAttribute('aria-valuetext', fmtDb(obj.fader) + ' dB'); };
+  const setY = y => { const r = fd.getBoundingClientRect(); const pp = Math.max(0, Math.min(1, 1 - (y - r.top - 6) / (r.height - 12))); let db = posToDb(pp); if (db != null) { db = Math.round(db * 10) / 10; if (Math.abs(db) < .6) db = 0; } obj.fader = db; place(); };
+  fd.addEventListener('pointerdown', e => { fd.setPointerCapture(e.pointerId); setY(e.clientY); e.preventDefault(); });
+  fd.addEventListener('pointermove', e => { if (fd.hasPointerCapture(e.pointerId)) setY(e.clientY); });
+  fd.addEventListener('pointerup', () => touch());
+  fd.addEventListener('dblclick', () => { obj.fader = 0; place(); touch(); });
+  fd.addEventListener('keydown', e => {
+    if (!['ArrowUp', 'ArrowDown'].includes(e.key)) return; e.preventDefault();
+    const cur = obj.fader == null ? -61 : obj.fader; let n = cur + (e.key === 'ArrowUp' ? 1 : -1);
+    obj.fader = n > 10 ? 10 : n < -60 ? null : Math.round(n); place(); touch();
+  });
+  place();
+  return [readout, fd];
+}
+function panKnob(m) {
+  const val = h('span', { class: 'kval' }), k = h('div', { class: 'knob', tabindex: 0, role: 'slider', 'aria-label': 'Panorama', 'aria-valuemin': -100, 'aria-valuemax': 100 });
+  const draw = () => { k.style.setProperty('--a', `${m.pan / 100 * 135}deg`); const t = m.pan === 0 ? 'C' : m.pan < 0 ? `L${-m.pan}` : `R${m.pan}`; val.textContent = t; k.setAttribute('aria-valuetext', t); };
+  let y0 = 0, v0 = 0;
+  k.addEventListener('pointerdown', e => { k.setPointerCapture(e.pointerId); y0 = e.clientY; v0 = m.pan; e.preventDefault(); });
+  k.addEventListener('pointermove', e => { if (!k.hasPointerCapture(e.pointerId)) return; let v = Math.round(v0 + (y0 - e.clientY) * 1.4); v = Math.max(-100, Math.min(100, v)); if (Math.abs(v) < 4) v = 0; m.pan = v; draw(); });
+  k.addEventListener('pointerup', () => touch());
+  k.addEventListener('dblclick', () => { m.pan = 0; draw(); touch(); });
+  k.addEventListener('keydown', e => { if (!['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) return; e.preventDefault(); m.pan = Math.max(-100, Math.min(100, m.pan + (['ArrowUp', 'ArrowRight'].includes(e.key) ? 5 : -5))); draw(); touch(); });
+  draw();
+  return h('div', { class: 'knob-wrap' }, 'PAN', k, val);
+}
+function gainKnob(ch) {
+  const pre = ch.stages.find(st => st.kind === 'Preamp');
+  const raw = pre ? String(pre.vals['Gain'] || '') : '';
+  const g = parseFloat(raw.replace(',', '.').replace(/[^\d.\-+]/g, ''));
+  const k = h('div', { class: 'knob ro', style: `--a:${isNaN(g) ? -135 : Math.max(-135, Math.min(135, -135 + g / 70 * 270))}deg;--kc:#C4A36E`, title: pre?.gear || 'Preamp' });
+  return h('div', { class: 'knob-wrap' }, 'GAIN', k, h('span', { class: 'kval' }, isNaN(g) ? '–' : `${Math.round(g)} dB`));
+}
+function viewConsole() {
+  const o = consoleOwner();
+  if (!o) { route.view = 'chains'; return viewChains(); }
+  const { C, name } = o; C.master ||= { fader: 0 };
+  const all = [...C.channels, ...C.busses];
+  all.forEach(c => c.mix ||= { fader: 0, pan: 0, mute: false, solo: false });
+  const wrap = h('div', { class: 'console-wrap' });
+  const strip = (ch, kind, anySolo, redraw) => {
+    const m = ch.mix, ins = ch.stages.slice(0, 4).map(st => { const [sh, col] = STAGE_UI[st.kind] || STAGE_UI.Sonstiges; const g = (st.gear || '').trim().split(/\s+/).pop(); return h('div', { class: 'ins', style: `--k:${col}`, title: `${st.kind}${st.gear ? ': ' + st.gear : ''}` }, h('i', {}, sh), h('span', {}, g || '')); });
+    while (ins.length < 4) ins.push(h('div', { class: 'ins empty' }));
+    const toggle = (key, cls, label) => h('button', { class: cls, type: 'button', 'aria-pressed': String(!!m[key]), 'aria-label': `${label} ${ch.name || ''}`, onclick: () => { m[key] = !m[key]; touch(); redraw(); } }, cls.toUpperCase());
+    return h('div', { class: `strip ${kind}` + (anySolo && !m.solo ? ' dim' : '') + (m.mute ? ' dim' : '') },
+      ins, kind === 'ch' ? gainKnob(ch) : h('div', { class: 'knob-wrap', style: 'visibility:hidden' }, 'GAIN', h('div', { class: 'knob ro' }), h('span', { class: 'kval' }, '–')),
+      panKnob(m), h('div', { class: 'ms' }, toggle('mute', 'm', 'Stumm'), toggle('solo', 's', 'Solo')),
+      faderEl(m, ch.name || 'Kanal'),
+      h('button', { class: 'scribble', type: 'button', title: 'Signalkette öffnen', onclick: () => { openSet.add(ch.id); nav('chain'); } }, ch.name || (kind === 'bus' ? 'Bus' : 'Kanal')),
+      h('div', { class: 'src' }, kind === 'bus' ? (ch.source || 'Bus') : (ch.source || '')));
+  };
+  const draw = () => {
+    const anySolo = all.some(c => c.mix.solo);
+    wrap.replaceChildren(h('div', { class: 'console', role: 'group', 'aria-label': 'Mischpult' },
+      C.channels.map(c => strip(c, 'ch', anySolo, draw)),
+      C.busses.length ? h('div', { class: 'sep' }) : null,
+      C.busses.map(b => strip(b, 'bus', anySolo, draw)),
+      h('div', { class: 'sep' }),
+      h('div', { class: 'strip master' }, h('div', { class: 'ins empty' }), h('div', { class: 'ins empty' }), h('div', { class: 'ins empty' }), h('div', { class: 'ins empty' }),
+        h('div', { class: 'knob-wrap', style: 'visibility:hidden' }, 'GAIN', h('div', { class: 'knob ro' }), h('span', { class: 'kval' }, '–')),
+        h('div', { class: 'knob-wrap', style: 'visibility:hidden' }, 'PAN', h('div', { class: 'knob ro' }), h('span', { class: 'kval' }, '–')),
+        h('div', { class: 'ms', style: 'visibility:hidden' }, h('button', {}, 'M')),
+        faderEl(C.master, 'Master'), h('div', { class: 'scribble', style: 'cursor:default' }, 'Master'), h('div', { class: 'src' }, 'Stereo'))));
+  };
+  draw();
+  return {
+    title: 'Mischpult', back: () => nav('chain'),
+    body: [
+      h('p', { class: 'muted', style: 'margin:0 0 6px;font-size:.9rem' }, name),
+      all.length ? wrap : h('div', { class: 'empty' }, 'Noch keine Kanäle. Leg sie in der Recording Chain an, dann erscheinen sie hier als Kanalzüge.'),
+      h('div', { class: 'row' },
+        h('button', { class: 'btn', type: 'button', onclick: () => nav('chain') }, 'Zur Recording Chain'),
+        all.length ? h('button', { class: 'btn ghost', type: 'button', onclick: () => { all.forEach(c => Object.assign(c.mix, { fader: 0, pan: 0, mute: false, solo: false })); C.master.fader = 0; touch(); draw(); } }, 'Alles auf 0 dB') : null),
+      h('p', { class: 'foot' }, 'Fader und Pan-Regler ziehen, Doppeltipp setzt zurück. Die Inserts zeigen die ersten vier Stufen der Signalkette, der Gain-Regler den eingetragenen Preamp-Gain. Ein Tipp auf den Kanalnamen öffnet die Signalkette.')
+    ]
+  };
+}
+
+/* ================= kit photo ================= */
+const photoCache = {}, photoLoading = {};
+var dbH = null, uidG = null;
+const photoKey = p => 'drumtech-photo-' + p.id;
+const photoDoc = p => dbH && uidG ? dbH.doc(`data/users/${uidG}/photo-${p.id}`) : null;
+function getPhoto(p, onLoad) {
+  if (!p.hasPhoto) return null;
+  if (photoCache[p.id]) return photoCache[p.id];
+  try { const d = localStorage.getItem(photoKey(p)); if (d) return photoCache[p.id] = d; } catch (e) {}
+  const ref = photoDoc(p);
+  if (ref && !photoLoading[p.id]) {
+    photoLoading[p.id] = true;
+    ref.get().then(sn => { if (sn.exists && sn.data().data) { photoCache[p.id] = sn.data().data; try { localStorage.setItem(photoKey(p), photoCache[p.id]); } catch (e) {} onLoad && onLoad(); } }).catch(() => {});
+  }
+  return null;
+}
+async function savePhoto(p, data) {
+  photoCache[p.id] = data; p.hasPhoto = true; p.photoV = Date.now();
+  try { localStorage.setItem(photoKey(p), data); } catch (e) {}
+  const ref = photoDoc(p);
+  if (ref) { try { await ref.set({ data, v: p.photoV }); } catch (e) { toast('Das Foto ist nur auf diesem Gerät gespeichert.'); } }
+  touch();
+}
+async function removePhoto(p) {
+  delete photoCache[p.id]; p.hasPhoto = false; p.drums.forEach(d => delete d.photoPos);
+  try { localStorage.removeItem(photoKey(p)); } catch (e) {}
+  const ref = photoDoc(p); if (ref) { try { await ref.delete(); } catch (e) {} }
+  touch();
+}
+function compressImage(file) {
+  return new Promise((res, rej) => {
+    const fr = new FileReader(); fr.onerror = rej;
+    fr.onload = () => {
+      const img = new Image(); img.onerror = rej;
+      img.onload = () => {
+        let max = 1200, q = .8, out = '';
+        for (let i = 0; i < 10; i++) {
+          const sc = Math.min(1, max / Math.max(img.width, img.height)), c = document.createElement('canvas');
+          c.width = Math.round(img.width * sc); c.height = Math.round(img.height * sc);
+          c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+          out = c.toDataURL('image/jpeg', q);
+          if (out.length < 235000) break;
+          if (q > .55) q -= .1; else max = Math.round(max * .82);
+        }
+        res(out);
+      };
+      img.src = fr.result;
+    };
+    fr.readAsDataURL(file);
+  });
+}
+function pitchColor(hz) {
+  if (!hz) return '#8C97A8';
+  const f = Math.max(0, Math.min(1, Math.log(hz / 40) / Math.log(260 / 40))), a = [168, 56, 46], b = [250, 247, 244];
+  return `rgb(${a.map((v, i) => Math.round(v + (b[i] - v) * f)).join(',')})`;
+}
+function kitPhotoView(p, { mode = 'view', selId = null, temp = null, onPick, onPlace } = {}) {
+  const data = getPhoto(p, () => render(true));
+  const wrap = h('div', { class: 'kp-wrap' + (mode === 'edit' ? ' edit' : '') });
+  if (!data) { wrap.append(h('div', { class: 'kp-loading' }, 'Foto wird geladen …')); return wrap; }
+  const img = h('img', { src: data, alt: `Foto des Drumkits${p.name ? ' ' + p.name : ''}`, draggable: 'false' });
+  wrap.append(img);
+  p.drums.filter(d => d.photoPos).forEach(d => {
+    const hz = d.pitchTop, x = d.photoPos.x, y = d.photoPos.y;
+    wrap.append(h('button', { class: 'kp-mark' + (d.id === selId ? ' sel' : '') + (x > .78 ? ' r' : x < .22 ? ' l' : ''), type: 'button',
+      style: `left:${(x * 100).toFixed(2)}%;top:${(y * 100).toFixed(2)}%;--pc:${pitchColor(hz)}`,
+      'aria-label': `${d.name}${hz ? ', ' + fmtHz(hz) + ' Hz' : ', noch kein Pitch'}`,
+      onclick: e => { e.stopPropagation(); onPick && onPick(d); } },
+      h('span', { class: 'kp-dot' }),
+      d.id === selId ? h('span', { class: 'kp-tag big' }, h('b', {}, d.name), hz ? h('strong', {}, `${fmtHz(hz)} Hz`) : null, h('small', {}, hz ? midiName(Math.round(fMidi(hz))) : 'noch kein Pitch gespeichert'))
+        : h('span', { class: 'kp-tag' }, h('b', {}, d.name))));
+  });
+  if (temp) wrap.append(h('span', { class: 'kp-temp', style: `left:${temp.x * 100}%;top:${temp.y * 100}%` }));
+  if (mode === 'edit') wrap.addEventListener('click', e => {
+    const r = img.getBoundingClientRect(), x = (e.clientX - r.left) / r.width, y = (e.clientY - r.top) / r.height;
+    if (x >= 0 && x <= 1 && y >= 0 && y <= 1) onPlace && onPlace(x, y);
+  });
+  return wrap;
+}
+function kitPhotoSection(p) {
+  if (!route.kp || route.kp.prodId !== p.id) route.kp = { prodId: p.id, edit: false, place: null, sel: null };
+  const KP = route.kp;
+  const fileBtn = (label, capture, solid) => {
+    const inp = h('input', { type: 'file', accept: 'image/*', capture: capture ? 'environment' : null, style: 'display:none', onchange: async e => {
+      const f = e.target.files && e.target.files[0]; if (!f) return;
+      toast('Foto wird vorbereitet …');
+      try { const d = await compressImage(f); await savePhoto(p, d); Object.assign(KP, { edit: true, place: null, sel: null }); render(true); toast('Tippe jetzt im Foto auf die Trommeln, um sie zuzuordnen.'); }
+      catch (err) { toast('Das Foto konnte nicht geladen werden.'); }
+    } });
+    return h('label', { class: 'btn file-btn' + (solid ? ' solid' : '') + ' small', tabindex: 0, onkeydown: e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); inp.click(); } } }, label, inp);
+  };
+  if (!p.hasPhoto) return h('div', { class: 'card' },
+    h('p', { class: 'muted', style: 'margin:0 0 10px' }, 'Mach ein Foto deines Kits von oben, sodass alle Trommeln zu sehen sind. Danach tippst du die Trommeln im Foto an und ordnest sie zu. Ein Tipp auf eine Trommel zeigt ihren Grundton und öffnet den Tuner.'),
+    h('div', { class: 'row', style: 'margin-top:0' }, fileBtn('Foto aufnehmen', true, true), fileBtn('Aus Galerie wählen', false)));
+  const marked = p.drums.filter(d => d.photoPos).length;
+  const view = kitPhotoView(p, {
+    mode: KP.edit ? 'edit' : 'view', selId: KP.edit ? KP.sel : null, temp: KP.edit ? KP.place : null,
+    onPick: d => { if (KP.edit) { KP.sel = d.id; KP.place = null; render(true); } else nav('tuner', { target: `${p.id}|${d.id}`, side: 'top', tunerFrom: 'kit' }); },
+    onPlace: (x, y) => { KP.place = { x, y }; KP.sel = null; render(true); }
+  });
+  const selD = p.drums.find(d => d.id === KP.sel);
+  return h('div', {},
+    view,
+    h('p', { class: 'kp-hint' }, KP.edit
+      ? (KP.place ? 'Welche Trommel ist an dieser Stelle?' : 'Tippe im Foto auf eine Trommel, um sie zuzuordnen.')
+      : (marked ? 'Tippe auf eine Trommel, um sie zu stimmen.' : 'Noch keine Trommel zugeordnet. Tippe auf „Trommeln zuordnen“.')),
+    KP.edit && KP.place ? h('div', { class: 'card kp-assign' },
+      h('div', { class: 'chips' }, p.drums.map(d => h('button', { class: 'chip', type: 'button', onclick: () => { d.photoPos = { x: +KP.place.x.toFixed(4), y: +KP.place.y.toFixed(4) }; KP.place = null; touch(); render(true); } }, d.name + (d.photoPos ? ' ✓' : '')))),
+      h('div', { class: 'row' }, h('button', { class: 'btn ghost small', type: 'button', onclick: () => { KP.place = null; render(true); } }, 'Abbrechen'))) : null,
+    KP.edit && selD ? h('div', { class: 'card kp-assign' },
+      h('div', {}, `${selD.name} ist markiert.`),
+      h('div', { class: 'row' },
+        h('button', { class: 'btn small', type: 'button', onclick: () => nav('tuner', { target: `${p.id}|${selD.id}`, side: 'top', tunerFrom: 'kit' }) }, 'Stimmen'),
+        h('button', { class: 'btn ghost small', type: 'button', onclick: () => { delete selD.photoPos; KP.sel = null; touch(); render(true); } }, 'Markierung entfernen'))) : null,
+    h('div', { class: 'row', style: 'justify-content:center' },
+      h('button', { class: 'btn small' + (KP.edit ? ' solid' : ''), type: 'button', onclick: () => { KP.edit = !KP.edit; KP.place = null; KP.sel = null; render(true); } }, KP.edit ? 'Fertig' : `Trommeln zuordnen (${marked}/${p.drums.length})`),
+      fileBtn('Neues Foto', true), fileBtn('Aus Galerie', false),
+      delBtn('Foto entfernen', async () => { await removePhoto(p); route.kp = null; render(true); }, 'small')));
+}
+/* ================= start ================= */
+(() => { const sp = document.getElementById('splash'); if (!sp) return; setTimeout(() => { sp.classList.add('out'); setTimeout(() => sp.remove(), 450); }, 2600); })();
+document.body.append(...Object.keys(STAGES).map((k, i) => h('datalist', { id: 'dl-' + i }, (GEAR[k] || []).map(g => h('option', { value: g })))));
+if (S.artists.length === 1) route = { ...route, view: 'mode', artistId: S.artists[0].id };
+render();
+initRemote().then(() => {
+  if (route.view === 'artists' && S.artists.length === 1) nav('mode', { artistId: S.artists[0].id });
+  else if (route.view === 'artists') render(true);
+});
+</script>
+</body>
+</html>
