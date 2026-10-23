@@ -450,6 +450,26 @@ input,select,textarea{box-shadow:inset 0 1px 3px rgba(0,0,0,.6)}
 .sheet.ask{padding-bottom:calc(env(safe-area-inset-bottom,0px) + 22px)}
 .ask-btns{display:flex;flex-direction:column;gap:8px;margin-top:14px}
 .ask-btns .btn{width:100%;min-height:48px}
+/* DIP switch (phantom power) */
+.dip-wrap{display:flex;align-items:center;gap:10px;min-height:42px}
+.dip-tag{font:700 .78rem "Barlow Condensed",sans-serif;letter-spacing:.08em;color:var(--muted)}
+.dip{all:unset;cursor:pointer;width:34px;height:42px;border-radius:4px;background:linear-gradient(180deg,#b9402f,#8e2c20);box-shadow:inset 0 1px 0 rgba(255,255,255,.25),0 2px 4px rgba(0,0,0,.45);display:grid;place-items:center;flex:none}
+.dip:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.dip-slot{position:relative;width:16px;height:30px;border-radius:2px;background:#2a0d09;box-shadow:inset 0 2px 3px rgba(0,0,0,.7)}
+.dip-knob{position:absolute;left:1px;right:1px;height:14px;bottom:1px;border-radius:1px;background:linear-gradient(180deg,#fdfbf7,#d8d2c6);box-shadow:0 1px 2px rgba(0,0,0,.5);transition:bottom .12s ease}
+.dip[aria-checked="true"] .dip-knob{bottom:15px}
+.dip-state{font:700 .85rem "Barlow Condensed",sans-serif;letter-spacing:.08em;color:var(--muted);min-width:2.4em}
+.dip-state.on{color:var(--red)}
+@media (prefers-reduced-motion:reduce){.dip-knob{transition:none}}
+/* metal toggle (polarity) */
+.tgl{all:unset;cursor:pointer;position:relative;width:44px;height:44px;border-radius:50%;flex:none;background:radial-gradient(circle at 50% 50%,#1b1d21 0 46%,#3a3e45 47% 60%,transparent 61%)}
+.tgl:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.tgl-nut{position:absolute;left:50%;top:50%;width:22px;height:22px;margin:-11px 0 0 -11px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#f4f6f8,#9aa1aa 55%,#5d636b);box-shadow:0 1px 3px rgba(0,0,0,.6),inset 0 0 0 2px rgba(0,0,0,.12)}
+.tgl-lever{position:absolute;left:50%;top:50%;width:7px;height:21px;margin-left:-3.5px;border-radius:4px 4px 3px 3px;transform-origin:50% 0;transform:rotate(12deg);
+  background:linear-gradient(90deg,#7c838c,#f2f4f7 45%,#a3aab3 70%,#6a7078);box-shadow:0 2px 3px rgba(0,0,0,.55);transition:transform .14s ease}
+.tgl-lever::after{content:"";position:absolute;left:50%;bottom:-3px;width:10px;height:10px;margin-left:-5px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#ffffff,#b5bcc4 55%,#6d737b);box-shadow:0 1px 2px rgba(0,0,0,.5)}
+.tgl[aria-checked="true"] .tgl-lever{transform:rotate(168deg)}
+@media (prefers-reduced-motion:reduce){.tgl-lever{transition:none}}
 /* artist selection: wide cards stacked */
 .sq-grid{grid-template-columns:1fr;gap:12px}
 .sq{box-sizing:border-box;aspect-ratio:auto;min-height:84px;flex-direction:row;align-items:center;justify-content:flex-start;gap:16px;padding:16px 20px;border-radius:18px}
@@ -716,6 +736,9 @@ html.ice #bgfx{background:
 .s-ed{display:flex;flex-direction:column;gap:8px;padding:0 2px 14px 40px}
 .s-ed-row{display:grid;grid-template-columns:1fr 5.5rem;gap:8px}
 .song.srow .keyrow{grid-column:auto}
+.reorder-list > .dragging:not(.song){position:relative;z-index:6;transition:none!important;box-shadow:0 18px 40px rgba(0,0,0,.45)!important}
+.reordering .reorder-list > :not(.dragging){transition:transform .16s ease}
+.reorder-list > .sq,.reorder-list > .list-item{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
 .song.srow.dragging{z-index:6;transition:none;background:var(--surface-2);border-radius:14px;box-shadow:0 18px 40px rgba(0,0,0,.45);border-bottom-color:transparent}
 .song.srow.dragging .handle{cursor:grabbing}
 body.reordering{-webkit-user-select:none;user-select:none}
@@ -853,6 +876,18 @@ function normalize() {
       p.drums.forEach(d => { d.lugsTop ||= []; d.lugsBottom ||= []; if (!d.lugs) d.lugs = DEFAULT_LUGS[d.type] || 8; });
     });
     a.setlists.forEach(s => { s.mode ||= 'live'; s.songs ||= []; s.songs.forEach(x => { x.gt ||= {}; x.bs ||= {}; }); });
+    const copy = o => JSON.parse(JSON.stringify(o || null));
+    const seed = p => { if (!p.tunings) p.tunings = copy(a.tunings) || []; if (!p.instruments) p.instruments = copy(a.instruments) || []; if (!p.instChains) p.instChains = copy(a.instChains) || {}; ['guitar', 'bass'].forEach(k => { p.instChains[k] ||= { channels: [], busses: [] }; }); p.setlists ||= []; };
+    a.productions.forEach(seed);
+    if (a.setlists.length) {
+      a.setlists.forEach(sl => {
+        let p = a.productions.find(x => x.id === sl.prodId) || a.productions.find(x => x.mode === sl.mode);
+        if (!p) { p = newProduction(sl.mode); p.name = (sl.mode === 'studio' ? 'Studio' : 'Live') + ' allgemein'; p.tunings = null; p.instruments = null; p.instChains = null; seed(p); a.productions.push(p); }
+        delete sl.prodId; p.setlists.push(sl);
+      });
+      a.setlists = [];
+    }
+    a.productions.forEach(p => p.setlists.forEach(sl => { sl.songs ||= []; sl.songs.forEach(x => { x.gt ||= {}; x.bs ||= {}; }); }));
   });
 }
 try { const t = localStorage.getItem(LS_KEY); if (t) S = JSON.parse(t); } catch (e) {}
@@ -890,7 +925,8 @@ async function initRemote() {
 let route = { view: 'artists', mode: 'live', inst: 'drums' };
 const artist = () => S.artists.find(a => a.id === route.artistId);
 const modeName = () => route.mode === 'studio' ? 'Studio' : 'Live';
-const prods = () => artist().productions.filter(p => p.mode === route.mode);
+const P = () => artist()?.productions.find(x => x.id === route.prodId) || null;
+const prods = () => { const p = P(); return p ? [p] : []; };
 const openSet = new Set();
 function nav(view, params = {}) {
   if (['tuner', 'quick', 'gtuner'].includes(route.view) && view !== route.view) Tuner.stop();
@@ -901,14 +937,17 @@ function render(keepScroll) {
   const y = window.scrollY;
   const bar = document.getElementById('bar'), app = document.getElementById('app');
   bar.replaceChildren(); app.replaceChildren();
-  const views = { artists: viewArtists, mode: viewMode, home: viewHome, kits: viewKits, kit: viewKit, chains: viewChains, chain: viewChain, console: viewConsole, setlists: viewSetlists, setlist: viewSetlist, tuner: viewTuner,
+  const views = { artists: viewArtists, mode: viewMode, projects: viewProjects, home: viewHome, kits: viewKits, kit: viewKit, chains: viewChains, chain: viewChain, console: viewConsole, setlists: viewSetlists, setlist: viewSetlist, tuner: viewTuner,
     inst: viewInst, drumMenu: viewDrumMenu, quick: viewQuick, ghome: viewGHome, tunings: viewTunings, tuning: viewTuning, ginsts: viewGInsts, ginst: viewGInst, gtuner: viewGTuner };
   if (route.view !== 'artists' && !artist()) route.view = 'artists';
+  else if (!['artists', 'mode', 'projects'].includes(route.view) && !P()) route.view = 'projects';
   const v = views[route.view]();
+  currentBack = v.back || null;
   if (v.back) bar.append(h('button', { class: 'back', type: 'button', onclick: v.back, 'aria-label': 'Zurück' }, '‹'));
   document.documentElement.style.setProperty('--accent', areaColor());
-  const crumbs = artist() && !['artists', 'mode'].includes(route.view) ? [[artist().name, () => nav('mode')], [modeName(), () => nav('inst')]] : null;
-  if (crumbs && route.view !== 'inst') crumbs.push([instName(), () => nav(route.inst === 'drums' ? 'home' : 'ghome')]);
+  const crumbs = artist() && !['artists', 'mode'].includes(route.view) ? [[artist().name, () => nav('mode')], [modeName(), () => nav('projects')]] : null;
+  if (crumbs && route.view !== 'projects' && P()) crumbs.push([P().name || 'Ohne Namen', () => nav('inst')]);
+  if (crumbs && !['inst', 'projects'].includes(route.view)) crumbs.push([instName(), () => nav(route.inst === 'drums' ? 'home' : 'ghome')]);
   bar.append(h('div', { class: 't' }, h('h1', {}, v.title),
     crumbs ? h('nav', { class: 'crumbs', 'aria-label': 'Pfad' }, crumbs.map(([l, go], i) => [i ? h('span', { 'aria-hidden': 'true' }, '›') : null, h('button', { type: 'button', onclick: go }, l)]))
       : (v.sub ? h('div', { class: 'sub' }, v.sub) : null)));
@@ -951,7 +990,7 @@ function viewArtists() {
     S.artists.push(a); normalize(); touch(); route.addingArtist = false; nav('mode', { artistId: a.id });
   };
   inp.addEventListener('keydown', e => { if (e.key === 'Enter') add(); });
-  const tiles = S.artists.map(a => h('button', { class: 'sq', type: 'button', onclick: () => nav('mode', { artistId: a.id }) },
+  const tiles = S.artists.map(a => h('button', { class: 'sq', type: 'button', onclick: () => { if (!reorderJustEnded()) nav('mode', { artistId: a.id }); } },
     h('span', { class: 'sq-ini', 'aria-hidden': 'true' }, initials(a.name)),
     h('span', {}, h('span', { class: 'sq-name' }, a.name), h('br'), h('span', { class: 'sq-meta' }, plural(a.productions.length, 'Produktion', 'Produktionen')))));
   tiles.push(h('button', { class: 'sq add', type: 'button', onclick: () => { route.addingArtist = true; render(true); setTimeout(() => document.getElementById('newArtist')?.focus(), 0); } },
@@ -959,7 +998,15 @@ function viewArtists() {
   return {
     title: 'Tech Assistent', sub: 'Künstler wählen',
     body: [
-      h('div', { class: 'sq-grid' }, tiles),
+      (() => {
+        const grid = h('div', { class: 'sq-grid' }, tiles), redraw = () => { touch(); render(true); };
+        enableReorder(grid, S.artists, redraw, { row: '.sq:not(.add)', head: '.sq', ignore: '',
+          onLongPress: i => { const ar = S.artists[i]; itemMenu({ title: ar.name, arr: S.artists, idx: i, onChange: redraw,
+            rename: { value: ar.name, set: v => ar.name = v },
+            del: { label: 'Künstler löschen', text: `„${ar.name}“ wird mit allen Produktionen, Setlisten, Stimmungen und Instrumenten gelöscht. Das lässt sich nicht rückgängig machen.`, run: () => { S.artists = S.artists.filter(x => x !== ar); ar.productions.forEach(pp => pp.hasPhoto && removePhoto(pp)); } } }); } });
+        return grid;
+      })(),
+      S.artists.length > 1 ? h('p', { class: 'foot', style: 'text-align:center;margin-top:10px' }, 'Lange drücken: umbenennen, verschieben oder löschen.') : (S.artists.length ? h('p', { class: 'foot', style: 'text-align:center;margin-top:10px' }, 'Lange drücken: umbenennen oder löschen.') : null),
       h('div', { class: 'theme-row' }, h('span', {}, 'Design'), chipGroup([['ice', 'Eis'], ['glass', 'Glas'], ['classic', 'Klassisch']], currentTheme(), v => setTheme(v), 'Design')),
       adding && h('div', { class: 'card', style: 'margin-top:16px' },
         h('label', { class: 'field' }, h('span', {}, 'Neuer Künstler'), inp),
@@ -973,7 +1020,7 @@ function viewArtists() {
 function viewMode() {
   const a = artist();
   const cnt = m => a.productions.filter(p => p.mode === m).length;
-  const modeBtn = (m, title, desc) => h('button', { class: 'mode colored rowcard', style: `--c:${MODE_C[m]}`, type: 'button', onclick: () => nav('inst', { mode: m }) }, h('span', { class: 'rc-ico' }, areaIcon(m === 'live' ? 'live' : 'studio')),
+  const modeBtn = (m, title, desc) => h('button', { class: 'mode colored rowcard', style: `--c:${MODE_C[m]}`, type: 'button', onclick: () => nav('projects', { mode: m }) }, h('span', { class: 'rc-ico' }, areaIcon(m === 'live' ? 'live' : 'studio')),
     h('span', { class: 'rc-text' }, h('b', {}, title), h('span', {}, desc), h('em', {}, plural(cnt(m), 'Produktion', 'Produktionen'))));
   return {
     title: a.name, sub: 'Live oder Studio?', back: () => nav('artists'),
@@ -994,23 +1041,47 @@ function viewMode() {
 function viewHome() {
   const a = artist(), ps = prods(), studio = route.mode === 'studio';
   const drums = ps.reduce((n, p) => n + p.drums.length, 0);
-  const sets = a.setlists.filter(s => s.mode === route.mode).length;
+  const sets = P().setlists.filter(s => s.mode === route.mode).length;
   const chainCount = ps.reduce((n, p) => n + p.chain.channels.length, 0);
   return {
     title: 'Drums', back: () => nav('inst'),
     body: h('div', { class: 'tgrid' },
       atile('quick', 'Quick Tuning', 'Schnell stimmen', () => nav('quick')),
       atile('tuner', 'Tuner', 'Pitch, Lugs, Resonanz', () => nav('tuner', { target: null, tunerFrom: 'home' })),
-      atile('kits', 'Drumkits', `${plural(ps.length, 'Produktion', 'Produktionen')}, ${plural(drums, 'Trommel', 'Trommeln')}`, () => nav('kits')),
+      atile('kits', 'Drumkit', plural(drums, 'Trommel', 'Trommeln'), () => nav('kit', { prodId: route.prodId })),
       atile('setlists', 'Setlisten', plural(sets, 'Setliste', 'Setlisten'), () => nav('setlists')),
-      studio && atile('chain', 'Recording Chain', plural(chainCount, 'Kanal', 'Kanäle'), () => nav('chains', { toConsole: false })),
+      studio && atile('chain', 'Recording Chain', plural(chainCount, 'Kanal', 'Kanäle'), () => nav('chain', { chainOwner: 'prod', prodId: route.prodId, chainFrom: 'home' })),
       studio && atile('console', 'Mischpult', 'Kanalzüge mit Fadern', () => { const ps2 = prods(); if (ps2.length === 1) nav('console', { chainOwner: 'prod', prodId: ps2[0].id }); else nav('chains', { toConsole: true }); })),
     after: h('p', { class: 'foot', style: 'text-align:center' }, 'Tipp: In jedem Bereich wischst du nach links oder rechts, um zum nächsten Bereich zu wechseln.')
   };
 }
 
 /* ================= view: kits ================= */
-function newProduction(mode) { return { id: newId(), mode, kind: KINDS[mode][0], name: '', date: '', venue: '', kit: '', notes: '', drums: [], mics: [], chain: { channels: [], busses: [] } }; }
+function newProduction(mode) { return { id: newId(), mode, kind: KINDS[mode][0], name: '', date: '', venue: '', kit: '', notes: '', drums: [], mics: [], chain: { channels: [], busses: [] }, setlists: [], tunings: [], instruments: [], instChains: { guitar: { channels: [], busses: [] }, bass: { channels: [], busses: [] } } }; }
+function viewProjects() {
+  const a = artist(), studio = route.mode === 'studio', ps = a.productions.filter(p => p.mode === route.mode);
+  const inp = h('input', { id: 'newProject', placeholder: studio ? 'z. B. Album 2026' : 'z. B. Sommertour 2026', 'aria-label': studio ? 'Name der Produktion' : 'Name der Tour' });
+  const create = () => {
+    const name = inp.value.trim(); if (!name) { inp.focus(); toast('Bitte zuerst einen Namen eintragen'); return; }
+    const p = newProduction(route.mode); p.name = name;
+    const last = ps[0] || a.productions[0];
+    if (last) { p.tunings = JSON.parse(JSON.stringify(last.tunings || [])); p.instruments = JSON.parse(JSON.stringify(last.instruments || [])); }
+    a.productions.unshift(p); touch(); nav('inst', { prodId: p.id });
+  };
+  inp.addEventListener('keydown', e => { if (e.key === 'Enter') create(); });
+  const createCard = h('div', { class: 'card' },
+    h('label', { class: 'field' }, h('span', {}, studio ? 'Neue Produktion benennen (Album, Session …)' : 'Neue Tour oder Show benennen'), inp),
+    h('div', { class: 'row' }, h('button', { class: 'btn solid', type: 'button', onclick: create }, 'Speichern und weiter')));
+  return {
+    title: studio ? 'Studio-Produktionen' : 'Touren und Shows', sub: a.name, back: () => nav('mode'),
+    body: [
+      ps.length ? [h('h2', { style: 'margin-top:4px' }, studio ? 'Produktion wählen' : 'Tour wählen'),
+        prodListWithMenu(ps, p => nav('inst', { prodId: p.id }), p => [p.kind, fmtDate(p.date), plural((p.setlists || []).length, 'Setliste', 'Setlisten'), p.drums.length ? plural(p.drums.length, 'Trommel', 'Trommeln') : ''].filter(Boolean).join(', ')),
+        h('h2', {}, studio ? 'Neue Produktion' : 'Neue Tour')] : h('p', { class: 'muted', style: 'margin-top:0' }, studio ? 'Leg zuerst die Produktion an. Alles, was du danach bei Drums, Bass und Gitarre einträgst, wird mit ihr verknüpft.' : 'Leg zuerst die Tour oder Show an. Alles, was du danach bei Drums, Bass und Gitarre einträgst, wird mit ihr verknüpft.'),
+      createCard
+    ]
+  };
+}
 function viewKits() {
   const a = artist(), ps = prods();
   const create = () => { const p = newProduction(route.mode); a.productions.unshift(p); touch(); nav('kit', { prodId: p.id }); };
@@ -1019,9 +1090,7 @@ function viewKits() {
     body: [
       h('button', { class: 'btn solid', type: 'button', onclick: create }, 'Neue Produktion anlegen'),
       h('div', { style: 'height:16px' }),
-      ps.length ? ps.map(p => h('button', { class: 'list-item', type: 'button', onclick: () => nav('kit', { prodId: p.id }) },
-        h('b', {}, p.name || 'Unbenannte Produktion'),
-        h('span', {}, [p.kind, fmtDate(p.date), p.kit, plural(p.drums.length, 'Trommel', 'Trommeln')].filter(Boolean).join(', '))))
+      ps.length ? prodListWithMenu(ps, p => nav('kit', { prodId: p.id }), p => [p.kind, fmtDate(p.date), p.kit, plural(p.drums.length, 'Trommel', 'Trommeln')].filter(Boolean).join(', '))
         : h('div', { class: 'empty' }, route.mode === 'studio' ? 'Noch keine Studioproduktion. Leg eine an, zum Beispiel ein Album oder eine Session.' : 'Noch keine Liveproduktion. Leg eine an, zum Beispiel eine Tour oder ein Festival.')
     ]
   };
@@ -1278,7 +1347,7 @@ function viewKit() {
     h('div', { style: 'margin-top:8px' }, micPicker(null, m.mic, v => m.mic = v, ['oh', 'room']))));
   const addDrum = type => { const d = newDrum(type); p.drums.push(d); d.name = autoName(p, d, type); touch(); render(true); };
   return {
-    title: p.name || 'Neue Produktion', sub: `${a.name}, ${modeName()}`, back: () => nav('kits'),
+    title: 'Drumkit', sub: p.name || '', back: () => nav('home'),
     body: [
       h('div', { class: 'card' }, h('div', { class: 'grid' },
         field('Name der Produktion', p.name, v => p.name = v, { wide: true, placeholder: route.mode === 'studio' ? 'z. B. Albumaufnahme 2026' : 'z. B. Sommertour 2026', onchange: () => render(true) }),
@@ -1306,7 +1375,7 @@ function viewKit() {
           const c = JSON.parse(JSON.stringify(p)); c.id = newId(); c.name = (p.name || 'Produktion') + ' (Kopie)'; c.drums.forEach(d => d.id = newId());
           a.productions.unshift(c); touch(); toast('Produktion dupliziert'); nav('kit', { prodId: c.id });
         } }, 'Duplizieren'),
-        delBtn('Produktion löschen', () => { a.productions = a.productions.filter(x => x !== p); touch(); nav('kits'); }))
+        delBtn('Produktion löschen', () => { a.productions = a.productions.filter(x => x !== p); touch(); nav('projects'); }))
     ]
   };
 }
@@ -1318,9 +1387,7 @@ function viewChains() {
     title: 'Recording Chain', sub: `${a.name}, Studio`, back: () => nav('home'),
     body: [
       h('p', { class: 'muted', style: 'margin-top:0' }, 'Wähle die Produktion, deren Signalkette du bearbeiten willst.'),
-      ps.length ? ps.map(p => h('button', { class: 'list-item', type: 'button', onclick: () => nav(route.toConsole ? 'console' : 'chain', { prodId: p.id, chainFrom: 'chains', chainOwner: 'prod' }) },
-        h('b', {}, p.name || 'Unbenannte Produktion'),
-        h('span', {}, `${plural(p.chain.channels.length, 'Kanal', 'Kanäle')}, ${plural(p.chain.busses.length, 'Bus', 'Busse')}`)))
+      ps.length ? prodListWithMenu(ps, p => nav(route.toConsole ? 'console' : 'chain', { prodId: p.id, chainFrom: 'chains', chainOwner: 'prod' }), p => `${plural(p.chain.channels.length, 'Kanal', 'Kanäle')}, ${plural(p.chain.busses.length, 'Bus', 'Busse')}`)
         : [h('div', { class: 'empty' }, 'Noch keine Studioproduktion vorhanden.'),
            h('button', { class: 'btn solid', type: 'button', onclick: () => { const p = newProduction('studio'); a.productions.unshift(p); touch(); nav('kit', { prodId: p.id }); } }, 'Studioproduktion anlegen')]
     ]
@@ -1387,6 +1454,25 @@ function gearPicker(st) {
     brands: all => Object.keys(db).filter(b => fit(b, all).length), items: fit,
     onPick: v => { st.gear = v; for (const b in db) for (const [m, t] of db[b]) if (`${b} ${m}` === v) st.gearType = t === 'pl' ? 'Plugin' : 'Hardware'; setTimeout(() => render(true)); } });
 }
+const isOn = v => /^(an|on|ein|ja|yes|1|true|\+?48)/i.test(String(v || '').trim());
+function dipField(st, f) {
+  const sw = h('button', { class: 'dip', type: 'button', role: 'switch', 'aria-checked': String(isOn(st.vals[f])), 'aria-label': 'Phantomspeisung 48 Volt' },
+    h('span', { class: 'dip-slot' }, h('span', { class: 'dip-knob' })));
+  const state = h('span', { class: 'dip-state' });
+  const draw = () => { const on = isOn(st.vals[f]); sw.setAttribute('aria-checked', String(on)); state.textContent = on ? 'ON' : 'OFF'; state.classList.toggle('on', on); };
+  sw.addEventListener('click', () => { st.vals[f] = isOn(st.vals[f]) ? 'aus' : 'an'; touch(); draw(); });
+  draw();
+  return h('div', { class: 'field' }, h('span', {}, 'Phantom 48 V'), h('div', { class: 'dip-wrap' }, h('span', { class: 'dip-tag' }, '48V'), sw, state));
+}
+const isFlipped = v => /^(gedreht|invert|umgekehrt|180|ø|on|an|ja|rev|true|1)/i.test(String(v || '').trim());
+function toggleField(st, f) {
+  const sw = h('button', { class: 'tgl', type: 'button', role: 'switch', 'aria-label': 'Polarität umkehren' }, h('span', { class: 'tgl-nut' }), h('span', { class: 'tgl-lever' }));
+  const state = h('span', { class: 'dip-state' });
+  const draw = () => { const on = isFlipped(st.vals[f]); sw.setAttribute('aria-checked', String(on)); state.textContent = on ? 'Ø gedreht' : 'normal'; state.classList.toggle('on', on); };
+  sw.addEventListener('click', () => { st.vals[f] = isFlipped(st.vals[f]) ? 'normal' : 'gedreht'; touch(); draw(); });
+  draw();
+  return h('div', { class: 'field' }, h('span', {}, 'Polarität'), h('div', { class: 'dip-wrap' }, h('span', { class: 'dip-tag' }, 'Ø'), sw, state));
+}
 function stageBlock(st, list) {
   const fields = STAGES[st.kind] || STAGES.Sonstiges;
   const i = list.indexOf(st);
@@ -1400,7 +1486,7 @@ function stageBlock(st, list) {
       h('button', { class: 'x sm', type: 'button', 'aria-label': 'Stufe entfernen', onclick: () => { list.splice(list.indexOf(st), 1); touch(); render(true); } }, '×')),
     h('div', { class: 'grid' },
       gearPicker(st),
-      fields.map(f => field(f, st.vals[f], v => st.vals[f] = v, { placeholder: PH[f] || '' }))));
+      fields.map(f => f === 'Phantom 48 V' ? dipField(st, f) : f === 'Polarität' ? toggleField(st, f) : field(f, st.vals[f], v => st.vals[f] = v, { placeholder: PH[f] || '' }))));
 }
 function chainCard(ch, arr, isBus) {
   const summary = ch.stages.length ? ch.stages.map(s => s.gear || s.kind).join(' › ') : 'Noch keine Stufen';
@@ -1423,7 +1509,7 @@ function viewChain() {
   const a = artist(); const instOwned = route.chainOwner === 'inst';
   const p = instOwned ? null : a.productions.find(x => x.id === route.prodId);
   if (!instOwned && !p) { route.view = 'chains'; return viewChains(); }
-  const C = instOwned ? a.instChains[route.inst] : p.chain;
+  const C = instOwned ? P().instChains[route.inst] : p.chain;
   const fromKit = () => {
     let n = 0;
     p.drums.forEach(d => { if (!C.channels.some(c => c.name === d.name)) { C.channels.push({ id: newId(), name: d.name, source: d.mic, stages: [newStage('Preamp')], notes: '' }); n++; } });
@@ -1437,7 +1523,7 @@ function viewChain() {
   } }, h('option', { value: '' }, '+ Bus oder Effekt hinzufügen …'), Object.keys(BUS_PRESETS).map(k => h('option', { value: k }, k)));
   return {
     title: 'Recording Chain', sub: instOwned ? `${a.name}, ${instName()}` : (p.name || 'Unbenannte Produktion'),
-    back: () => instOwned ? nav('ghome') : route.chainFrom === 'kit' ? nav('kit', { prodId: p.id }) : nav('chains'),
+    back: () => instOwned ? nav('ghome') : route.chainFrom === 'kit' ? nav('kit', { prodId: p.id }) : nav('home'),
     body: [
       h('button', { class: 'btn solid', type: 'button', style: 'width:100%;margin-bottom:6px', onclick: () => nav('console') }, 'Als Mischpult anzeigen'),
       h('h2', { style: 'margin-top:14px' }, 'Kanäle', h('small', {}, plural(C.channels.length, 'Kanal', 'Kanäle'))),
@@ -1455,8 +1541,8 @@ function viewChain() {
 /* ================= setlists ================= */
 function viewSetlists() {
   const a = artist(), studio = route.mode === 'studio';
-  const list = a.setlists.filter(s => s.mode === route.mode);
-  const create = () => { const s = { id: newId(), mode: route.mode, name: '', date: '', venue: '', prodId: '', songs: [] }; a.setlists.unshift(s); touch(); nav('setlist', { setId: s.id }); };
+  const list = P().setlists.filter(s => s.mode === route.mode);
+  const create = () => { const s = { id: newId(), mode: route.mode, name: '', date: '', venue: '', prodId: '', songs: [] }; P().setlists.unshift(s); touch(); nav('setlist', { setId: s.id }); };
   return {
     title: 'Setlisten', sub: `${a.name}, ${modeName()}`, back: () => nav(route.inst === 'drums' ? 'home' : 'ghome'),
     body: [
@@ -1470,7 +1556,7 @@ function viewSetlists() {
   };
 }
 function viewSetlist() {
-  const a = artist(); const s = a.setlists.find(x => x.id === route.setId);
+  const a = artist(); const s = P().setlists.find(x => x.id === route.setId);
   if (!s) { route.view = 'setlists'; return viewSetlists(); }
   const studio = s.mode === 'studio';
   const songInp = h('input', { placeholder: 'Songtitel', 'aria-label': 'Neuer Songtitel' });
@@ -1479,13 +1565,13 @@ function viewSetlist() {
   const move = (i, dir) => { const j = i + dir; if (j < 0 || j >= s.songs.length) return; [s.songs[i], s.songs[j]] = [s.songs[j], s.songs[i]]; touch(); render(true); };
   const ik = route.inst === 'guitar' ? 'gt' : route.inst === 'bass' ? 'bs' : null;
   const tunRow = song => ik ? h('div', { class: 'tun' },
-    h('select', { 'aria-label': 'Stimmung', value: song[ik].tuningId || '', onchange: e => { song[ik].tuningId = e.target.value; touch(); } }, h('option', { value: '' }, 'Stimmung …'), a.tunings.filter(t => t.inst === route.inst).map(t => h('option', { value: t.id }, t.name || 'Unbenannt'))),
+    h('select', { 'aria-label': 'Stimmung', value: song[ik].tuningId || '', onchange: e => { song[ik].tuningId = e.target.value; touch(); } }, h('option', { value: '' }, 'Stimmung …'), P().tunings.filter(t => t.inst === route.inst).map(t => h('option', { value: t.id }, t.name || 'Unbenannt'))),
     h('select', { 'aria-label': 'Kapo', value: String(song[ik].capo || 0), onchange: e => { song[ik].capo = +e.target.value; touch(); } }, CAPO_OPTS.map(o => h('option', { value: o.value }, o.label)))) : null;
   const keyRow = song => h('div', { class: 'keyrow' },
     h('select', { 'aria-label': 'Tonart', value: song.key || '', onchange: e => { song.key = e.target.value; touch(); } }, h('option', { value: '' }, 'Tonart / Key …'), KEYS.map(k => h('option', { value: k.v }, k.l))),
     h('button', { class: 'btn small', type: 'button', 'aria-expanded': String(aiOpen.has(song.id)), onclick: () => { aiOpen.has(song.id) ? aiOpen.delete(song.id) : aiOpen.add(song.id); render(true); } }, aiOpen.has(song.id) ? 'Schließen' : 'Akkorde und Struktur'),
     route.inst === 'drums' ? h('button', { class: 'btn small', type: 'button', onclick: () => {
-      const pp = a.productions.find(x => x.id === s.prodId);
+      const pp = P();
       if (!pp) { toast('Ordne der Setliste oben zuerst ein Drumkit zu.'); return; }
       showTuningSheet(pp, { songId: song.id });
     } }, 'Tom-Tuning') : null);
@@ -1540,7 +1626,7 @@ function viewSetlist() {
     const out = [];
     if (song.key) out.push(h('span', { class: 'bdg key' }, song.key));
     if (song.bpm) out.push(h('span', { class: 'bdg' }, `${song.bpm} BPM`));
-    if (ik && song[ik]) { const t = a.tunings.find(x => x.id === song[ik].tuningId); if (t) out.push(h('span', { class: 'bdg' }, t.name)); if (song[ik].capo) out.push(h('span', { class: 'bdg' }, `Kapo ${song[ik].capo}`)); }
+    if (ik && song[ik]) { const t = P().tunings.find(x => x.id === song[ik].tuningId); if (t) out.push(h('span', { class: 'bdg' }, t.name)); if (song[ik].capo) out.push(h('span', { class: 'bdg' }, `Kapo ${song[ik].capo}`)); }
     if (song.ai && (song.ai.guitar || song.ai.bass)) out.push(h('span', { class: 'bdg ai' }, 'Akkorde'));
     if (song.note) out.push(h('span', { class: 'bdg note' }, song.note));
     return out;
@@ -1567,22 +1653,20 @@ function viewSetlist() {
   });
   const songList = h('div', { class: 'songlist' }, songs);
   enableReorder(songList, s.songs, () => { touch(); render(true); });
-  const prodOpts = [{ value: '', label: 'Keine Zuordnung' }, ...prods().map(p => ({ value: p.id, label: p.name || 'Unbenannte Produktion' }))];
   return {
     title: s.name || 'Neue Setliste', sub: `${a.name}, ${modeName()}`, back: () => nav('setlists'),
     body: [
       h('div', { class: 'card' }, h('div', { class: 'grid' },
         field('Name', s.name, v => s.name = v, { wide: true, placeholder: studio ? 'z. B. Album-Tracks' : 'z. B. Festival-Set 60 Min.', onchange: () => render(true) }),
         field('Datum', s.date, v => s.date = v, { type: 'date' }),
-        field(studio ? 'Studio' : 'Ort', s.venue, v => s.venue = v, { placeholder: studio ? 'z. B. Hansa Studios' : 'z. B. Columbiahalle' }),
-        selectField('Drumkit / Produktion', s.prodId || '', prodOpts, v => s.prodId = v, { wide: true }))),
+        field(studio ? 'Studio' : 'Ort', s.venue, v => s.venue = v, { placeholder: studio ? 'z. B. Hansa Studios' : 'z. B. Columbiahalle' }))),
       h('h2', {}, 'Songs', h('small', {}, plural(s.songs.length, 'Song', 'Songs'))),
       songs.length ? [songList, h('p', { class: 'foot', style: 'margin-top:8px' }, 'Tippe auf einen Song zum Bearbeiten. Lange drücken und ziehen ändert die Reihenfolge.')] : h('div', { class: 'empty' }, 'Füge unten den ersten Song hinzu oder importiere eine Datei.'),
       h('div', { class: 'add-row' }, songInp, h('button', { class: 'btn solid', type: 'button', onclick: addSong }, 'Hinzufügen')),
       h('div', { class: 'row' }, importButton('Songs aus Datei hinzufügen', s)),
       h('div', { class: 'row', style: 'margin-top:32px' },
         h('button', { class: 'btn', type: 'button', disabled: !s.songs.length, onclick: () => showStage(s) }, 'Großansicht'),
-        delBtn('Liste löschen', () => { a.setlists = a.setlists.filter(x => x !== s); touch(); nav('setlists'); }))
+        delBtn('Liste löschen', () => { P().setlists = P().setlists.filter(x => x !== s); touch(); nav('setlists'); }))
     ]
   };
 }
@@ -1923,7 +2007,7 @@ const NOTE_RANGE = { guitar: [28, 72], bass: [18, 55] };
 const CAPO_OPTS = Array.from({ length: 13 }, (_, k) => ({ value: String(k), label: k ? `Kapo ${k}. Bund` : 'Ohne Kapo' }));
 function stageTun(x) {
   const ik = route.inst === 'guitar' ? 'gt' : route.inst === 'bass' ? 'bs' : null; if (!ik || !x[ik]) return '';
-  const t = artist().tunings.find(tt => tt.id === x[ik].tuningId);
+  const t = P().tunings.find(tt => tt.id === x[ik].tuningId);
   return [t?.name, x[ik].capo ? `Kapo ${x[ik].capo}` : ''].filter(Boolean).join(', ');
 }
 const tileBtn = (title, desc, onclick, primary) => h('button', { class: 'tile' + (primary ? ' primary' : ''), type: 'button', onclick }, h('b', {}, title), h('span', {}, desc), h('i', {}, '›'));
@@ -1968,7 +2052,7 @@ function viewInst() {
   const a = artist();
   const card = (k, title, desc) => h('button', { class: 'mode colored rowcard', style: `--c:${INST_C[k]}`, type: 'button', onclick: () => nav(k === 'drums' ? 'home' : 'ghome', { inst: k }) }, h('span', { class: 'rc-ico' }, instIcon(k)), h('span', { class: 'rc-text' }, h('b', {}, title), h('span', {}, desc)));
   return {
-    title: a.name, sub: `${modeName()}: Instrument wählen`, back: () => nav('mode'),
+    title: P()?.name || a.name, sub: 'Instrument wählen', back: () => nav('projects'),
     body: h('div', { class: 'modes' },
       card('drums', 'Drums', 'Tuning, Drumkits, Felle, Mikrofone' + (route.mode === 'studio' ? ', Recording Chain' : '')),
       card('bass', 'Bass', 'Stimmgerät, Stimmungen, Instrumente'),
@@ -2099,8 +2183,8 @@ function viewQuick() {
 /* ---- bass & guitar ---- */
 function viewGHome() {
   const a = artist(), inst = route.inst, studio = route.mode === 'studio';
-  const tun = a.tunings.filter(t => t.inst === inst), ins = a.instruments.filter(x => x.inst === inst);
-  const sets = a.setlists.filter(s => s.mode === route.mode).length;
+  const tun = P().tunings.filter(t => t.inst === inst), ins = P().instruments.filter(x => x.inst === inst);
+  const sets = P().setlists.filter(s => s.mode === route.mode).length;
   return {
     title: instName(), back: () => nav('inst'),
     body: h('div', { class: 'tgrid' },
@@ -2108,17 +2192,17 @@ function viewGHome() {
       atile('tunings', 'Stimmungen und Kapo', plural(tun.length, 'Stimmung', 'Stimmungen'), () => nav('tunings')),
       atile('ginsts', 'Instrumente', plural(ins.length, 'Instrument', 'Instrumente'), () => nav('ginsts')),
       atile('setlists', 'Setlisten', plural(sets, 'Setliste', 'Setlisten'), () => nav('setlists')),
-      studio && atile('chain', 'Recording Chain', plural(a.instChains[inst].channels.length, 'Kanal', 'Kanäle'), () => nav('chain', { chainOwner: 'inst' })),
+      studio && atile('chain', 'Recording Chain', plural(P().instChains[inst].channels.length, 'Kanal', 'Kanäle'), () => nav('chain', { chainOwner: 'inst' })),
       studio && atile('console', 'Mischpult', 'Kanalzüge mit Fadern', () => nav('console', { chainOwner: 'inst' }))),
     after: h('p', { class: 'foot', style: 'text-align:center' }, 'Tipp: In jedem Bereich wischst du nach links oder rechts, um zum nächsten Bereich zu wechseln.')
   };
 }
 function viewTunings() {
-  const a = artist(), inst = route.inst, list = a.tunings.filter(t => t.inst === inst);
+  const a = artist(), inst = route.inst, list = P().tunings.filter(t => t.inst === inst);
   const tplSel = h('select', { 'aria-label': 'Neue Stimmung aus Vorlage', value: '', onchange: e => {
     const t = TEMPLATES[inst][+e.target.value]; if (!t) return;
     const n = { id: newId(), inst, name: t.name, strings: [...t.strings], capo: 0, a4: 440, notes: '' };
-    a.tunings.push(n); touch(); nav('tuning', { tunId: n.id });
+    P().tunings.push(n); touch(); nav('tuning', { tunId: n.id });
   } }, h('option', { value: '' }, '+ Neue Stimmung aus Vorlage …'), TEMPLATES[inst].map((t, i) => h('option', { value: String(i) }, `${t.name} (${t.strings.map(midiName).join(' ')})`)));
   return {
     title: 'Stimmungen und Kapo', sub: `${a.name}, ${instName()}`, back: () => nav('ghome'),
@@ -2130,7 +2214,7 @@ function viewTunings() {
   };
 }
 function viewTuning() {
-  const a = artist(); const t = a.tunings.find(x => x.id === route.tunId);
+  const a = artist(); const t = P().tunings.find(x => x.id === route.tunId);
   if (!t) { route.view = 'tunings'; return viewTunings(); }
   const [lo, hi] = NOTE_RANGE[t.inst]; const noteOpts = []; for (let m = lo; m <= hi; m++) noteOpts.push(m);
   const rows = t.strings.map((m, i) => h('div', { class: 'str-row' }, h('span', { class: 'str-no' }, `Saite ${t.strings.length - i}`),
@@ -2153,26 +2237,26 @@ function viewTuning() {
         h('button', { class: 'btn small ghost', type: 'button', disabled: t.strings.length <= 3, onclick: edit(() => t.strings.pop()) }, 'Höchste entfernen')),
       h('div', { class: 'row', style: 'margin-top:28px' },
         h('button', { class: 'btn solid', type: 'button', onclick: () => nav('gtuner', { gTun: 's:' + t.id, gTunInst: t.inst, gString: null }) }, 'Im Stimmgerät öffnen'),
-        delBtn('Stimmung löschen', () => { a.tunings = a.tunings.filter(x => x !== t); touch(); nav('tunings'); }))
+        delBtn('Stimmung löschen', () => { P().tunings = P().tunings.filter(x => x !== t); touch(); nav('tunings'); }))
     ]
   };
 }
 function viewGInsts() {
-  const a = artist(), inst = route.inst, list = a.instruments.filter(x => x.inst === inst);
-  const create = () => { const i = { id: newId(), inst, name: '', model: '', gauge: '', tuningId: '', amp: '', ampMic: '', di: '', notes: '' }; a.instruments.push(i); touch(); nav('ginst', { ginstId: i.id }); };
+  const a = artist(), inst = route.inst, list = P().instruments.filter(x => x.inst === inst);
+  const create = () => { const i = { id: newId(), inst, name: '', model: '', gauge: '', tuningId: '', amp: '', ampMic: '', di: '', notes: '' }; P().instruments.push(i); touch(); nav('ginst', { ginstId: i.id }); };
   return {
     title: 'Instrumente', sub: `${a.name}, ${instName()}`, back: () => nav('ghome'),
     body: [h('button', { class: 'btn solid', type: 'button', onclick: create }, 'Instrument anlegen'), h('div', { style: 'height:16px' }),
       list.length ? list.map(i => h('button', { class: 'list-item', type: 'button', onclick: () => nav('ginst', { ginstId: i.id }) },
         h('b', {}, i.name || i.model || 'Unbenanntes Instrument'),
-        h('span', {}, [i.model, (i.strings || i.gauge) ? `Saiten ${[i.strings, i.gauge].filter(Boolean).join(' ')}` : '', a.tunings.find(t => t.id === i.tuningId)?.name].filter(Boolean).join(', '))))
+        h('span', {}, [i.model, (i.strings || i.gauge) ? `Saiten ${[i.strings, i.gauge].filter(Boolean).join(' ')}` : '', P().tunings.find(t => t.id === i.tuningId)?.name].filter(Boolean).join(', '))))
         : h('div', { class: 'empty' }, `Noch kein Instrument gespeichert. Leg zum Beispiel deine Haupt-${instName() === 'Bass' ? 'Bässe' : 'Gitarren'} und Ersatzinstrumente an.`)]
   };
 }
 function viewGInst() {
-  const a = artist(); const i = a.instruments.find(x => x.id === route.ginstId);
+  const a = artist(); const i = P().instruments.find(x => x.id === route.ginstId);
   if (!i) { route.view = 'ginsts'; return viewGInsts(); }
-  const tunOpts = [{ value: '', label: 'Keine' }, ...a.tunings.filter(t => t.inst === i.inst).map(t => ({ value: t.id, label: t.name || 'Unbenannt' }))];
+  const tunOpts = [{ value: '', label: 'Keine' }, ...P().tunings.filter(t => t.inst === i.inst).map(t => ({ value: t.id, label: t.name || 'Unbenannt' }))];
   return {
     title: i.name || i.model || 'Instrument', sub: `${a.name}, ${INST[i.inst]}`, back: () => nav('ginsts'),
     body: [
@@ -2186,13 +2270,13 @@ function viewGInst() {
         micPicker('Mikrofon am Amp', i.ampMic, v => i.ampMic = v, ['amp']),
         micPicker('DI-Box', i.di, v => i.di = v, ['di']),
         areaField('Notizen', i.notes, v => i.notes = v))),
-      h('div', { class: 'row', style: 'margin-top:24px' }, delBtn('Instrument löschen', () => { a.instruments = a.instruments.filter(x => x !== i); touch(); nav('ginsts'); }))
+      h('div', { class: 'row', style: 'margin-top:24px' }, delBtn('Instrument löschen', () => { P().instruments = P().instruments.filter(x => x !== i); touch(); nav('ginsts'); }))
     ]
   };
 }
 function viewGTuner() {
   Tuner.algo = 'string'; Tuner.customRange = null; Tuner.onHit = null;
-  const a = artist(), inst = route.inst, tpl = TEMPLATES[inst], saved = a.tunings.filter(t => t.inst === inst);
+  const a = artist(), inst = route.inst, tpl = TEMPLATES[inst], saved = P().tunings.filter(t => t.inst === inst);
   if (route.gTunInst !== inst || !route.gTun || (route.gTun.startsWith('s:') && !saved.some(t => 's:' + t.id === route.gTun))) {
     route.gTun = saved[0] ? 's:' + saved[0].id : 't:0'; route.gTunInst = inst; route.gString = null;
   }
@@ -2234,7 +2318,7 @@ function viewGTuner() {
         T.capo ? h('div', { class: 'capo' }, `Kapo im ${T.capo}. Bund`) : null),
       micButton(errEl), errEl,
       T.tpl ? h('div', { class: 'row' }, h('button', { class: 'btn', type: 'button', onclick: () => {
-        const n = { id: newId(), inst, name: T.name, strings: [...T.strings], capo: 0, a4, notes: '' }; a.tunings.push(n); touch();
+        const n = { id: newId(), inst, name: T.name, strings: [...T.strings], capo: 0, a4, notes: '' }; P().tunings.push(n); touch();
         route.gTun = 's:' + n.id; toast('Stimmung gespeichert'); render(true);
       } }, 'Als eigene Stimmung speichern')) : null,
       h('div', { class: 'card', style: 'margin-top:16px' }, sensField()),
@@ -2355,7 +2439,7 @@ function planTuning(p, { anchorId = null, profiles = [] } = {}) {
 }
 function showTuningSheet(p, { anchorId, songId } = {}) {
   const a = artist();
-  const entries = a.setlists.filter(s => s.prodId === p.id).flatMap(s => s.songs.map(song => ({ song, set: s, prof: songProfile(song) }))).filter(e => e.prof);
+  const entries = (p.setlists || []).flatMap(s => s.songs.map(song => ({ song, set: s, prof: songProfile(song) }))).filter(e => e.prof);
   const uniq = []; const seen = new Set(); entries.forEach(e => { if (!seen.has(e.song.id)) { seen.add(e.song.id); uniq.push(e); } });
   let scope = songId ? (uniq.some(e => e.song.id === songId) ? 's:' + songId : 'none') : (uniq.length ? 'all' : 'none');
   const tuned = p.drums.filter(d => d.pitchTop).sort((x, y) => (y.pitchTopAt || 0) - (x.pitchTopAt || 0));
@@ -2367,7 +2451,7 @@ function showTuningSheet(p, { anchorId, songId } = {}) {
   const esc = e => { if (e.key === 'Escape') close(); };
   ov.addEventListener('click', e => { if (e.target === ov) close(); });
   document.addEventListener('keydown', esc);
-  const songMissing = songId && scope === 'none' ? (a.setlists.flatMap(s => s.songs).find(x => x.id === songId)) : null;
+  const songMissing = songId && scope === 'none' ? ((p.setlists || []).flatMap(s => s.songs).find(x => x.id === songId)) : null;
   function draw() {
     const profiles = scope === 'all' ? uniq.map(e => e.prof) : scope.startsWith('s:') ? uniq.filter(e => 's:' + e.song.id === scope).map(e => e.prof) : [];
     plan = planTuning(p, { anchorId: anchor, profiles });
@@ -2440,19 +2524,27 @@ function atile(k, title, desc, onclick, wide) {
 function tabsList() {
   const studio = route.mode === 'studio';
   return (route.inst === 'drums'
-    ? [['quick', 'Quick', () => nav('quick')], ['tuner', 'Tuner', () => nav('tuner', { target: null, tunerFrom: 'home' })], ['kits', 'Kits', () => nav('kits')], studio && ['chain', 'Chain', () => nav('chains', { toConsole: false })], ['setlists', 'Setlisten', () => nav('setlists')]]
+    ? [['quick', 'Quick', () => nav('quick')], ['tuner', 'Tuner', () => nav('tuner', { target: null, tunerFrom: 'home' })], ['kits', 'Kit', () => nav('kit', { prodId: route.prodId })], studio && ['chain', 'Chain', () => nav('chain', { chainOwner: 'prod', prodId: route.prodId, chainFrom: 'home' })], ['setlists', 'Setlisten', () => nav('setlists')]]
     : [['tuner', 'Stimmgerät', () => nav('gtuner', { gString: null })], ['tunings', 'Stimmungen', () => nav('tunings')], ['ginsts', 'Instrumente', () => nav('ginsts')], studio && ['chain', 'Chain', () => nav('chain', { chainOwner: 'inst' })], ['setlists', 'Setlisten', () => nav('setlists')]]).filter(Boolean);
 }
 var pendingSlide = 0;
+var currentBack = null;
+const DETAIL_VIEWS = ['setlist', 'tuning', 'ginst', 'console'];
+function isDetailView() { return DETAIL_VIEWS.includes(route.view); }
 function swipeNeighbors() {
-  const tabs = tabsList(), idx = tabs.findIndex(t => t[0] === VIEW_AREA[route.view]);
-  return { tabs, idx, canPrev: idx > 0, canNext: idx < tabs.length - 1 };
+  const inArea = !!artist() && (VIEW_AREA[route.view] || ['home', 'ghome'].includes(route.view));
+  const tabs = inArea ? tabsList() : [], idx = tabs.findIndex(t => t[0] === VIEW_AREA[route.view]);
+  const detail = isDetailView();
+  const prevTab = inArea && !detail && idx > 0 ? tabs[idx - 1][2] : null;
+  const nextTab = inArea && idx < tabs.length - 1 ? tabs[idx + 1][2] : null;
+  const prev = prevTab || currentBack;
+  return { prev, next: nextTab, canPrev: !!prev, canNext: !!nextTab };
 }
 (function initSwipe() {
   const app = document.getElementById('app');
   let sx = 0, sy = 0, st = 0, lock = null, active = false, dx = 0;
   const blocked = el => !el.closest || el.closest('input[type=range], .fader, .knob, .console-wrap, .kp-wrap.edit, textarea, select, #tabbar, .sheet-ov, .stage, [data-noswipe]');
-  const canSwipe = () => artist() && (VIEW_AREA[route.view] || ['home', 'ghome'].includes(route.view)) && !document.querySelector('.sheet-ov, .stage, #splash');
+  const canSwipe = () => !!currentBack || (artist() && (VIEW_AREA[route.view] || ['home', 'ghome'].includes(route.view))) ? !document.querySelector('.sheet-ov, .stage, #splash') : false;
   const reset = anim => { app.style.transition = anim ? 'transform .22s cubic-bezier(.2,.8,.2,1), opacity .22s' : 'none'; app.style.transform = ''; app.style.opacity = ''; };
   document.addEventListener('touchstart', e => {
     active = false;
@@ -2484,7 +2576,7 @@ function swipeNeighbors() {
     app.style.transform = `translateX(${dir > 0 ? -W : W}px)`; app.style.opacity = '0';
     setTimeout(() => {
       app.style.transition = 'none'; app.style.transform = `translateX(${dir > 0 ? W * .3 : -W * .3}px)`;
-      n.tabs[n.idx + dir][2]();
+      (dir > 0 ? n.next : n.prev)();
       requestAnimationFrame(() => requestAnimationFrame(() => reset(true)));
     }, 180);
   };
@@ -2510,7 +2602,7 @@ const fmtDb = db => db == null ? '−∞' : db === 0 ? '0' : (db > 0 ? '+' : db 
 const capTop = p => `calc(6px + (100% - 12px) * ${(1 - p).toFixed(4)})`;
 function consoleOwner() {
   const a = artist();
-  if (route.chainOwner === 'inst') return { C: a.instChains[route.inst], p: null, name: instName() };
+  if (route.chainOwner === 'inst') return { C: P().instChains[route.inst], p: null, name: instName() };
   const p = a.productions.find(x => x.id === route.prodId);
   return p ? { C: p.chain, p, name: p.name || 'Unbenannte Produktion' } : null;
 }
@@ -2660,8 +2752,44 @@ function askDialog({ title, text, buttons }) {
   ov.addEventListener('click', e => { if (e.target === ov) close(); });
   document.addEventListener('keydown', esc);
   ov.append(h('div', { class: 'sheet ask' }, h('div', { class: 'grab' }), h('h3', {}, title), h('p', { class: 'lead', style: 'color:var(--muted)' }, text),
-    h('div', { class: 'ask-btns' }, buttons.map(b => h('button', { class: 'btn' + (b.primary ? ' solid' : ' ghost'), type: 'button', onclick: () => { close(); b.onClick && b.onClick(); } }, b.label)))));
+    h('div', { class: 'ask-btns' }, buttons.filter(Boolean).map(b => h('button', { class: 'btn' + (b.primary ? ' solid' : b.danger ? ' danger armed' : ' ghost'), type: 'button', onclick: () => { close(); b.onClick && b.onClick(); } }, b.label)))));
   document.body.append(ov); ov.querySelector('button')?.focus();
+}
+function renameDialog(title, value, onSave) {
+  const ov = h('div', { class: 'sheet-ov', role: 'dialog', 'aria-modal': 'true', 'aria-label': title });
+  const inp = h('input', { value: value || '', 'aria-label': 'Neuer Name' });
+  const close = () => { ov.remove(); document.removeEventListener('keydown', esc); };
+  const save = () => { const v = inp.value.trim(); if (!v) { inp.focus(); return; } close(); onSave(v); };
+  const esc = e => { if (e.key === 'Escape') close(); };
+  inp.addEventListener('keydown', e => { if (e.key === 'Enter') save(); });
+  ov.addEventListener('click', e => { if (e.target === ov) close(); });
+  document.addEventListener('keydown', esc);
+  ov.append(h('div', { class: 'sheet ask' }, h('div', { class: 'grab' }), h('h3', {}, title), h('div', { style: 'margin-top:12px' }, inp),
+    h('div', { class: 'ask-btns' }, h('button', { class: 'btn solid', type: 'button', onclick: save }, 'Speichern'), h('button', { class: 'btn ghost', type: 'button', onclick: close }, 'Abbrechen'))));
+  document.body.append(ov); setTimeout(() => { inp.focus(); inp.select(); }, 50);
+}
+function itemMenu({ title, arr, idx, onChange, rename, del }) {
+  const move = d => { const [it] = arr.splice(idx, 1); arr.splice(idx + d, 0, it); onChange(); };
+  askDialog({ title, text: 'Tipp: Gedrückt halten und ziehen verschiebt den Eintrag direkt.', buttons: [
+    { label: 'Umbenennen', primary: true, onClick: () => renameDialog(`${title} umbenennen`, rename.value, v => { rename.set(v); onChange(); toast('Umbenannt'); }) },
+    idx > 0 && { label: 'Nach oben verschieben', onClick: () => move(-1) },
+    idx < arr.length - 1 && { label: 'Nach unten verschieben', onClick: () => move(1) },
+    { label: del.label, danger: true, onClick: () => askDialog({ title: `${del.label}?`, text: del.text, buttons: [
+      { label: 'Endgültig löschen', danger: true, onClick: () => { del.run(); onChange(); toast('Gelöscht'); } },
+      { label: 'Abbrechen' }] }) },
+    { label: 'Abbrechen' }
+  ] });
+}
+function prodListWithMenu(ps, onOpen, subtitle) {
+  const a = artist();
+  const list = h('div', { class: 'prod-list' }, ps.map(p => h('button', { class: 'list-item', type: 'button', onclick: () => { if (!reorderJustEnded()) onOpen(p); } },
+    h('b', {}, p.name || 'Unbenannte Produktion'), h('span', {}, subtitle(p)))));
+  const sync = () => { a.productions = [...ps, ...a.productions.filter(x => !ps.includes(x))]; touch(); render(true); };
+  enableReorder(list, ps, sync, { row: '.list-item', head: '.list-item', ignore: '',
+    onLongPress: i => itemMenu({ title: ps[i].name || 'Produktion', arr: ps, idx: i, onChange: sync,
+      rename: { value: ps[i].name, set: v => ps[i].name = v },
+      del: { label: 'Produktion löschen', text: `„${ps[i].name || 'Unbenannte Produktion'}“ wird mit Drumkit, Recording Chain und Kit-Foto gelöscht. Das lässt sich nicht rückgängig machen.`, run: () => { const p = ps[i]; ps.splice(i, 1); a.productions = a.productions.filter(x => x !== p); if (p.hasPhoto) removePhoto(p); } } }) });
+  return [list, h('p', { class: 'foot', style: 'margin-top:8px' }, 'Lange drücken: umbenennen, verschieben oder löschen. Gedrückt halten und ziehen ändert die Reihenfolge.')];
 }
 function drumAbbr(d) {
   const n = d.name || '', num = (n.match(/\d+/) || [''])[0]; let m;
@@ -2751,18 +2879,21 @@ function kitPhotoSection(p) {
 const songOpen = new Set();
 let reorderEndedAt = 0;
 const reorderJustEnded = () => Date.now() - reorderEndedAt < 350;
-function enableReorder(listEl, arr, onDone) {
-  let timer = null, drag = null, sx = 0, sy = 0, lastY = 0, scrollTimer = null;
-  const rowsOf = () => [...listEl.querySelectorAll(':scope > .srow')];
+function enableReorder(listEl, arr, onDone, opts = {}) {
+  let timer = null, drag = null, sx = 0, sy = 0, lastY = 0, scrollTimer = null, moved = 0;
+  const ROW = opts.row || '.srow', HEAD = opts.head || '.s-head', IGNORE = opts.ignore ?? 'button:not(.handle), input, select, textarea, a';
+  listEl.classList.add('reorder-list');
+  const rowsOf = () => [...listEl.querySelectorAll(':scope > ' + ROW)];
   const begin = (row, y) => {
     const rs = rowsOf(), idx = rs.indexOf(row); if (idx < 0) return;
     const sY = window.scrollY, rects = rs.map(r => { const b = r.getBoundingClientRect(); return { top: b.top + sY, h: b.height }; });
-    drag = { row, idx, rs, rects, y0: y, s0: sY, target: idx };
+    drag = { row, idx, rs, rects, y0: y, s0: sY, target: idx }; moved = 0;
+    navigator.vibrate?.(12);
     row.classList.add('dragging'); document.body.classList.add('reordering'); window.__reorderActive = true;
     scrollTimer = setInterval(() => { if (!drag) return; const edgeTop = 110, edgeBot = window.innerHeight - 150; if (lastY < edgeTop) window.scrollBy(0, -10); else if (lastY > edgeBot) window.scrollBy(0, 10); else return; update(lastY); }, 16);
   };
   const update = y => {
-    lastY = y; const d = drag, dy = (y - d.y0) + (window.scrollY - d.s0);
+    lastY = y; const d = drag, dy = (y - d.y0) + (window.scrollY - d.s0); moved = Math.max(moved, Math.abs(dy));
     d.row.style.transform = `translateY(${dy}px) scale(1.02)`;
     const me = d.rects[d.idx], mid = me.top + me.h / 2 + dy; let t = d.idx;
     d.rects.forEach((r, i) => { if (i < d.idx && mid < r.top + r.h / 2) t = Math.min(t, i); if (i > d.idx && mid > r.top + r.h / 2) t = Math.max(t, i); });
@@ -2776,10 +2907,11 @@ function enableReorder(listEl, arr, onDone) {
     rs.forEach(r => r.style.transform = ''); row.classList.remove('dragging'); document.body.classList.remove('reordering');
     window.__reorderActive = false; reorderEndedAt = Date.now();
     if (target !== idx) { const [it] = arr.splice(idx, 1); arr.splice(target, 0, it); onDone(); }
+    else if (moved < 10 && opts.onLongPress) opts.onLongPress(idx);
   };
   const startPress = (target, x, y, immediate) => {
-    const row = target.closest('.srow'); if (!row || !target.closest('.s-head')) return;
-    if (target.closest('button:not(.handle), input, select, textarea, a')) return;
+    const row = target.closest(ROW); if (!row || !listEl.contains(row) || !target.closest(HEAD)) return;
+    if (IGNORE && target.closest(IGNORE)) return;
     sx = x; sy = y; lastY = y;
     if (immediate) { begin(row, y); return; }
     timer = setTimeout(() => { timer = null; begin(row, sy); }, 420);
@@ -2791,7 +2923,7 @@ function enableReorder(listEl, arr, onDone) {
     if (drag) { e.preventDefault(); update(t.clientY); }
   }, { passive: false });
   listEl.addEventListener('touchend', finish); listEl.addEventListener('touchcancel', finish);
-  listEl.addEventListener('contextmenu', e => { if (e.target.closest('.s-head')) e.preventDefault(); });
+  listEl.addEventListener('contextmenu', e => { if (e.target.closest(HEAD)) e.preventDefault(); });
   listEl.addEventListener('mousedown', e => {
     if (e.button !== 0) return;
     startPress(e.target, e.clientX, e.clientY, !!e.target.closest('.handle'));
@@ -2919,7 +3051,7 @@ ${String(text).slice(0, 12000)}`, { modelTier: 'default' });
     if (!chosen.length) { toast('Keine Songs ausgewählt.'); return; }
     if (target) { target.songs.push(...chosen); touch(); close(); toast(`${plural(chosen.length, 'Song', 'Songs')} hinzugefügt`); render(true); return; }
     const sl = { id: newId(), mode: route.mode, name: name.trim() || 'Importierte Setliste', date: '', venue: '', prodId: '', songs: chosen };
-    a.setlists.unshift(sl); touch(); close(); toast(`Setliste mit ${plural(chosen.length, 'Song', 'Songs')} erstellt`); nav('setlist', { setId: sl.id });
+    P().setlists.unshift(sl); touch(); close(); toast(`Setliste mit ${plural(chosen.length, 'Song', 'Songs')} erstellt`); nav('setlist', { setId: sl.id });
   }
   function draw() {
     const n = list.filter(x => x.on).length;
