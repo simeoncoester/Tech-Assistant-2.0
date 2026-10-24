@@ -453,6 +453,33 @@ input,select,textarea{box-shadow:inset 0 1px 3px rgba(0,0,0,.6)}
 .sheet.ask{padding-bottom:calc(env(safe-area-inset-bottom,0px) + 22px)}
 .ask-btns{display:flex;flex-direction:column;gap:8px;margin-top:14px}
 .ask-btns .btn{width:100%;min-height:48px}
+/* help button: logo with shimmering rainbow question mark */
+.help-btn{all:unset;box-sizing:border-box;cursor:pointer;position:relative;flex:none;width:46px;height:52px;display:grid;place-items:center;color:var(--ink);opacity:.95}
+.help-btn:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:12px}
+.help-logo{width:30px;height:42px;color:currentColor;filter:drop-shadow(0 0 6px rgba(255,255,255,.15))}
+.help-q{position:absolute;left:50%;top:calc(50% - 21px + 42px * .365);transform:translate(-50%,-50%);font:800 15px/1 Barlow,sans-serif;
+  background:linear-gradient(90deg,#ff3b3b,#ff9f1a,#ffe600,#3ddc84,#2fb8ff,#7a5cff,#ff4fd8,#ff3b3b);background-size:300% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;
+  animation:qShift 3s linear infinite,qGlow 2.2s ease-in-out infinite;filter:drop-shadow(0 0 3px rgba(255,255,255,.35))}
+@keyframes qShift{to{background-position:300% 0}}
+@keyframes qGlow{50%{filter:drop-shadow(0 0 6px rgba(255,230,120,.8)) drop-shadow(0 0 10px rgba(120,180,255,.6))}}
+.spark{position:absolute;width:6px;height:6px;pointer-events:none;opacity:0;
+  background:radial-gradient(circle,#fff 0 30%,transparent 31%),linear-gradient(transparent 42%,#fff 42% 58%,transparent 58%),linear-gradient(90deg,transparent 42%,#fff 42% 58%,transparent 58%);animation:spark 2.4s ease-in-out infinite}
+.spark.s1{left:8px;top:8px;animation-delay:.1s}
+.spark.s2{right:6px;top:16px;animation-delay:.9s;width:5px;height:5px}
+.spark.s3{left:14px;bottom:10px;animation-delay:1.6s;width:4px;height:4px}
+@keyframes spark{0%,100%{opacity:0;transform:scale(.3) rotate(0)}20%{opacity:1;transform:scale(1.2) rotate(45deg)}40%{opacity:0;transform:scale(.4) rotate(90deg)}}
+.ice .spark{filter:drop-shadow(0 0 2px rgba(80,120,200,.9))}
+@media (prefers-reduced-motion:reduce){.help-q,.spark{animation:none}.spark{opacity:.8}}
+.help-row{display:flex;justify-content:center;margin-top:22px}
+.help-row .help-btn{width:72px;height:96px;animation:helpPulse 2.8s ease-in-out infinite}
+.help-row .help-logo{width:52px;height:72px;animation:helpTint 9s linear infinite}
+.help-row .help-q{top:calc(50% - 36px + 72px * .365);font-size:24px;animation:qShift 6s linear infinite,qGlow 2.8s ease-in-out infinite}
+.help-row .spark.s1{left:6px;top:10px}.help-row .spark.s2{right:4px;top:26px}.help-row .spark.s3{left:12px;bottom:14px}
+@keyframes helpPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.07)}}
+@keyframes helpTint{0%{color:#ff8a8a}16%{color:#ffc46b}33%{color:#f4f08a}50%{color:#8ff0b5}66%{color:#8cc8ff}83%{color:#c3a2ff}100%{color:#ff8a8a}}
+.ice .help-row .help-logo{animation-name:helpTintDark}
+@keyframes helpTintDark{0%{color:#d23b3b}16%{color:#c97a00}33%{color:#9a8c00}50%{color:#1a9a55}66%{color:#2f6fd8}83%{color:#7b47d9}100%{color:#d23b3b}}
+@media (prefers-reduced-motion:reduce){.help-row .help-btn,.help-row .help-logo{animation:none}}
 .sqrow,.lrow{position:relative}
 .sqrow .sq{width:100%;padding-right:66px}
 .sqrow .sq::after{display:none!important}
@@ -873,6 +900,130 @@ html:not(.glass):not(.ice) .mode.colored{border-left-width:2px}
 body.wm #wm{display:grid}
 #wm svg{width:min(86vw,560px);height:auto;max-height:78vh;color:#fff;opacity:.05}
 .ice #wm svg{color:#0b1220;opacity:.06}
+
+/* ===== onboarding ===== */
+#onb{position:fixed;inset:0;z-index:95;display:flex;flex-direction:column;padding:calc(env(safe-area-inset-top,0px) + 14px) 20px calc(env(safe-area-inset-bottom,0px) + 18px);background:rgba(3,4,7,.94);-webkit-backdrop-filter:blur(24px);backdrop-filter:blur(24px);color:#F4F6FA;animation:fadeIn .3s ease;transition:opacity .3s}
+#onb.out{opacity:0}
+.ice #onb{background:rgba(236,241,247,.95);color:var(--ink)}
+.onb-bars{display:flex;gap:5px}
+.onb-bars span{flex:1;height:3px;border-radius:2px;background:rgba(255,255,255,.2);overflow:hidden}
+.ice .onb-bars span{background:rgba(20,30,50,.15)}
+.onb-bars i{display:block;height:100%;width:0;background:currentColor;border-radius:2px}
+.onb-bars span.done i{width:100%}
+.onb-bars span.on i{animation:onbBar 3.6s linear forwards}
+@keyframes onbBar{to{width:100%}}
+.onb-skip{all:unset;cursor:pointer;align-self:flex-end;margin-top:10px;font-size:.9rem;opacity:.7;padding:6px 4px}
+.onb-stage{flex:1;display:flex;align-items:center;justify-content:center;cursor:pointer}
+.onb-slide{text-align:center;max-width:420px;animation:onbIn .5s cubic-bezier(.16,1,.3,1)}
+@keyframes onbIn{from{opacity:0;transform:translateX(30px)}}
+.onb-slide h2{font:700 1.7rem/1.15 "Barlow Condensed",sans-serif;margin:26px 0 8px;padding:0}
+.onb-slide h2::before{display:none}
+.onb-slide p{margin:0 auto;max-width:32ch;opacity:.75;line-height:1.45}
+.onb-nav{display:flex;justify-content:space-between;gap:10px}
+.onb-nav .btn{flex:1;min-height:50px}
+.onb-art{height:230px;display:flex;align-items:center;justify-content:center}
+.onb-logo{height:210px;width:auto;color:currentColor}
+.onb-logo *{stroke-dasharray:1400;stroke-dashoffset:1400;animation:onbDraw 1.6s cubic-bezier(.6,0,.2,1) forwards}
+.onb-logo line{animation-delay:.6s}
+@keyframes onbDraw{to{stroke-dashoffset:0}}
+.onb-flow{display:flex;align-items:center;flex-wrap:wrap;justify-content:center;gap:6px}
+.onb-chip{padding:10px 14px;border-radius:999px;border:1px solid rgba(255,255,255,.25);background:rgba(255,255,255,.08);font:600 1.05rem "Barlow Condensed",sans-serif;opacity:0;animation:onbPop .45s cubic-bezier(.3,1.5,.5,1) var(--d) forwards}
+.ice .onb-chip{border-color:#fff;background:rgba(255,255,255,.7)}
+.onb-chip:last-child{background:var(--blue);border-color:var(--blue);color:#fff}
+.onb-arrow{opacity:0;animation:onbPop .3s ease var(--d) forwards;font-size:1.4rem;opacity:0}
+@keyframes onbPop{from{opacity:0;transform:scale(.6)}to{opacity:1;transform:none}}
+.onb-tuner{flex-direction:column;gap:14px}
+.onb-hz{font:700 4.2rem/.9 "Barlow Condensed",sans-serif}
+.onb-hz small{font-size:.35em;margin-left:4px;opacity:.7}
+.onb-meter{position:relative;width:240px;height:36px;border-radius:12px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.18);overflow:hidden}
+.ice .onb-meter{background:rgba(255,255,255,.6);border-color:#fff}
+.onb-zone{position:absolute;left:42%;width:16%;top:0;bottom:0;background:rgba(80,200,130,.25)}
+.onb-needle{position:absolute;top:4px;bottom:4px;width:8px;margin-left:-4px;border-radius:4px;background:#ff5b4f;animation:onbNeedle 2.4s cubic-bezier(.3,1.4,.5,1) forwards}
+@keyframes onbNeedle{0%{left:12%;background:#ff5b4f}35%{left:78%;background:#ff5b4f}65%{left:44%}100%{left:50%;background:#36c97e}}
+.onb-ok{font:700 1.3rem "Barlow Condensed",sans-serif;color:#36c97e;opacity:0;animation:onbPop .4s ease 2.2s forwards}
+.onb-drum{height:230px;width:auto;animation:onbSpin 1s cubic-bezier(.16,1,.3,1)}
+@keyframes onbSpin{from{transform:rotate(-40deg) scale(.7);opacity:0}}
+.onb-list{width:min(320px,86vw);display:flex;flex-direction:column;gap:8px}
+.onb-row{display:grid;grid-template-columns:1fr auto auto;gap:8px;align-items:center;text-align:left;padding:10px 12px;border-radius:12px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.14);opacity:0;animation:onbRow .5s cubic-bezier(.16,1,.3,1) var(--d) forwards}
+.ice .onb-row{background:rgba(255,255,255,.65);border-color:#fff}
+.onb-row b{font-weight:600}
+.onb-row span{font-size:.8rem;padding:2px 8px;border-radius:999px;background:rgba(255,255,255,.12)}
+.ice .onb-row span{background:rgba(20,40,80,.08)}
+@keyframes onbRow{from{opacity:0;transform:translateX(40px)}to{opacity:1;transform:none}}
+.onb-strings{display:flex;gap:8px}
+.onb-strings span{width:44px;height:52px;border-radius:12px;display:grid;place-items:center;font:700 1.1rem "Barlow Condensed",sans-serif;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.07);animation:onbStr .5s ease var(--d) forwards}
+.ice .onb-strings span{background:rgba(255,255,255,.7);border-color:#fff}
+@keyframes onbStr{to{background:#2f9e5f;border-color:#5fd18f;color:#fff}}
+.onb-faders{display:flex;gap:40px;height:190px}
+.onb-fader{position:relative;width:8px;border-radius:4px;background:rgba(0,0,0,.6);box-shadow:inset 0 1px 2px #000}
+.ice .onb-fader{background:rgba(20,30,50,.25)}
+.onb-fader i{position:absolute;left:50%;width:34px;height:20px;margin-left:-17px;border-radius:3px;background:linear-gradient(180deg,#fff,#c9ced6 45%,#555 50%,#cfd3d9 55%,#fff);top:80%;animation:onbFader 1.6s cubic-bezier(.3,1.3,.5,1) var(--d) forwards}
+.onb-fader.bus i{background:linear-gradient(180deg,#ffe58a,#f5b800 45%,#6b4f00 50%,#f2b400 55%,#ffe27a)}
+.onb-fader.send i{background:linear-gradient(180deg,#a9cbff,#2f7bff 45%,#0d2a66 50%,#3a82ff 55%,#a3c7ff)}
+.onb-fader.master i{background:linear-gradient(180deg,#ff9a8c,#ef2f1e 45%,#6a0f08 50%,#f0392a 55%,#ff9486)}
+@keyframes onbFader{to{top:22%}}
+.onb-share{display:flex;align-items:center;gap:22px}
+.onb-phone{width:74px;height:132px;border-radius:16px;border:2px solid currentColor;display:grid;place-items:center;opacity:.9}
+.onb-phone svg{width:34px;height:48px}
+.onb-waves{display:flex;gap:6px}
+.onb-waves i{width:10px;height:10px;border-radius:50%;background:var(--blue);opacity:.2;animation:onbWave 1.2s ease-in-out infinite}
+.onb-waves i:nth-child(2){animation-delay:.2s}.onb-waves i:nth-child(3){animation-delay:.4s}
+@keyframes onbWave{50%{opacity:1;transform:scale(1.4)}}
+@media (prefers-reduced-motion:reduce){#onb *{animation:none!important;opacity:1!important}.onb-logo *{stroke-dashoffset:0}}
+
+/* ===== onboarding v2: manual, detailed ===== */
+.onb-bars span.on i{animation:none}
+.onb-bars span.done i{width:100%}
+.onb-stage{align-items:flex-start;overflow-y:auto;cursor:default;padding:8px 2px 12px;-webkit-overflow-scrolling:touch}
+.onb-slide{margin:auto;animation:none}
+.onb-slide.in-r{animation:onbInR .45s cubic-bezier(.16,1,.3,1)}
+.onb-slide.in-l{animation:onbInL .45s cubic-bezier(.16,1,.3,1)}
+@keyframes onbInR{from{opacity:0;transform:translateX(40px)}}
+@keyframes onbInL{from{opacity:0;transform:translateX(-40px)}}
+.onb-art{height:200px}
+.onb-slide h2{margin:18px 0 6px;font-size:1.55rem}
+.onb-steps{text-align:left;margin:14px auto 0;padding:0;list-style:none;counter-reset:st;max-width:380px;display:flex;flex-direction:column;gap:8px}
+.onb-steps li{counter-increment:st;display:grid;grid-template-columns:26px 1fr;gap:10px;align-items:start;font-size:.92rem;line-height:1.4;opacity:.92}
+.onb-steps li::before{content:counter(st);width:24px;height:24px;border-radius:50%;display:grid;place-items:center;font:700 .8rem Barlow,sans-serif;background:var(--blue);color:#fff;margin-top:1px}
+.onb-nav .btn:disabled{opacity:.35}
+.onb-drum{height:200px!important}
+.onb-tuner{gap:10px}
+.onb-tlabel{font-size:.85rem;opacity:.7}
+.onb-rec{grid-template-columns:1fr auto auto!important;row-gap:6px!important}
+.onb-bar{grid-column:1/-1;height:6px;border-radius:3px;background:rgba(255,255,255,.12);overflow:hidden}
+.ice .onb-bar{background:rgba(20,40,80,.1)}
+.onb-bar em{display:block;height:100%;width:0;border-radius:3px;background:linear-gradient(90deg,#A8382E,#D4887A 45%,#FAF7F4);background-size:calc(100% / var(--w)) 100%;animation:onbW 1s cubic-bezier(.16,1,.3,1) calc(var(--d) + .3s) forwards}
+@keyframes onbW{to{width:calc(var(--w) * 100%)}}
+.onb-photo{width:min(300px,84vw);height:auto;border-radius:14px;box-shadow:0 12px 26px rgba(0,0,0,.4)}
+.onb-dot{opacity:0;transform-box:fill-box;transform-origin:center;animation:onbPop .4s cubic-bezier(.3,1.5,.5,1) var(--d) forwards}
+.onb-sets,.onb-studio,.onb-share{flex-direction:column;gap:12px}
+.onb-file{padding:8px 14px;border-radius:10px;border:1px dashed rgba(255,255,255,.3);font-size:.9rem;animation:onbPop .4s ease forwards}
+.ice .onb-file{border-color:rgba(20,40,80,.3)}
+.onb-card{width:min(320px,86vw);border-radius:14px;padding:8px 14px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.14);text-align:left}
+.ice .onb-card{background:rgba(255,255,255,.65);border-color:#fff}
+.onb-field{display:flex;justify-content:space-between;gap:10px;padding:9px 0;border-bottom:1px solid rgba(255,255,255,.1);opacity:0;animation:onbRow .5s cubic-bezier(.16,1,.3,1) var(--d) forwards}
+.onb-field:last-child{border-bottom:0}
+.onb-field span{opacity:.6;font-size:.85rem}
+.onb-field b{font-weight:600;font-size:.9rem;text-align:right}
+.onb-chain{display:flex;gap:6px;flex-wrap:wrap;justify-content:center}
+.onb-studio .onb-faders{height:120px}
+.onb-menu{width:min(300px,84vw);display:flex;flex-direction:column;gap:6px}
+.onb-tour{display:flex;justify-content:space-between;align-items:center;padding:12px 14px;border-radius:14px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.16)}
+.ice .onb-tour{background:rgba(255,255,255,.7);border-color:#fff}
+.onb-lines{font-size:1.3rem;animation:onbTap 1.2s ease .2s 1}
+@keyframes onbTap{50%{transform:scale(1.4);color:var(--blue)}}
+.onb-mi{padding:10px 14px;border-radius:999px;text-align:center;font-weight:600;font-size:.9rem;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.16);opacity:0;animation:onbRow .45s cubic-bezier(.16,1,.3,1) var(--d) forwards}
+.ice .onb-mi{background:rgba(255,255,255,.7);border-color:#fff}
+.onb-mi.pri{background:var(--blue);border-color:var(--blue);color:#fff}
+.onb-mi.del{background:#b84336;border-color:#b84336;color:#fff}
+.onb-share .onb-waves{margin-top:4px}
+
+.onb-art{height:auto!important;min-height:200px}
+.onb-quick .drumsvg{width:210px!important;height:210px!important;max-width:none}
+.onb-faders{gap:40px!important}
+.onb-fader{background:rgba(255,255,255,.16)!important;box-shadow:none!important}
+.ice .onb-fader{background:rgba(20,30,50,.22)!important}
+.onb-reco .onb-list{gap:6px}
 </style>
 </head>
 <body>
@@ -1133,7 +1284,9 @@ function viewArtists() {
         return grid;
       })(),
       S.artists.length ? null : null,
-      h('div', { class: 'theme-row' }, h('span', {}, 'Design'), chipGroup([['ice', 'Eis'], ['glass', 'Glas'], ['classic', 'Klassisch']], currentTheme(), v => setTheme(v), 'Design')),
+      h('div', { class: 'theme-row' }, h('span', {}, 'Design'), chipGroup([['ice', 'Hell'], ['glass', 'Dunkel']], currentTheme(), v => setTheme(v), 'Design')),
+      h('div', { class: 'help-row' }, h('button', { class: 'help-btn', type: 'button', 'aria-label': 'Einführung ansehen', title: 'Einführung ansehen', onclick: () => showOnboarding() },
+        logoSvg('help-logo', 22), h('span', { class: 'help-q', 'aria-hidden': 'true' }, '?'), h('i', { class: 'spark s1' }), h('i', { class: 'spark s2' }), h('i', { class: 'spark s3' }))),
       adding && h('div', { class: 'card', style: 'margin-top:16px' },
         h('label', { class: 'field' }, h('span', {}, 'Neuer Künstler'), inp),
         h('div', { class: 'row' }, h('button', { class: 'btn solid', type: 'button', onclick: add }, 'Künstler anlegen'),
@@ -2672,7 +2825,7 @@ function swipeNeighbors() {
   const app = document.getElementById('app');
   let sx = 0, sy = 0, st = 0, lock = null, active = false, dx = 0;
   const blocked = el => !el.closest || el.closest('input[type=range], .fader, .knob, .console-wrap, .kp-wrap.edit, textarea, select, #tabbar, .sheet-ov, .stage, [data-noswipe]');
-  const canSwipe = () => !!currentBack || (artist() && (VIEW_AREA[route.view] || ['home', 'ghome'].includes(route.view))) ? !document.querySelector('.sheet-ov, .stage, #splash') : false;
+  const canSwipe = () => !!currentBack || (artist() && (VIEW_AREA[route.view] || ['home', 'ghome'].includes(route.view))) ? !document.querySelector('.sheet-ov, .stage, #splash, #onb') : false;
   const reset = anim => { app.style.transition = anim ? 'transform .22s cubic-bezier(.2,.8,.2,1), opacity .22s' : 'none'; app.style.transform = ''; app.style.opacity = ''; };
   document.addEventListener('touchstart', e => {
     active = false;
@@ -3221,7 +3374,7 @@ ${String(text).slice(0, 12000)}`, { modelTier: 'default' });
 /* ================= start ================= */
 (() => { const sp = document.getElementById('splash'); if (!sp) return; setTimeout(() => { sp.classList.add('out'); setTimeout(() => sp.remove(), 450); }, 2600); })();
 document.body.append(...Object.keys(STAGES).map((k, i) => h('datalist', { id: 'dl-' + i }, (GEAR[k] || []).map(g => h('option', { value: g })))));
-function currentTheme() { try { return localStorage.getItem('drumtech-theme') || 'glass'; } catch (e) { return 'glass'; } }
+function currentTheme() { try { const t = localStorage.getItem('drumtech-theme'); return t === 'ice' ? 'ice' : 'glass'; } catch (e) { return 'glass'; } }
 function setTheme(v) { try { localStorage.setItem('drumtech-theme', v); } catch (e) {} document.documentElement.classList.toggle('glass', v === 'glass'); document.documentElement.classList.toggle('ice', v === 'ice'); }
 document.body.prepend(h('div', { id: 'bgfx', 'aria-hidden': 'true' }), h('div', { id: 'wm', 'aria-hidden': 'true' }, logoSvg('', 6)));
 setTheme(currentTheme());
@@ -3316,6 +3469,85 @@ async function checkImportLink() {
   const m = location.hash.match(/^#import=([A-Za-z0-9_-]+)$/); if (!m) return;
   history.replaceState(null, '', location.pathname + location.search);
   try { receivePayload(JSON.parse(await gunzipBytes(unb64url(m[1])))); } catch (e) { toast('Der geteilte Link ist unvollständig.'); }
+}
+/* ================= onboarding (manual, detailed walkthrough) ================= */
+const ONB_KEY = 'drumtech-onboarded';
+const ONB_SLIDES = [
+  { art: 'logo', title: 'Willkommen beim Tech Assistent', text: 'Dein Werkzeug für Drummer, Bassisten, Gitarristen und Backliner. Auf den nächsten Seiten siehst du an Beispielen, wie alles funktioniert.' },
+  { art: 'flow', title: 'So ist die App aufgebaut', text: 'Alles hängt an einer Tour oder Produktion. Was du dort einträgst, sehen Drums, Bass und Gitarre gemeinsam.',
+    steps: ['Künstler anlegen, z. B. „Die Ärzte“', '„Live“ oder „Studio“ wählen', 'Tour benennen, z. B. „Sommertour 25“, und speichern', 'Instrument wählen: Drums, Bass oder Gitarre'] },
+  { art: 'quick', title: 'Quick Tuning: Stimmschrauben abgleichen', text: 'Beispiel: 14″-Snare mit 8 Stimmschrauben.',
+    steps: ['Größe und Anzahl der Schrauben wählen, „Schrauben abgleichen“', '„Messung starten“, Handy über Schraube 1 (oben) halten und anschlagen: das ist die Referenz', 'Dann Schraube für Schraube anschlagen: jede zeigt ihre Abweichung in Cent', 'Rot heißt anziehen oder lösen, grün liegt innerhalb von ±5 Cent'] },
+  { art: 'tuner', title: 'Tuner: Pitch, Lugs und Resonanz', text: 'Beispiel: Tom 1 auf 146,8 Hz stimmen.',
+    steps: ['Im Tuner die Trommel aus deinem Kit wählen, Zielfrequenz steht automatisch drin', '„Pitch“: Anzeige sagt „Höher“ oder „Tiefer stimmen“, bis „Stimmt“ erscheint', '„Lugs“: Schrauben einzeln vergleichen, Schraube 1 ist die Referenz', '„Resonanz“: Schlag- und Resonanzfell nacheinander messen und vergleichen', 'Wert mit einem Tipp in der Trommel speichern'] },
+  { art: 'reco', title: 'Tuning-Empfehlung zur Setliste', text: 'Beispiel: Du stimmst zuerst das Standtom auf 98 Hz.',
+    steps: ['Nach dem Speichern erscheint ein Fenster mit passenden Tönen für alle anderen Trommeln', 'Ist eine Setliste mit Tonarten angelegt, passen die Vorschläge zu den Songs', 'Der Balken zeigt die Tonhöhe: rot ist tief, weiß ist hoch', '„Als Zielwerte übernehmen“, dann im Tuner darauf stimmen'] },
+  { art: 'kit', title: 'Drumkit anlegen und fotografieren', text: 'Beispiel: Standard-Kit mit Bassdrum, Snare, zwei Toms und Standtom.',
+    steps: ['„Drumkit“ öffnen, Trommeln hinzufügen: der Name wird automatisch gesetzt', 'Kesselgröße, Felle und Mikrofone aus den Listen wählen, erst Hersteller, dann Typ', 'Serie oben beim Kit wählen, z. B. „Sonor SQ2“: gilt für alle Trommeln', 'Kit-Foto von oben machen, Trommeln antippen und zuordnen. Antippen öffnet später den Tuner'] },
+  { art: 'sets', title: 'Setlisten anlegen', text: 'Beispiel: Eine PDF-Setliste vom Tourmanager übernehmen.',
+    steps: ['„Setlisten“ → „Aus Datei importieren“ und PDF, Word oder Text wählen', 'Erkannte Songs mit Tonart und BPM prüfen, Haken setzen, „Setliste erstellen“', 'Song antippen: Tonart, BPM und Notizen ergänzen, „Akkorde und Struktur“ abrufen', 'Song gedrückt halten und ziehen ändert die Reihenfolge'] },
+  { art: 'inst', title: 'Instrumente und Stimmungen (Bass und Gitarre)', text: 'Beispiel: Fender Precision Bass in Drop D.',
+    steps: ['„Instrumente“ → „Instrument anlegen“, Hersteller und Modell wählen', 'Saiten und Saitenstärke wählen, z. B. „Ernie Ball Regular Slinky 45–105“', 'Unter „Stimmungen und Kapo“ eine Vorlage wählen, z. B. „Drop D“, Kapo einstellen', 'Im Stimmgerät erkennt die App die Saite automatisch'] },
+  { art: 'studio', title: 'Studio: Recording Recall und Mischpult', text: 'Beispiel: Snare-Kanal mit Neve 1073 und 1176.',
+    steps: ['„Recording Recall“ → „Kanäle aus Drumkit übernehmen“', 'Stufen hinzufügen: Preamp, EQ, Kompressor. Gerät aus der Liste wählen und Werte eintragen', '48 V und Polarität per Schalter setzen', '„Als Mischpult anzeigen“: Fader und Pan festhalten'] },
+  { art: 'share', title: 'Bearbeiten und mit der Band teilen', text: 'Beispiel: „Sommertour 25“ an den Gitarristen schicken.',
+    steps: ['Auf die drei Striche ≡ einer Tour oder eines Künstlers tippen: umbenennen oder löschen (mit Bestätigung)', 'Karte gedrückt halten und ziehen ändert die Reihenfolge', '„Gespeicherte Infos teilen“ → per AirDrop an das Handy des Kollegen', 'Er tippt auf „In meine App übernehmen“, fertig. Über das Logo oben rechts geht es jederzeit zur Startseite'] }
+];
+let onbTimer = null;
+function onbArt(kind) {
+  const box = h('div', { class: 'onb-art onb-' + kind });
+  if (kind === 'logo') box.append(logoSvg('onb-logo', 9));
+  else if (kind === 'flow') box.append(h('div', { class: 'onb-flow' }, ['Die Ärzte', 'Live', 'Sommertour 25', 'Drums'].map((t, i) => [i ? h('span', { class: 'onb-arrow', style: `--d:${i * .35 + .15}s` }, '›') : null, h('span', { class: 'onb-chip', style: `--d:${i * .35}s` }, t)])));
+  else if (kind === 'quick') {
+    const vals = [146.8, 147.1, 144.2, 147.0, 146.6, 150.9, 146.9, 147.2]; let k = 0;
+    const draw = () => { const v = vals.map((x, i) => i < k ? x : null); box.replaceChildren(drumGraphic({ n: 8, size: 14, vals: v, sel: k % 8, main: v[0] ? '146,8' : '–', sub: v[0] ? 'Referenz in Hz' : 'Schraube 1 anschlagen' })); box.firstChild.classList.add('onb-drum'); };
+    draw(); onbTimer = setInterval(() => { k = k >= 8 ? 0 : k + 1; draw(); }, 750);
+  }
+  else if (kind === 'tuner') box.append(h('div', { class: 'onb-tlabel' }, 'Tom 1, Ziel 146,8 Hz'), h('div', { class: 'onb-hz' }, '146,8', h('small', {}, 'Hz')), h('div', { class: 'onb-meter' }, h('i', { class: 'onb-zone' }), h('i', { class: 'onb-needle' })), h('div', { class: 'onb-ok' }, 'Stimmt'));
+  else if (kind === 'reco') box.append(h('div', { class: 'onb-list' }, [['Tom 1', 'F3', '174,6 Hz', .78], ['Tom 2', 'D3', '146,8 Hz', .66], ['Standtom', 'A2', '110,0 Hz', .5], ['Bassdrum', 'A1', '55,0 Hz', .18]].map(([n, note, hz, w], i) => h('div', { class: 'onb-row onb-rec', style: `--d:${i * .25}s` }, h('b', {}, n), h('span', {}, note), h('span', {}, hz), h('i', { class: 'onb-bar' }, h('em', { style: `--w:${w}` }))))));
+  else if (kind === 'kit') box.append((() => {
+    const sv = svg('svg', { viewBox: '0 0 300 200', class: 'onb-photo' });
+    sv.append(svg('rect', { x: 0, y: 0, width: 300, height: 200, rx: 14, fill: '#2a241f' }));
+    [[150, 150, 52, 'BD'], [82, 105, 34, 'SN'], [138, 72, 26, 'T1'], [190, 70, 28, 'T2'], [230, 128, 38, 'FT']].forEach(([x, y, r, l], i) => {
+      sv.append(svg('circle', { cx: x, cy: y, r, fill: '#e6e0d2', stroke: '#8f9399', 'stroke-width': 5 }));
+      const g = svg('g', { class: 'onb-dot', style: `--d:${.3 + i * .35}s` }, svg('circle', { cx: x, cy: y, r: 11, fill: i === 2 ? '#ffffff' : '#c96a5a', stroke: '#000', 'stroke-opacity': .5, 'stroke-width': 2 }), svg('text', { x, y: y + 4, 'text-anchor': 'middle', 'font-size': 9, 'font-weight': 700, fill: '#111', 'font-family': 'Barlow Condensed, sans-serif' }, l));
+      sv.append(g);
+    });
+    return sv;
+  })());
+  else if (kind === 'sets') box.append(h('div', { class: 'onb-file' }, '📄 setliste-sommertour.pdf'), h('div', { class: 'onb-list' }, [['Westerland', 'A-Dur', '128'], ['Junge', 'a-Moll', '96'], ['Schrei nach Liebe', 'E-Dur', '140']].map(([t, k, b], i) => h('div', { class: 'onb-row', style: `--d:${.5 + i * .25}s` }, h('b', {}, `${i + 1}  ${t}`), h('span', {}, k), h('span', {}, b + ' BPM')))));
+  else if (kind === 'inst') box.append(h('div', { class: 'onb-card' }, [['Instrument', 'Fender Precision Bass'], ['Saiten', 'Ernie Ball Regular Slinky 45–105'], ['Stimmung', 'Drop D (D A D G)'], ['Kapo', 'Ohne Kapo']].map(([l, v], i) => h('div', { class: 'onb-field', style: `--d:${i * .35}s` }, h('span', {}, l), h('b', {}, v)))));
+  else if (kind === 'studio') box.append(h('div', { class: 'onb-chain' }, ['Neve 1073', '1176LN', 'Pultec EQP-1A'].map((t, i) => h('span', { class: 'onb-chip', style: `--d:${i * .3}s` }, t))), h('div', { class: 'onb-faders' }, [['', 0], ['', .3], ['bus', .6], ['send', .9], ['master', 1.2]].map(([c, d]) => h('div', { class: 'onb-fader ' + c, style: `--d:${d}s` }, h('i')))));
+  else if (kind === 'share') box.append(h('div', { class: 'onb-menu' }, h('div', { class: 'onb-tour' }, h('b', {}, 'Sommertour 25'), h('span', { class: 'onb-lines' }, '≡')), ['Gespeicherte Infos teilen', 'Umbenennen', 'Produktion löschen'].map((t, i) => h('div', { class: 'onb-mi' + (i === 0 ? ' pri' : i === 2 ? ' del' : ''), style: `--d:${.5 + i * .25}s` }, t))), h('div', { class: 'onb-waves' }, h('i'), h('i'), h('i')));
+  return box;
+}
+function showOnboarding() {
+  if (document.getElementById('onb')) return;
+  let i = 0;
+  const bars = h('div', { class: 'onb-bars' }, ONB_SLIDES.map(() => h('span', {}, h('i'))));
+  const stage = h('div', { class: 'onb-stage', 'aria-live': 'polite' });
+  const backBtn = h('button', { class: 'btn ghost', type: 'button', onclick: () => go(i - 1) }, 'Zurück');
+  const nextBtn = h('button', { class: 'btn solid', type: 'button', onclick: () => go(i + 1) }, 'Weiter');
+  const ov = h('div', { id: 'onb', role: 'dialog', 'aria-modal': 'true', 'aria-label': 'Einführung' },
+    bars, h('button', { class: 'onb-skip', type: 'button', onclick: () => close() }, 'Schließen'), stage, h('div', { class: 'onb-nav' }, backBtn, nextBtn));
+  const close = () => { clearInterval(onbTimer); try { localStorage.setItem(ONB_KEY, '1'); } catch (e) {} ov.classList.add('out'); setTimeout(() => ov.remove(), 300); };
+  function go(n, dir) {
+    if (n < 0) return;
+    if (n >= ONB_SLIDES.length) { close(); return; }
+    const d = dir || (n >= i ? 1 : -1); i = n; clearInterval(onbTimer);
+    const sl = ONB_SLIDES[i];
+    stage.replaceChildren(h('div', { class: 'onb-slide ' + (d > 0 ? 'in-r' : 'in-l') }, onbArt(sl.art), h('h2', {}, sl.title), h('p', {}, sl.text),
+      sl.steps ? h('ol', { class: 'onb-steps' }, sl.steps.map(t => h('li', {}, t))) : null));
+    stage.scrollTop = 0;
+    [...bars.children].forEach((b, k) => { b.className = k <= i ? 'done' : ''; });
+    backBtn.disabled = i === 0;
+    nextBtn.textContent = i === ONB_SLIDES.length - 1 ? 'Los geht’s' : 'Weiter';
+  }
+  let sx = 0, sy = 0, st = 0;
+  ov.addEventListener('touchstart', e => { const t = e.touches[0]; sx = t.clientX; sy = t.clientY; st = Date.now(); }, { passive: true });
+  ov.addEventListener('touchend', e => { const t = e.changedTouches[0], dx = t.clientX - sx, dy = t.clientY - sy; if (Math.abs(dx) > 60 && Math.abs(dy) < Math.abs(dx) * .6 && Date.now() - st < 800) go(dx < 0 ? i + 1 : i - 1, dx < 0 ? 1 : -1); }, { passive: true });
+  document.addEventListener('keydown', function k(e) { if (!document.body.contains(ov)) { document.removeEventListener('keydown', k); return; } if (e.key === 'ArrowRight') go(i + 1); else if (e.key === 'ArrowLeft') go(i - 1); else if (e.key === 'Escape') close(); });
+  document.body.append(ov); go(0, 1);
 }
 function startApp() {
   const saved = loadRoute();
