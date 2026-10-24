@@ -389,7 +389,7 @@ input,select,textarea{box-shadow:inset 0 1px 3px rgba(0,0,0,.6)}
 .console{display:inline-flex;align-items:stretch;background:linear-gradient(180deg,#1c1f24,#121418);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:10px 6px;box-shadow:inset 0 1px 0 rgba(255,255,255,.06),0 14px 30px rgba(0,0,0,.6)}
 .strip{width:74px;flex:none;display:flex;flex-direction:column;align-items:center;gap:8px;padding:4px 5px 6px;border-right:1px solid rgba(0,0,0,.65);box-shadow:1px 0 0 rgba(255,255,255,.035);transition:opacity .15s}
 .strip:last-child{border-right:0;box-shadow:none}
-.strip.bus{background:rgba(162,145,184,.06)}
+.strip.bus{background:transparent}
 .strip.master{width:84px;background:rgba(255,255,255,.035);border-radius:0 8px 8px 0}
 .strip.dim{opacity:.4}
 .console .sep{width:8px;flex:none}
@@ -416,7 +416,10 @@ input,select,textarea{box-shadow:inset 0 1px 3px rgba(0,0,0,.6)}
 .fader .tick.zero{background:rgba(255,255,255,.22)}
 .fader .cap{position:absolute;left:58%;width:34px;height:22px;margin:-11px 0 0 -17px;border-radius:3px;pointer-events:none;
   background:linear-gradient(180deg,#ece9e3 0%,#c2bdb3 44%,#6f6b64 50%,#c9c4ba 56%,#efece6 100%);box-shadow:0 4px 8px rgba(0,0,0,.65)}
-.strip.bus .cap{background:linear-gradient(180deg,#d9d0e6 0%,#a99cbd 44%,#5d5470 50%,#ab9fc0 56%,#ddd5ea 100%)}
+.strip.bus .cap{background:linear-gradient(180deg,#f6e7b0 0%,#dcb658 44%,#6e5820 50%,#dfba5e 56%,#f8ebbb 100%)}
+.strip.send .cap{background:linear-gradient(180deg,#d3e2f8 0%,#7ea0d2 44%,#2f4a75 50%,#82a4d6 56%,#d9e6fa 100%)}
+.console .ins.empty{margin:0!important;padding:0!important;border:1px solid rgba(255,255,255,.06)!important;background:#0a0b0e!important;box-shadow:none!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important;border-radius:4px!important;text-align:left}
+.fader .slot{width:4px!important;padding:0!important;border:0!important;border-radius:2px!important;background:#040506!important;box-shadow:inset 0 1px 2px #000,0 1px 0 rgba(255,255,255,.05)!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
 .strip.master .cap{background:linear-gradient(180deg,#e9b3aa 0%,#c27b70 44%,#6e3a33 50%,#c47f74 56%,#ecbcb3 100%)}
 .scribble{width:100%;background:var(--tape);color:var(--tape-ink);font:400 12.5px/1.1 "Permanent Marker","Comic Sans MS",cursive;text-align:center;padding:5px 3px 4px;transform:rotate(-1.5deg);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;border:0;cursor:pointer;
   clip-path:polygon(0 8%,4% 0,50% 6%,96% 0,100% 10%,98% 50%,100% 92%,95% 100%,50% 94%,4% 100%,0 90%,2% 50%)}
@@ -2660,14 +2663,14 @@ function viewConsole() {
       panKnob(m), h('div', { class: 'ms' }, toggle('mute', 'm', 'Stumm'), toggle('solo', 's', 'Solo')),
       faderEl(m, ch.name || 'Kanal'),
       h('button', { class: 'scribble', type: 'button', title: 'Signalkette öffnen', onclick: () => { openSet.add(ch.id); nav('chain'); } }, ch.name || (kind === 'bus' ? 'Bus' : 'Kanal')),
-      h('div', { class: 'src' }, kind === 'bus' ? (ch.source || 'Bus') : (ch.source || '')));
+      h('div', { class: 'src' }, kind === 'bus' ? (ch.source || 'Bus') : kind === 'send' ? (ch.source || 'Send') : (ch.source || '')));
   };
   const draw = () => {
     const anySolo = all.some(c => c.mix.solo);
     wrap.replaceChildren(h('div', { class: 'console', role: 'group', 'aria-label': 'Mischpult' },
       C.channels.map(c => strip(c, 'ch', anySolo, draw)),
       C.busses.length ? h('div', { class: 'sep' }) : null,
-      C.busses.map(b => strip(b, 'bus', anySolo, draw)),
+      C.busses.map(b => strip(b, (/send|aux|hall|reverb|delay|echo|fx/i.test(b.name || '') || b.stages.some(st => ['Hall', 'Delay'].includes(st.kind))) ? 'send' : 'bus', anySolo, draw)),
       h('div', { class: 'sep' }),
       h('div', { class: 'strip master' }, h('div', { class: 'ins empty' }), h('div', { class: 'ins empty' }), h('div', { class: 'ins empty' }), h('div', { class: 'ins empty' }),
         h('div', { class: 'knob-wrap', style: 'visibility:hidden' }, 'GAIN', h('div', { class: 'knob ro' }), h('span', { class: 'kval' }, '–')),
