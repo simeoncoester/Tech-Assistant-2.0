@@ -453,6 +453,14 @@ input,select,textarea{box-shadow:inset 0 1px 3px rgba(0,0,0,.6)}
 .sheet.ask{padding-bottom:calc(env(safe-area-inset-bottom,0px) + 22px)}
 .ask-btns{display:flex;flex-direction:column;gap:8px;margin-top:14px}
 .ask-btns .btn{width:100%;min-height:48px}
+.drum-card{padding:0;overflow:visible}
+.drum-toggle{all:unset;box-sizing:border-box;cursor:pointer;width:100%;display:flex;align-items:center;gap:12px;padding:12px 14px;margin:0!important}
+.drum-toggle:focus-visible{outline:2px solid var(--accent);outline-offset:-2px;border-radius:inherit}
+.drum-sum{flex:1;min-width:0;text-align:right;color:var(--muted);font-size:.85rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.drum-chev{font-style:normal;font:600 1.4rem "Barlow Condensed",sans-serif;color:var(--accent);transition:transform .15s}
+.drum-card.open .drum-chev{transform:rotate(90deg)}
+.drum-body{padding:4px 14px 14px;border-top:1px solid var(--line)}
+.drum-body > .grid{margin-top:10px}
 /* help button: logo with shimmering rainbow question mark */
 .help-btn{all:unset;box-sizing:border-box;cursor:pointer;position:relative;flex:none;width:46px;height:52px;display:grid;place-items:center;color:var(--ink);opacity:.95}
 .help-btn:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:12px}
@@ -1024,6 +1032,31 @@ body.wm #wm{display:grid}
 .onb-fader{background:rgba(255,255,255,.16)!important;box-shadow:none!important}
 .ice .onb-fader{background:rgba(20,30,50,.22)!important}
 .onb-reco .onb-list{gap:6px}
+
+.sq-logo{width:76px;height:52px;flex:none;display:grid;place-items:center;border-radius:10px;overflow:hidden}
+.sq-logo img{max-width:100%;max-height:100%;object-fit:contain}
+.brand{display:flex;flex-direction:column;gap:10px;margin-top:12px}
+.brand-row{display:grid;grid-template-columns:5.5rem 1fr;gap:6px 10px;align-items:center}
+.brand-l{font-size:.8rem;color:var(--muted);font-weight:500}
+.brand-btns{grid-column:2;display:flex;gap:6px;flex-wrap:wrap}
+.brand-ph{color:var(--muted);font-size:.85rem;opacity:.8}
+.brand-logo{height:56px;display:flex;align-items:center}
+.brand-logo img{max-height:56px;max-width:180px;object-fit:contain;border-radius:6px}
+.brand-font{font-size:1.6rem;line-height:1.1;word-break:break-word}
+
+.wordmark{display:inline-block;vertical-align:middle;background:currentColor;-webkit-mask-size:contain;mask-size:contain;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;-webkit-mask-position:left center;mask-position:left center}
+.sq .wordmark{color:#fff;margin:2px 0 4px}
+.ice .sq .wordmark{color:var(--ink)}
+.bar h1 .wordmark{color:currentColor}
+.wm-preview{display:flex;justify-content:center;padding:18px;margin-top:12px;border-radius:12px;border:1px dashed var(--line-strong)}
+.wm-preview .wordmark{-webkit-mask-position:center;mask-position:center}
+.brand-wm{color:var(--ink)}
+
+.fader,.knob{touch-action:auto!important;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+.fader.armed .cap{box-shadow:0 0 0 2px var(--accent),0 0 16px color-mix(in srgb,var(--accent) 70%,transparent),0 4px 8px rgba(0,0,0,.6)!important;transform:scale(1.08)}
+.fader .cap{transition:transform .12s}
+.knob.armed{box-shadow:0 0 0 2px var(--accent),0 0 14px color-mix(in srgb,var(--accent) 70%,transparent)!important}
+.fader.armed .slot{background:color-mix(in srgb,var(--accent) 40%,#040506)!important}
 </style>
 </head>
 <body>
@@ -1200,6 +1233,7 @@ const modeName = () => route.mode === 'studio' ? 'Studio' : 'Live';
 const P = () => artist()?.productions.find(x => x.id === route.prodId) || null;
 const prods = () => { const p = P(); return p ? [p] : []; };
 const openSet = new Set();
+const drumOpen = new Set();
 function nav(view, params = {}) {
   if (['tuner', 'quick', 'gtuner'].includes(route.view) && view !== route.view) Tuner.stop();
   route = { ...route, ...params, view };
@@ -1220,7 +1254,7 @@ function render(keepScroll) {
   const crumbs = artist() && !['artists', 'mode'].includes(route.view) ? [[artist().name, () => nav('mode')], [modeName(), () => nav('projects')]] : null;
   if (crumbs && route.view !== 'projects' && P()) crumbs.push([P().name || 'Ohne Namen', () => nav('inst')]);
   if (crumbs && !['inst', 'projects'].includes(route.view)) crumbs.push([instName(), () => nav(route.inst === 'drums' ? 'home' : 'ghome')]);
-  bar.append(h('div', { class: 't' }, h('h1', {}, v.title),
+  bar.append(h('div', { class: 't' }, h('h1', { style: v.titleStyle || null }, v.titleNode || v.title),
     crumbs ? h('nav', { class: 'crumbs', 'aria-label': 'Pfad' }, crumbs.map(([l, go], i) => [i ? h('span', { 'aria-hidden': 'true' }, '›') : null, h('button', { type: 'button', onclick: go }, l)]))
       : (v.sub ? h('div', { class: 'sub' }, v.sub) : null)));
   if (route.view !== 'artists') bar.append(h('button', { class: 'home-btn', type: 'button', 'aria-label': 'Zur Startseite (Künstlerauswahl)', title: 'Zur Startseite', onclick: () => nav('artists') }, logoSvg('logo-ico', 30)));
@@ -1259,19 +1293,26 @@ const areaField = (label, value, onInput) => h('label', { class: 'field wide' },
 function viewArtists() {
   const adding = route.addingArtist || !S.artists.length;
   const inp = h('input', { id: 'newArtist', placeholder: 'Name des Künstlers oder der Band', 'aria-label': 'Name des Künstlers' });
+  const pend = route.newArtistAssets ||= {};
   const add = () => {
     const name = inp.value.trim(); if (!name) { inp.focus(); return; }
     const a = { id: newId(), name, productions: [], setlists: [] };
+    if (pend.logo) { a.logoV = Date.now(); saveAsset('logo-' + a.id, pend.logo); }
+    if (pend.font) { a.fontV = Date.now(); a.fontName = pend.fontName; saveAsset('font-' + a.id, pend.font); }
+    if (pend.wordmark) { a.wordmarkV = Date.now(); a.wordmarkRatio = pend.wordmarkRatio; saveAsset('wordmark-' + a.id, pend.wordmark); }
+    route.newArtistAssets = {};
     S.artists.push(a); normalize(); touch(); route.addingArtist = false; nav('mode', { artistId: a.id });
   };
+  inp.value = pend.name || '';
+  inp.addEventListener('input', () => { pend.name = inp.value; const pv = document.getElementById('fontPreview'); if (pv) pv.textContent = inp.value || 'Schriftzug-Vorschau'; });
   inp.addEventListener('keydown', e => { if (e.key === 'Enter') add(); });
-  const artistMenu = ar => rowMenu({ title: ar.name, onChange: () => { touch(); render(true); },
+  const artistMenu = ar => rowMenu({ title: ar.name, onChange: () => { touch(); render(true); }, extra: brandingMenuItems(ar),
     rename: { value: ar.name, set: v => ar.name = v },
-    del: { label: 'Künstler löschen', text: `„${ar.name}“ wird mit allen Produktionen, Setlisten, Stimmungen und Instrumenten gelöscht. Das lässt sich nicht rückgängig machen.`, run: () => { S.artists = S.artists.filter(x => x !== ar); ar.productions.forEach(pp => pp.hasPhoto && removePhoto(pp)); } } });
+    del: { label: 'Künstler löschen', text: `„${ar.name}“ wird mit allen Produktionen, Setlisten, Stimmungen und Instrumenten gelöscht. Das lässt sich nicht rückgängig machen.`, run: () => { S.artists = S.artists.filter(x => x !== ar); ar.productions.forEach(pp => pp.hasPhoto && removePhoto(pp)); removeAsset('logo-' + ar.id); removeAsset('font-' + ar.id); removeAsset('wordmark-' + ar.id); } } });
   const tiles = S.artists.map(a => h('div', { class: 'sqrow' },
     h('button', { class: 'sq', type: 'button', onclick: () => { if (!reorderJustEnded()) nav('mode', { artistId: a.id }); } },
-      h('span', { class: 'sq-ini', 'aria-hidden': 'true' }, initials(a.name)),
-      h('span', {}, h('span', { class: 'sq-name' }, a.name), h('br'), h('span', { class: 'sq-meta' }, plural(a.productions.length, 'Produktion', 'Produktionen')))),
+      artistBadge(a),
+      h('span', {}, artistNameNode(a), h('br'), h('span', { class: 'sq-meta' }, plural(a.productions.length, 'Produktion', 'Produktionen')))),
     moreBtn(a.name, () => artistMenu(a))));
   tiles.push(h('button', { class: 'sq add', type: 'button', onclick: () => { route.addingArtist = true; render(true); setTimeout(() => document.getElementById('newArtist')?.focus(), 0); } },
     h('span', { class: 'sq-plus', 'aria-hidden': 'true' }, '+'), h('span', { class: 'sq-meta' }, 'Künstler hinzufügen')));
@@ -1289,10 +1330,164 @@ function viewArtists() {
         logoSvg('help-logo', 22), h('span', { class: 'help-q', 'aria-hidden': 'true' }, '?'), h('i', { class: 'spark s1' }), h('i', { class: 'spark s2' }), h('i', { class: 'spark s3' }))),
       adding && h('div', { class: 'card', style: 'margin-top:16px' },
         h('label', { class: 'field' }, h('span', {}, 'Neuer Künstler'), inp),
+        brandingFields({ logo: pend.logo, fontFamily: pend.fontFamily, fontName: pend.fontName, name: pend.name,
+          onLogo: d => { pend.logo = d; render(true); }, onFont: (d, n, fam) => { pend.font = d; pend.fontName = n; pend.fontFamily = fam; render(true); },
+          onClearLogo: () => { delete pend.logo; render(true); }, onClearFont: () => { delete pend.font; delete pend.fontName; delete pend.fontFamily; render(true); },
+          wordmark: pend.wordmark, wordmarkRatio: pend.wordmarkRatio, onWordmark: (m, r) => { pend.wordmark = m; pend.wordmarkRatio = r; render(true); }, onClearWordmark: () => { delete pend.wordmark; delete pend.wordmarkRatio; render(true); } }),
         h('div', { class: 'row' }, h('button', { class: 'btn solid', type: 'button', onclick: add }, 'Künstler anlegen'),
           S.artists.length ? h('button', { class: 'btn ghost', type: 'button', onclick: () => { route.addingArtist = false; render(true); } }, 'Abbrechen') : null))
     ]
   };
+}
+
+/* ================= artist branding (logo / font) ================= */
+const assetCache = {}, assetLoading = {};
+const assetKey = k => 'drumtech-asset-' + k;
+const assetDoc = k => (typeof dbH !== 'undefined' && dbH && uidG) ? dbH.doc(`data/users/${uidG}/asset-${k}`) : null;
+function getAsset(k, onLoad) {
+  if (assetCache[k]) return assetCache[k];
+  try { const d = localStorage.getItem(assetKey(k)); if (d) return assetCache[k] = d; } catch (e) {}
+  const ref = assetDoc(k);
+  if (ref && !assetLoading[k]) { assetLoading[k] = true; ref.get().then(sn => { if (sn.exists && sn.data().data) { assetCache[k] = sn.data().data; try { localStorage.setItem(assetKey(k), assetCache[k]); } catch (e) {} onLoad && onLoad(); } }).catch(() => {}); }
+  return null;
+}
+async function saveAsset(k, data) { assetCache[k] = data; try { localStorage.setItem(assetKey(k), data); } catch (e) {} const ref = assetDoc(k); if (ref) { try { await ref.set({ data }); } catch (e) {} } }
+async function removeAsset(k) { delete assetCache[k]; try { localStorage.removeItem(assetKey(k)); } catch (e) {} const ref = assetDoc(k); if (ref) { try { await ref.delete(); } catch (e) {} } }
+const readAsDataURL = file => new Promise((res, rej) => { const fr = new FileReader(); fr.onload = () => res(fr.result); fr.onerror = rej; fr.readAsDataURL(file); });
+async function readLogoFile(file) {
+  if (file.type === 'image/svg+xml' || /\.svg$/i.test(file.name)) { const t = await file.text(); if (t.length > 200000) throw new Error('big'); return 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(t))); }
+  const url = await readAsDataURL(file);
+  const img = await new Promise((res, rej) => { const im = new Image(); im.onload = () => res(im); im.onerror = rej; im.src = url; });
+  let max = 512, out = '';
+  for (let i = 0; i < 6; i++) {
+    const sc = Math.min(1, max / Math.max(img.width, img.height)), c = document.createElement('canvas');
+    c.width = Math.max(1, Math.round(img.width * sc)); c.height = Math.max(1, Math.round(img.height * sc));
+    c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+    out = c.toDataURL('image/png'); if (out.length < 230000) break;
+    const w = c.toDataURL('image/webp', .9); if (w.startsWith('data:image/webp') && w.length < 230000) { out = w; break; }
+    max = Math.round(max * .75);
+  }
+  return out;
+}
+async function readFontFile(file) { if (file.size > 180000) throw new Error('big'); return await readAsDataURL(file); }
+const fontsLoaded = {};
+function artistFontFamily(a) { return a && a.fontV && fontsLoaded[a.id] === a.fontV ? `'af-${a.id}-${a.fontV}'` : null; }
+function artistFontStyle(a) { ensureArtistFont(a); const f = artistFontFamily(a); return f ? `font-family:${f},"Barlow Condensed",sans-serif;letter-spacing:0` : null; }
+const fontLoading = {};
+async function ensureArtistFont(a) {
+  if (!a || !a.fontV || fontsLoaded[a.id] === a.fontV || fontLoading[a.id + a.fontV]) return;
+  const data = getAsset('font-' + a.id, () => ensureArtistFont(a)); if (!data) return;
+  fontLoading[a.id + a.fontV] = true;
+  try { const ff = new FontFace(`af-${a.id}-${a.fontV}`, `url(${data})`); await ff.load(); document.fonts.add(ff); fontsLoaded[a.id] = a.fontV; render(true); } catch (e) { toast('Die Schriftart konnte nicht geladen werden.'); }
+}
+function pickFile(accept, onFile) {
+  const inp = h('input', { type: 'file', accept, style: 'display:none' });
+  inp.addEventListener('change', async () => { const f = inp.files && inp.files[0]; inp.remove(); if (f) await onFile(f); });
+  document.body.append(inp); inp.click();
+}
+function brandingMenuItems(ar) {
+  const done = msg => { touch(); render(true); toast(msg); };
+  return [
+    { label: ar.logoV ? 'Logo oder Bild ändern' : 'Logo oder Bild hochladen', primary: true, onClick: () => pickFile('image/png,image/jpeg,image/webp,image/svg+xml,.svg', async f => {
+      try { const d = await readLogoFile(f); ar.logoV = Date.now(); await saveAsset('logo-' + ar.id, d); done('Logo gespeichert'); } catch (e) { toast(e.message === 'big' ? 'Das Logo ist zu groß.' : 'Das Bild konnte nicht gelesen werden.'); } }) },
+    { label: ar.fontV ? 'Schriftzug ändern' : 'Schriftzug hochladen', primary: true, onClick: () => pickFile('.ttf,.otf,.woff,.woff2,font/ttf,font/otf,font/woff,font/woff2', async f => {
+      try { const d = await readFontFile(f); ar.fontV = Date.now(); ar.fontName = f.name; await saveAsset('font-' + ar.id, d); ensureArtistFont(ar); done('Schriftzug gespeichert'); } catch (e) { toast(e.message === 'big' ? 'Die Schriftdatei ist zu groß (max. 180 KB).' : 'Diese Schriftdatei kann ich nicht lesen.'); } }) },
+    { label: ar.wordmarkV ? 'Schriftzug aus Bild ändern' : 'Schriftzug aus Bild übernehmen', primary: true, onClick: () => pickFile('image/png,image/jpeg,image/webp,image/svg+xml,.svg', async f => {
+      try { const r = await extractWordmark(f); if (!r) { toast('In diesem Bild finde ich keinen Schriftzug.'); return; } wordmarkConfirm(r, ar.name, () => { ar.wordmarkV = Date.now(); ar.wordmarkRatio = r.ratio; saveAsset('wordmark-' + ar.id, r.mask); done('Schriftzug übernommen'); }); } catch (e) { toast('Das Bild konnte nicht gelesen werden.'); } }) },
+    ar.wordmarkV && { label: 'Schriftzug aus Bild entfernen', onClick: () => { delete ar.wordmarkV; delete ar.wordmarkRatio; removeAsset('wordmark-' + ar.id); done('Schriftzug entfernt'); } },
+    ar.logoV && { label: 'Logo entfernen', onClick: () => { delete ar.logoV; removeAsset('logo-' + ar.id); done('Logo entfernt'); } },
+    ar.fontV && { label: 'Schriftzug entfernen', onClick: () => { delete ar.fontV; delete ar.fontName; removeAsset('font-' + ar.id); done('Schriftzug entfernt'); } }
+  ];
+}
+function artistBadge(a) {
+  const logo = a.logoV ? getAsset('logo-' + a.id, () => render(true)) : null;
+  return logo ? h('span', { class: 'sq-logo', 'aria-hidden': 'true' }, h('img', { src: logo, alt: '' })) : h('span', { class: 'sq-ini', 'aria-hidden': 'true' }, initials(a.name));
+}
+const loadImg = src => new Promise((res, rej) => { const im = new Image(); im.onload = () => res(im); im.onerror = rej; im.src = src; });
+async function extractWordmark(file) {
+  let url;
+  if (file.type === 'image/svg+xml' || /\.svg$/i.test(file.name)) url = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(await file.text())));
+  else url = await readAsDataURL(file);
+  const img = await loadImg(url);
+  const iw = img.width || 800, ih = img.height || 400, sc = Math.min(1, 1000 / Math.max(iw, ih));
+  const W = Math.max(1, Math.round(iw * sc)), H = Math.max(1, Math.round(ih * sc));
+  const c = document.createElement('canvas'); c.width = W; c.height = H;
+  const g = c.getContext('2d', { willReadFrequently: true }); g.drawImage(img, 0, 0, W, H);
+  const d = g.getImageData(0, 0, W, H).data, samples = [];
+  const push = (x, y) => { const i = (y * W + x) * 4; samples.push([d[i], d[i + 1], d[i + 2], d[i + 3]]); };
+  const sx = Math.max(1, Math.floor(W / 60)), sy = Math.max(1, Math.floor(H / 60));
+  for (let x = 0; x < W; x += sx) { push(x, 0); push(x, H - 1); }
+  for (let y = 0; y < H; y += sy) { push(0, y); push(W - 1, y); }
+  const transparentBg = samples.filter(t => t[3] < 40).length > samples.length * .5;
+  const med = k => { const arr = samples.map(t => t[k]).sort((x, y) => x - y); return arr[arr.length >> 1]; };
+  const bg = [med(0), med(1), med(2)], alpha = new Float32Array(W * H);
+  for (let q = 0; q < W * H; q++) { const i = q * 4; alpha[q] = transparentBg ? d[i + 3] / 255 : Math.max(0, Math.min(1, (Math.hypot(d[i] - bg[0], d[i + 1] - bg[1], d[i + 2] - bg[2]) - 35) / 60)) * (d[i + 3] / 255); }
+  const colSum = new Float32Array(W), rowSum = new Float32Array(H); let total = 0;
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) if (alpha[y * W + x] > .35) { colSum[x]++; rowSum[y]++; total++; }
+  const thrC = Math.max(1, H * .004), thrR = Math.max(1, W * .004);
+  let x0 = 0; while (x0 < W && colSum[x0] < thrC) x0++;
+  let x1 = W - 1; while (x1 > x0 && colSum[x1] < thrC) x1--;
+  let y0 = 0; while (y0 < H && rowSum[y0] < thrR) y0++;
+  let y1 = H - 1; while (y1 > y0 && rowSum[y1] < thrR) y1--;
+  if (x1 - x0 < 8 || y1 - y0 < 4) return null;
+  const pad = Math.round(Math.min(W, H) * .01); x0 = Math.max(0, x0 - pad); y0 = Math.max(0, y0 - pad); x1 = Math.min(W - 1, x1 + pad); y1 = Math.min(H - 1, y1 + pad);
+  const cw = x1 - x0 + 1, ch = y1 - y0 + 1;
+  const mc = document.createElement('canvas'); mc.width = cw; mc.height = ch; const mg = mc.getContext('2d'), md = mg.createImageData(cw, ch);
+  for (let y = 0; y < ch; y++) for (let x = 0; x < cw; x++) { const i = (y * cw + x) * 4; md.data[i + 3] = Math.round(alpha[(y + y0) * W + (x + x0)] * 255); }
+  mg.putImageData(md, 0, 0);
+  const s2 = Math.min(1, 700 / Math.max(cw, ch)), out = document.createElement('canvas');
+  out.width = Math.max(1, Math.round(cw * s2)); out.height = Math.max(1, Math.round(ch * s2)); out.getContext('2d').drawImage(mc, 0, 0, out.width, out.height);
+  const fill = total / (cw * ch), ratio = cw / ch;
+  return { mask: out.toDataURL('image/png'), ratio, looksLikeText: ratio >= 1.6 && fill > .03 && fill < .62 && (cw * ch) < W * H * .97 };
+}
+const wmStyle = (mask, ratio, hgt, maxW = 240) => `height:${hgt}px;width:${Math.min(maxW, Math.round(hgt * (ratio || 3)))}px;-webkit-mask-image:url(${mask});mask-image:url(${mask})`;
+function wordmarkConfirm(r, name, onYes) {
+  const ov = h('div', { class: 'sheet-ov', role: 'dialog', 'aria-modal': 'true', 'aria-label': 'Schriftzug übernehmen' });
+  const close = () => ov.remove();
+  ov.addEventListener('click', e => { if (e.target === ov) close(); });
+  ov.append(h('div', { class: 'sheet ask' }, h('div', { class: 'grab' }),
+    h('h3', {}, r.looksLikeText ? 'Schriftzug erkannt' : 'Kein eindeutiger Schriftzug'),
+    h('p', { class: 'lead', style: 'color:var(--muted)' }, r.looksLikeText
+      ? `Soll dieser Schriftzug als Beschriftung${name ? ` für „${name}“` : ''} verwendet werden? Der eingetragene Name bleibt für Speichern und Export erhalten.`
+      : 'Ich habe nur den Bereich ausgeschnitten, der sich vom Hintergrund abhebt. Trotzdem als Beschriftung verwenden?'),
+    h('div', { class: 'wm-preview' }, h('span', { class: 'wordmark', style: wmStyle(r.mask, r.ratio, 64, 300) })),
+    h('div', { class: 'ask-btns' },
+      h('button', { class: 'btn solid', type: 'button', onclick: () => { close(); onYes(); } }, 'Als Beschriftung verwenden'),
+      h('button', { class: 'btn ghost', type: 'button', onclick: close }, 'Abbrechen'))));
+  document.body.append(ov);
+}
+function artistNameNode(a, hgt = 30, maxW = 220) {
+  const m = a.wordmarkV ? getAsset('wordmark-' + a.id, () => render(true)) : null;
+  if (m) return h('span', { class: 'wordmark', role: 'img', 'aria-label': a.name, style: wmStyle(m, a.wordmarkRatio, hgt, maxW) });
+  return h('span', { class: 'sq-name', style: artistFontStyle(a) }, a.name);
+}
+function brandingFields(o) {
+  const fileBtn = (label, accept, onFile) => {
+    const inp = h('input', { type: 'file', accept, style: 'display:none', onchange: async e => { const f = e.target.files && e.target.files[0]; if (f) await onFile(f); e.target.value = ''; } });
+    return h('label', { class: 'btn small', tabindex: 0, onkeydown: e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); inp.click(); } } }, label, inp);
+  };
+  const onLogoFile = async f => { try { o.onLogo(await readLogoFile(f)); } catch (e) { toast(e.message === 'big' ? 'Das Logo ist zu groß.' : 'Das Bild konnte nicht gelesen werden.'); } };
+  const onFontFile = async f => {
+    try { const d = await readFontFile(f); const fam = 'pf-' + Date.now(); const ff = new FontFace(fam, `url(${d})`); await ff.load(); document.fonts.add(ff); o.onFont(d, f.name, `'${fam}'`); }
+    catch (e) { toast(e.message === 'big' ? 'Die Schriftdatei ist zu groß (max. 180 KB).' : 'Diese Schriftdatei kann ich nicht lesen.'); }
+  };
+  const onWordFile = async f => {
+    try { const r = await extractWordmark(f); if (!r) { toast('In diesem Bild finde ich keinen Schriftzug.'); return; } wordmarkConfirm(r, o.name, () => o.onWordmark(r.mask, r.ratio)); }
+    catch (e) { toast('Das Bild konnte nicht gelesen werden.'); }
+  };
+  return h('div', { class: 'brand' },
+    h('div', { class: 'brand-row' },
+      h('span', { class: 'brand-l' }, 'Logo'),
+      o.logo ? h('span', { class: 'brand-logo' }, h('img', { src: o.logo, alt: 'Logo' })) : h('span', { class: 'brand-ph' }, 'optional'),
+      h('span', { class: 'brand-btns' }, fileBtn(o.logo ? 'Ändern' : 'Hochladen', 'image/png,image/jpeg,image/webp,image/svg+xml,.svg', onLogoFile), o.logo ? h('button', { class: 'btn ghost small', type: 'button', onclick: o.onClearLogo }, 'Entfernen') : null)),
+    h('div', { class: 'brand-row' },
+      h('span', { class: 'brand-l' }, 'Schriftzug'),
+      o.fontFamily || o.fontName ? h('span', { class: 'brand-font', id: 'fontPreview', style: o.fontFamily ? `font-family:${o.fontFamily},sans-serif` : null }, o.name || 'Schriftzug-Vorschau') : h('span', { class: 'brand-ph' }, 'optional, eigene Schriftart (TTF, OTF, WOFF)'),
+      h('span', { class: 'brand-btns' }, fileBtn(o.fontName ? 'Ändern' : 'Hochladen', '.ttf,.otf,.woff,.woff2,font/ttf,font/otf,font/woff,font/woff2', onFontFile), o.fontName ? h('button', { class: 'btn ghost small', type: 'button', onclick: o.onClearFont }, 'Entfernen') : null)),
+    h('div', { class: 'brand-row' },
+      h('span', { class: 'brand-l' }, 'Schriftzug aus Bild'),
+      o.wordmark ? h('span', { class: 'wordmark brand-wm', style: wmStyle(o.wordmark, o.wordmarkRatio, 40) }) : h('span', { class: 'brand-ph' }, 'optional, Schriftzug aus einem Foto oder Logo übernehmen'),
+      h('span', { class: 'brand-btns' }, fileBtn(o.wordmark ? 'Ändern' : 'Bild wählen', 'image/png,image/jpeg,image/webp,image/svg+xml,.svg', onWordFile), o.wordmark ? h('button', { class: 'btn ghost small', type: 'button', onclick: o.onClearWordmark }, 'Entfernen') : null)));
 }
 
 /* ================= view: mode ================= */
@@ -1302,15 +1497,11 @@ function viewMode() {
   const modeBtn = (m, title, desc) => h('button', { class: 'mode colored rowcard', style: `--c:${MODE_C[m]}`, type: 'button', onclick: () => nav('projects', { mode: m }) }, h('span', { class: 'rc-ico' }, areaIcon(m === 'live' ? 'live' : 'studio')),
     h('span', { class: 'rc-text' }, h('b', {}, title)));
   return {
-    title: a.name, sub: 'Live oder Studio?', back: () => nav('artists'),
+    title: a.name, titleNode: a.wordmarkV ? artistNameNode(a, 24, 200) : null, titleStyle: artistFontStyle(a), sub: 'Live oder Studio?', back: () => nav('artists'),
     body: [
       h('div', { class: 'modes' },
         modeBtn('live', 'Live', 'Konzerte, Touren, Festivals und TV'),
         modeBtn('studio', 'Studio', 'Aufnahmen mit Drumkit und Recording Recall')),
-      h('h2', {}, 'Künstler bearbeiten'),
-      h('div', { class: 'card' },
-        field('Name', a.name, v => a.name = v, { onchange: () => render(true) }),
-        h('div', { class: 'row' }, delBtn('Künstler löschen', () => { S.artists = S.artists.filter(x => x.id !== a.id); touch(); nav('artists'); }))),
       null
     ]
   };
@@ -1597,9 +1788,12 @@ function viewKit() {
   const a = artist(); const p = a.productions.find(x => x.id === route.prodId);
   if (!p) { route.view = 'kits'; return viewKits(); }
   const tuneBtn = (d, side) => h('button', { class: 'btn small', type: 'button', title: 'Mit dem Tuner stimmen', onclick: () => nav('tuner', { target: `${p.id}|${d.id}`, side, tunerFrom: 'kit' }) }, 'Stimmen');
-  const drumCard = (d, i) => h('div', { class: 'card' },
-    h('div', { class: 'drum-head' }, h('span', { class: 'tape sm' + (i % 2 ? ' tilt' : '') }, d.name || `Trommel ${i + 1}`),
-      delBtn('Entfernen', () => { p.drums = p.drums.filter(x => x !== d); touch(); render(true); }, 'small')),
+  const drumCard = (d, i) => h('div', { class: 'card drum-card' + (drumOpen.has(d.id) ? ' open' : '') },
+    h('button', { class: 'drum-head drum-toggle', type: 'button', 'aria-expanded': String(drumOpen.has(d.id)), onclick: () => { drumOpen.has(d.id) ? drumOpen.delete(d.id) : drumOpen.add(d.id); render(true); } },
+      h('span', { class: 'tape sm' + (i % 2 ? ' tilt' : '') }, d.name || `Trommel ${i + 1}`),
+      h('span', { class: 'drum-sum' }, [d.size, d.pitchTop ? `${fmtHz(d.pitchTop)} Hz` : ''].filter(Boolean).join(', ')),
+      h('i', { class: 'drum-chev', 'aria-hidden': 'true' }, '›')),
+    drumOpen.has(d.id) && h('div', { class: 'drum-body' },
     h('div', { class: 'grid' },
       selectField('Kategorie', d.type, DRUM_TYPES, v => {
         const prev = d.type; d.type = v; d.lugs = DEFAULT_LUGS[v];
@@ -1619,13 +1813,14 @@ function viewKit() {
       field('Ziel Schlagfell (Hz)', d.targetTop, v => d.targetTop = v, { type: 'number', step: '0.1', inputmode: 'decimal', placeholder: 'z. B. aus der Tuning-Empfehlung', wide: true }),
       micPicker('Mikrofon', d.mic, v => d.mic = v, micUses(d.type))
     ),
-    (d.lugsTop.some(x => x) || d.lugsBottom.some(x => x)) ? h('p', { class: 'muted', style: 'margin:10px 0 0;font-size:.85rem' }, 'Lug-Werte gespeichert: ' + [d.lugsTop.some(x => x) && 'Schlagfell', d.lugsBottom.some(x => x) && 'Resonanzfell'].filter(Boolean).join(' und ')) : null);
+    (d.lugsTop.some(x => x) || d.lugsBottom.some(x => x)) ? h('p', { class: 'muted', style: 'margin:10px 0 0;font-size:.85rem' }, 'Lug-Werte gespeichert: ' + [d.lugsTop.some(x => x) && 'Schlagfell', d.lugsBottom.some(x => x) && 'Resonanzfell'].filter(Boolean).join(' und ')) : null,
+    h('div', { class: 'row' }, delBtn('Trommel entfernen', () => { p.drums = p.drums.filter(x => x !== d); drumOpen.delete(d.id); touch(); render(true); }, 'small'))));
   const micRows = p.mics.map(m => h('div', { class: 'card mic-card' },
     h('div', { class: 'with-btn' },
       h('input', { value: m.pos, placeholder: 'Position, z. B. Overhead L', 'aria-label': 'Position', oninput: e => { m.pos = e.target.value; touch(); } }),
       h('button', { class: 'x', type: 'button', 'aria-label': 'Mikrofon entfernen', onclick: () => { p.mics = p.mics.filter(x => x !== m); touch(); render(true); } }, '×')),
     h('div', { style: 'margin-top:8px' }, micPicker(null, m.mic, v => m.mic = v, ['oh', 'room']))));
-  const addDrum = type => { const d = newDrum(type); p.drums.push(d); d.name = autoName(p, d, type); touch(); render(true); };
+  const addDrum = type => { const d = newDrum(type); p.drums.push(d); d.name = autoName(p, d, type); drumOpen.add(d.id); touch(); render(true); };
   return {
     title: 'Drumkit', sub: p.name || '', back: () => nav('home'),
     body: [
@@ -2887,16 +3082,42 @@ function consoleOwner() {
   const p = a.productions.find(x => x.id === route.prodId);
   return p ? { C: p.chain, p, name: p.name || 'Unbenannte Produktion' } : null;
 }
+/* touch: adjust only after holding still ~0.35 s, so scrolling never moves a control */
+function holdToAdjust(el, { start, move, end }) {
+  let timer = null, armed = false, sx = 0, sy = 0, tid = null, lastTouch = 0;
+  const arm = y => { armed = true; el.classList.add('armed'); navigator.vibrate?.(12); start(y); };
+  const disarm = () => { clearTimeout(timer); timer = null; if (armed) { armed = false; el.classList.remove('armed'); end(); } };
+  el.addEventListener('touchstart', e => {
+    lastTouch = Date.now(); if (e.touches.length !== 1) { clearTimeout(timer); return; }
+    const t = e.touches[0]; sx = t.clientX; sy = t.clientY; tid = t.identifier;
+    clearTimeout(timer); timer = setTimeout(() => arm(sy), 350);
+  }, { passive: true });
+  el.addEventListener('touchmove', e => {
+    const t = [...e.touches].find(x => x.identifier === tid); if (!t) return;
+    if (!armed) { if (Math.hypot(t.clientX - sx, t.clientY - sy) > 8) { clearTimeout(timer); timer = null; } return; }
+    e.preventDefault(); move(t.clientY);
+  }, { passive: false });
+  el.addEventListener('touchend', () => { lastTouch = Date.now(); disarm(); });
+  el.addEventListener('touchcancel', () => { lastTouch = Date.now(); disarm(); });
+  el.addEventListener('mousedown', e => {
+    if (e.button !== 0 || Date.now() - lastTouch < 800) return;
+    e.preventDefault(); arm(e.clientY);
+    const mm = ev => move(ev.clientY), mu = () => { document.removeEventListener('mousemove', mm); document.removeEventListener('mouseup', mu); disarm(); };
+    document.addEventListener('mousemove', mm); document.addEventListener('mouseup', mu);
+  });
+  el.addEventListener('contextmenu', e => e.preventDefault());
+}
 function faderEl(obj, label) {
   const readout = h('div', { class: 'dbv' }), cap = h('div', { class: 'cap' });
   const ticks = [[10, '+10'], [5, '5'], [0, '0'], [-10, '10'], [-20, '20'], [-30, '30'], [-40, '40'], [-60, '60'], [null, '∞']].map(([db, l]) =>
     h('div', { class: 'tick' + (db === 0 ? ' zero' : ''), style: `top:${capTop(dbToPos(db))}` }, h('b', {}, l)));
   const fd = h('div', { class: 'fader', tabindex: 0, role: 'slider', 'aria-label': `Fader ${label}`, 'aria-valuemin': -90, 'aria-valuemax': 10 }, h('div', { class: 'slot' }), ticks, cap);
   const place = () => { cap.style.top = capTop(dbToPos(obj.fader)); readout.textContent = fmtDb(obj.fader); fd.setAttribute('aria-valuetext', fmtDb(obj.fader) + ' dB'); };
-  const setY = y => { const r = fd.getBoundingClientRect(); const pp = Math.max(0, Math.min(1, 1 - (y - r.top - 6) / (r.height - 12))); let db = posToDb(pp); if (db != null) { db = Math.round(db * 10) / 10; if (Math.abs(db) < .6) db = 0; } obj.fader = db; place(); };
-  fd.addEventListener('pointerdown', e => { fd.setPointerCapture(e.pointerId); setY(e.clientY); e.preventDefault(); });
-  fd.addEventListener('pointermove', e => { if (fd.hasPointerCapture(e.pointerId)) setY(e.clientY); });
-  fd.addEventListener('pointerup', () => touch());
+  let y0 = 0, p0 = 0;
+  holdToAdjust(fd, {
+    start: y => { y0 = y; p0 = dbToPos(obj.fader); },
+    move: y => { const r = fd.getBoundingClientRect(); const pp = Math.max(0, Math.min(1, p0 - (y - y0) / (r.height - 12))); let db = posToDb(pp); if (db != null) { db = Math.round(db * 10) / 10; if (Math.abs(db) < .6) db = 0; } obj.fader = db; place(); },
+    end: () => touch() });
   fd.addEventListener('dblclick', () => { obj.fader = 0; place(); touch(); });
   fd.addEventListener('keydown', e => {
     if (!['ArrowUp', 'ArrowDown'].includes(e.key)) return; e.preventDefault();
@@ -2910,9 +3131,10 @@ function panKnob(m) {
   const val = h('span', { class: 'kval' }), k = h('div', { class: 'knob', tabindex: 0, role: 'slider', 'aria-label': 'Panorama', 'aria-valuemin': -100, 'aria-valuemax': 100 });
   const draw = () => { k.style.setProperty('--a', `${m.pan / 100 * 135}deg`); const t = m.pan === 0 ? 'C' : m.pan < 0 ? `L${-m.pan}` : `R${m.pan}`; val.textContent = t; k.setAttribute('aria-valuetext', t); };
   let y0 = 0, v0 = 0;
-  k.addEventListener('pointerdown', e => { k.setPointerCapture(e.pointerId); y0 = e.clientY; v0 = m.pan; e.preventDefault(); });
-  k.addEventListener('pointermove', e => { if (!k.hasPointerCapture(e.pointerId)) return; let v = Math.round(v0 + (y0 - e.clientY) * 1.4); v = Math.max(-100, Math.min(100, v)); if (Math.abs(v) < 4) v = 0; m.pan = v; draw(); });
-  k.addEventListener('pointerup', () => touch());
+  holdToAdjust(k, {
+    start: y => { y0 = y; v0 = m.pan; },
+    move: y => { let v = Math.round(v0 + (y0 - y) * 1.4); v = Math.max(-100, Math.min(100, v)); if (Math.abs(v) < 4) v = 0; m.pan = v; draw(); },
+    end: () => touch() });
   k.addEventListener('dblclick', () => { m.pan = 0; draw(); touch(); });
   k.addEventListener('keydown', e => { if (!['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) return; e.preventDefault(); m.pan = Math.max(-100, Math.min(100, m.pan + (['ArrowUp', 'ArrowRight'].includes(e.key) ? 5 : -5))); draw(); touch(); });
   draw();
