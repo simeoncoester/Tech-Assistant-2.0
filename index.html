@@ -1027,7 +1027,7 @@ function viewMode() {
     body: [
       h('div', { class: 'modes' },
         modeBtn('live', 'Live', 'Konzerte, Touren, Festivals und TV'),
-        modeBtn('studio', 'Studio', 'Aufnahmen mit Drumkit und Recording Chain')),
+        modeBtn('studio', 'Studio', 'Aufnahmen mit Drumkit und Recording Recall')),
       h('h2', {}, 'Künstler bearbeiten'),
       h('div', { class: 'card' },
         field('Name', a.name, v => a.name = v, { onchange: () => render(true) }),
@@ -1050,7 +1050,7 @@ function viewHome() {
       atile('tuner', 'Tuner', 'Pitch, Lugs, Resonanz', () => nav('tuner', { target: null, tunerFrom: 'home' })),
       atile('kits', 'Drumkit', plural(drums, 'Trommel', 'Trommeln'), () => nav('kit', { prodId: route.prodId })),
       atile('setlists', 'Setlisten', plural(sets, 'Setliste', 'Setlisten'), () => nav('setlists')),
-      studio && atile('chain', 'Recording Chain', plural(chainCount, 'Kanal', 'Kanäle'), () => nav('chain', { chainOwner: 'prod', prodId: route.prodId, chainFrom: 'home' })),
+      studio && atile('chain', 'Recording Recall', plural(chainCount, 'Kanal', 'Kanäle'), () => nav('chain', { chainOwner: 'prod', prodId: route.prodId, chainFrom: 'home' })),
       studio && atile('console', 'Mischpult', 'Kanalzüge mit Fadern', () => { const ps2 = prods(); if (ps2.length === 1) nav('console', { chainOwner: 'prod', prodId: ps2[0].id }); else nav('chains', { toConsole: true }); })),
     after: h('p', { class: 'foot', style: 'text-align:center' }, 'Tipp: In jedem Bereich wischst du nach links oder rechts, um zum nächsten Bereich zu wechseln.')
   };
@@ -1356,7 +1356,7 @@ function viewKit() {
         field(route.mode === 'studio' ? 'Studio' : 'Ort / Venue', p.venue, v => p.venue = v, { placeholder: route.mode === 'studio' ? 'z. B. Hansa Studios' : 'z. B. Columbiahalle' }),
         modelPicker('Schlagzeug (Hersteller / Serie)', p.kit, v => { p.kit = v; p.drums.forEach(x => x.make = v); if (v && p.drums.length) toast('Serie für alle Trommeln übernommen'); setTimeout(() => render(true)); }, KIT_DB, 'Hersteller und Serie wählen'),
         areaField('Notizen', p.notes, v => p.notes = v))),
-      p.mode === 'studio' ? h('button', { class: 'btn solid', type: 'button', style: 'width:100%', onclick: () => nav('chain', { prodId: p.id, chainFrom: 'kit', chainOwner: 'prod' }) }, `Recording Chain öffnen (${plural(p.chain.channels.length, 'Kanal', 'Kanäle')})`) : null,
+      p.mode === 'studio' ? h('button', { class: 'btn solid', type: 'button', style: 'width:100%', onclick: () => nav('chain', { prodId: p.id, chainFrom: 'kit', chainOwner: 'prod' }) }, `Recording Recall öffnen (${plural(p.chain.channels.length, 'Kanal', 'Kanäle')})`) : null,
       h('h2', {}, 'Kit-Foto'), kitPhotoSection(p),
       h('h2', {}, 'Trommeln', h('small', {}, plural(p.drums.length, 'Trommel', 'Trommeln'))),
       p.drums.length ? h('button', { class: 'btn solid', type: 'button', style: 'width:100%;margin-bottom:12px', onclick: () => showTuningSheet(p) }, 'Tuning-Empfehlung: Intervalle und Tonarten') : null,
@@ -1384,7 +1384,7 @@ function viewKit() {
 function viewChains() {
   const a = artist(), ps = prods();
   return {
-    title: 'Recording Chain', sub: `${a.name}, Studio`, back: () => nav('home'),
+    title: 'Recording Recall', sub: `${a.name}, Studio`, back: () => nav('home'),
     body: [
       h('p', { class: 'muted', style: 'margin-top:0' }, 'Wähle die Produktion, deren Signalkette du bearbeiten willst.'),
       ps.length ? prodListWithMenu(ps, p => nav(route.toConsole ? 'console' : 'chain', { prodId: p.id, chainFrom: 'chains', chainOwner: 'prod' }), p => `${plural(p.chain.channels.length, 'Kanal', 'Kanäle')}, ${plural(p.chain.busses.length, 'Bus', 'Busse')}`)
@@ -1522,7 +1522,7 @@ function viewChain() {
     C.busses.push(b); openSet.add(b.id); touch(); render(true);
   } }, h('option', { value: '' }, '+ Bus oder Effekt hinzufügen …'), Object.keys(BUS_PRESETS).map(k => h('option', { value: k }, k)));
   return {
-    title: 'Recording Chain', sub: instOwned ? `${a.name}, ${instName()}` : (p.name || 'Unbenannte Produktion'),
+    title: 'Recording Recall', sub: instOwned ? `${a.name}, ${instName()}` : (p.name || 'Unbenannte Produktion'),
     back: () => instOwned ? nav('ghome') : route.chainFrom === 'kit' ? nav('kit', { prodId: p.id }) : nav('home'),
     body: [
       h('button', { class: 'btn solid', type: 'button', style: 'width:100%;margin-bottom:6px', onclick: () => nav('console') }, 'Als Mischpult anzeigen'),
@@ -2054,7 +2054,7 @@ function viewInst() {
   return {
     title: P()?.name || a.name, sub: 'Instrument wählen', back: () => nav('projects'),
     body: h('div', { class: 'modes' },
-      card('drums', 'Drums', 'Tuning, Drumkits, Felle, Mikrofone' + (route.mode === 'studio' ? ', Recording Chain' : '')),
+      card('drums', 'Drums', 'Tuning, Drumkits, Felle, Mikrofone' + (route.mode === 'studio' ? ', Recording Recall' : '')),
       card('bass', 'Bass', 'Stimmgerät, Stimmungen, Instrumente'),
       card('guitar', 'Gitarre', 'Stimmgerät, Stimmungen, Kapo, Instrumente'))
   };
@@ -2065,7 +2065,7 @@ function viewDrumMenu() {
     title: a.name, sub: `${modeName()}, Drums`, back: () => nav('inst'),
     body: h('div', { class: 'modes' },
       h('button', { class: 'mode colored', style: `--c:${AREA.quick[0]}`, type: 'button', onclick: () => nav('quick') }, areaIcon('quick', 'ico sm'), h('b', {}, 'Quick Tuning'), h('span', {}, 'Nur stimmen: Größe und Stimmschrauben wählen, Grundton messen oder Schrauben abgleichen')),
-      h('button', { class: 'mode colored', style: `--c:${INST_C.drums}`, type: 'button', onclick: () => nav('home') }, areaIcon('kits', 'ico sm'), h('b', {}, 'Alle Features'), h('span', {}, 'Tuner, Drumkits, Felle, Mikrofone, Setlisten' + (route.mode === 'studio' ? ' und Recording Chain' : ''))))
+      h('button', { class: 'mode colored', style: `--c:${INST_C.drums}`, type: 'button', onclick: () => nav('home') }, areaIcon('kits', 'ico sm'), h('b', {}, 'Alle Features'), h('span', {}, 'Tuner, Drumkits, Felle, Mikrofone, Setlisten' + (route.mode === 'studio' ? ' und Recording Recall' : ''))))
   };
 }
 
@@ -2192,7 +2192,7 @@ function viewGHome() {
       atile('tunings', 'Stimmungen und Kapo', plural(tun.length, 'Stimmung', 'Stimmungen'), () => nav('tunings')),
       atile('ginsts', 'Instrumente', plural(ins.length, 'Instrument', 'Instrumente'), () => nav('ginsts')),
       atile('setlists', 'Setlisten', plural(sets, 'Setliste', 'Setlisten'), () => nav('setlists')),
-      studio && atile('chain', 'Recording Chain', plural(P().instChains[inst].channels.length, 'Kanal', 'Kanäle'), () => nav('chain', { chainOwner: 'inst' })),
+      studio && atile('chain', 'Recording Recall', plural(P().instChains[inst].channels.length, 'Kanal', 'Kanäle'), () => nav('chain', { chainOwner: 'inst' })),
       studio && atile('console', 'Mischpult', 'Kanalzüge mit Fadern', () => nav('console', { chainOwner: 'inst' }))),
     after: h('p', { class: 'foot', style: 'text-align:center' }, 'Tipp: In jedem Bereich wischst du nach links oder rechts, um zum nächsten Bereich zu wechseln.')
   };
@@ -2494,7 +2494,7 @@ function showTuningSheet(p, { anchorId, songId } = {}) {
 }
 
 /* ================= areas, icons, tab bar ================= */
-const AREA = { console: ['#A291B8', 'Mischpult'], tuner: ['#88A3C4', 'Tuner'], quick: ['#8FB0AA', 'Quick'], kits: ['#C4A36E', 'Kits'], chain: ['#A291B8', 'Chain'], setlists: ['#96A981', 'Setlisten'], tunings: ['#C79494', 'Stimmungen'], ginsts: ['#C4A36E', 'Instrumente'] };
+const AREA = { console: ['#A291B8', 'Mischpult'], tuner: ['#88A3C4', 'Tuner'], quick: ['#8FB0AA', 'Quick'], kits: ['#C4A36E', 'Kits'], chain: ['#A291B8', 'Recall'], setlists: ['#96A981', 'Setlisten'], tunings: ['#C79494', 'Stimmungen'], ginsts: ['#C4A36E', 'Instrumente'] };
 const INST_C = { drums: '#C88B62', bass: '#9C8DB4', guitar: '#83A79D' };
 const MODE_C = { live: '#B87A70', studio: '#7F98AE' };
 const VIEW_AREA = { console: 'chain', tuner: 'tuner', gtuner: 'tuner', quick: 'quick', kits: 'kits', kit: 'kits', chains: 'chain', chain: 'chain', setlists: 'setlists', setlist: 'setlists', tunings: 'tunings', tuning: 'tunings', ginsts: 'ginsts', ginst: 'ginsts' };
@@ -2524,8 +2524,8 @@ function atile(k, title, desc, onclick, wide) {
 function tabsList() {
   const studio = route.mode === 'studio';
   return (route.inst === 'drums'
-    ? [['quick', 'Quick', () => nav('quick')], ['tuner', 'Tuner', () => nav('tuner', { target: null, tunerFrom: 'home' })], ['kits', 'Kit', () => nav('kit', { prodId: route.prodId })], studio && ['chain', 'Chain', () => nav('chain', { chainOwner: 'prod', prodId: route.prodId, chainFrom: 'home' })], ['setlists', 'Setlisten', () => nav('setlists')]]
-    : [['tuner', 'Stimmgerät', () => nav('gtuner', { gString: null })], ['tunings', 'Stimmungen', () => nav('tunings')], ['ginsts', 'Instrumente', () => nav('ginsts')], studio && ['chain', 'Chain', () => nav('chain', { chainOwner: 'inst' })], ['setlists', 'Setlisten', () => nav('setlists')]]).filter(Boolean);
+    ? [['quick', 'Quick', () => nav('quick')], ['tuner', 'Tuner', () => nav('tuner', { target: null, tunerFrom: 'home' })], ['kits', 'Kit', () => nav('kit', { prodId: route.prodId })], studio && ['chain', 'Recall', () => nav('chain', { chainOwner: 'prod', prodId: route.prodId, chainFrom: 'home' })], ['setlists', 'Setlisten', () => nav('setlists')]]
+    : [['tuner', 'Stimmgerät', () => nav('gtuner', { gString: null })], ['tunings', 'Stimmungen', () => nav('tunings')], ['ginsts', 'Instrumente', () => nav('ginsts')], studio && ['chain', 'Recall', () => nav('chain', { chainOwner: 'inst' })], ['setlists', 'Setlisten', () => nav('setlists')]]).filter(Boolean);
 }
 var pendingSlide = 0;
 var currentBack = null;
@@ -2680,9 +2680,9 @@ function viewConsole() {
     title: 'Mischpult', back: () => nav('chain'),
     body: [
       h('p', { class: 'muted', style: 'margin:0 0 6px;font-size:.9rem' }, name),
-      all.length ? wrap : h('div', { class: 'empty' }, 'Noch keine Kanäle. Leg sie in der Recording Chain an, dann erscheinen sie hier als Kanalzüge.'),
+      all.length ? wrap : h('div', { class: 'empty' }, 'Noch keine Kanäle. Leg sie in der Recording Recall an, dann erscheinen sie hier als Kanalzüge.'),
       h('div', { class: 'row' },
-        h('button', { class: 'btn', type: 'button', onclick: () => nav('chain') }, 'Zur Recording Chain'),
+        h('button', { class: 'btn', type: 'button', onclick: () => nav('chain') }, 'Zur Recording Recall'),
         all.length ? h('button', { class: 'btn ghost', type: 'button', onclick: () => { all.forEach(c => Object.assign(c.mix, { fader: 0, pan: 0, mute: false, solo: false })); C.master.fader = 0; touch(); draw(); } }, 'Alles auf 0 dB') : null),
       h('p', { class: 'foot' }, 'Fader und Pan-Regler ziehen, Doppeltipp setzt zurück. Die Inserts zeigen die ersten vier Stufen der Signalkette, der Gain-Regler den eingetragenen Preamp-Gain. Ein Tipp auf den Kanalnamen öffnet die Signalkette.')
     ]
@@ -2788,7 +2788,7 @@ function prodListWithMenu(ps, onOpen, subtitle) {
   enableReorder(list, ps, sync, { row: '.list-item', head: '.list-item', ignore: '',
     onLongPress: i => itemMenu({ title: ps[i].name || 'Produktion', arr: ps, idx: i, onChange: sync,
       rename: { value: ps[i].name, set: v => ps[i].name = v },
-      del: { label: 'Produktion löschen', text: `„${ps[i].name || 'Unbenannte Produktion'}“ wird mit Drumkit, Recording Chain und Kit-Foto gelöscht. Das lässt sich nicht rückgängig machen.`, run: () => { const p = ps[i]; ps.splice(i, 1); a.productions = a.productions.filter(x => x !== p); if (p.hasPhoto) removePhoto(p); } } }) });
+      del: { label: 'Produktion löschen', text: `„${ps[i].name || 'Unbenannte Produktion'}“ wird mit Drumkit, Recording Recall und Kit-Foto gelöscht. Das lässt sich nicht rückgängig machen.`, run: () => { const p = ps[i]; ps.splice(i, 1); a.productions = a.productions.filter(x => x !== p); if (p.hasPhoto) removePhoto(p); } } }) });
   return [list, h('p', { class: 'foot', style: 'margin-top:8px' }, 'Lange drücken: umbenennen, verschieben oder löschen. Gedrückt halten und ziehen ändert die Reihenfolge.')];
 }
 function drumAbbr(d) {
