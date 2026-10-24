@@ -453,6 +453,32 @@ input,select,textarea{box-shadow:inset 0 1px 3px rgba(0,0,0,.6)}
 .sheet.ask{padding-bottom:calc(env(safe-area-inset-bottom,0px) + 22px)}
 .ask-btns{display:flex;flex-direction:column;gap:8px;margin-top:14px}
 .ask-btns .btn{width:100%;min-height:48px}
+.sqrow,.lrow{position:relative}
+.sqrow .sq{width:100%;padding-right:66px}
+.sqrow .sq::after{display:none!important}
+.lrow .list-item{padding-right:60px}
+.more-btn{all:unset;box-sizing:border-box;cursor:pointer;position:absolute;right:12px;top:50%;transform:translateY(-50%);width:40px;height:40px;border-radius:10px;display:grid;place-items:center;color:var(--muted);z-index:2}
+.more-btn svg{width:22px;height:22px}
+.more-btn:hover,.more-btn:focus-visible{color:var(--ink);background:rgba(255,255,255,.08)}
+.more-btn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.ice .more-btn:hover,.ice .more-btn:focus-visible{background:rgba(255,255,255,.6)}
+.sqrow.dragging,.lrow.dragging{position:relative;z-index:6}
+.reorder-list > .sqrow.dragging,.reorder-list > .lrow.dragging{box-shadow:none!important}
+.sqrow.dragging .sq,.lrow.dragging .list-item{box-shadow:0 18px 40px rgba(0,0,0,.45)!important}
+.mode.rowcard{min-height:76px}
+.atile{min-height:108px!important}
+.atile b{font-size:1.38rem!important}
+.mode.rowcard b{font-size:1.6rem!important}
+html:not(.ice) :is(.atile b,.mode.rowcard b,.list-item b){color:#fff!important}
+html:not(.ice) .atile small,html:not(.ice) .mode.rowcard .rc-text span{color:rgba(255,255,255,.7)}
+html .btn.solid.accent,html .btn.solid.accent:hover{color:#fff;background:linear-gradient(180deg,color-mix(in srgb,var(--accent) 82%,#fff),color-mix(in srgb,var(--accent) 88%,#000));border-color:color-mix(in srgb,var(--accent) 60%,#fff);box-shadow:inset 0 1px 0 rgba(255,255,255,.35),0 6px 16px color-mix(in srgb,var(--accent) 35%,transparent)}
+#newProject:focus{border-color:var(--accent);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 25%,transparent)}
+.prod-list .list-item,.list-item{box-sizing:border-box;width:100%}
+.home-btn{all:unset;box-sizing:border-box;cursor:pointer;flex:none;width:40px;height:40px;border-radius:12px;display:grid;place-items:center;color:var(--accent);border:1px solid var(--line);background:rgba(255,255,255,.04)}
+.home-btn svg{width:21px;height:21px}
+.home-btn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.glass .home-btn{background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.2);box-shadow:inset 0 1px 0 rgba(255,255,255,.3);border-radius:999px}
+.ice .home-btn{background:linear-gradient(180deg,#fff,rgba(236,242,248,.75));border-color:#fff;box-shadow:inset 0 1px 1px #fff,0 3px 10px rgba(30,60,100,.15);border-radius:999px;color:color-mix(in srgb,var(--accent) 55%,#0b1220)}
 /* DIP switch (phantom power) */
 .dip-wrap{display:flex;align-items:center;gap:10px;min-height:42px}
 .dip-tag{font:700 .78rem "Barlow Condensed",sans-serif;letter-spacing:.08em;color:var(--muted)}
@@ -757,15 +783,107 @@ body.reordering{-webkit-user-select:none;user-select:none}
 .s-ed .keyrow{grid-column:auto;display:grid;grid-template-columns:1fr 1fr;gap:6px}
 .s-ed .keyrow select{grid-column:1/-1}
 .s-ed .keyrow .btn{width:100%}
+
+/* ===================== AREA PALETTES (per theme) + refined tiles ===================== */
+:root{--a-tuner:#5B8FE0;--a-quick:#38B6C6;--a-kits:#E3A043;--a-chain:#A58AE6;--a-sets:#4CBF7A;--a-tunings:#E77C9C;
+  --i-drums:#E5734A;--i-bass:#9B86E0;--i-guitar:#3FB69E;--m-live:#E06A64;--m-studio:#5E9BD6}
+html.glass{--a-tuner:#4D8DFF;--a-quick:#1FC6DA;--a-kits:#FFA62B;--a-chain:#A779FF;--a-sets:#2ED67E;--a-tunings:#FF5C8D;
+  --i-drums:#FF6A3D;--i-bass:#8F7CFF;--i-guitar:#1FD1AE;--m-live:#FF4F5E;--m-studio:#3F9BFF}
+html.ice{--a-tuner:#2563EB;--a-quick:#0891B2;--a-kits:#D97706;--a-chain:#7C3AED;--a-sets:#16A34A;--a-tunings:#DB2777;
+  --i-drums:#E2481F;--i-bass:#6D4FE0;--i-guitar:#0D9488;--m-live:#DC2638;--m-studio:#1D6FE0}
+/* icons/text in ice use the darker palette directly */
+.ice .back,.ice .crumbs button{color:var(--accent)}
+.ice :is(.at-ico,.rc-ico){color:var(--c)}
+.ice .mode.colored em,.ice .mode.colored .ico{color:var(--c)}
+.ice #tabbar button[aria-current="page"] svg{color:var(--c)}
+/* tiles: thinner outlines, calmer corners, more see-through */
+:is(.card,.sq,.mode,.mode.colored,.mode.rowcard,.atile,.list-item,.slot,.readout,details.chain,.rec,.kp-info,.song .ai){border-radius:14px}
+:is(.sq,.mode,.mode.rowcard,.atile){border-radius:16px}
+.list-item{border-radius:12px}
+:is(.at-ico,.rc-ico,.sq-ini){border-radius:10px}
+.glass :is(.card,.sq,.mode,.mode.colored,.mode.rowcard,.atile,.list-item,.slot,.readout,details.chain,.rec,.kp-info,.song .ai,.tabs),
+.ice :is(.card,.sq,.mode,.mode.colored,.mode.rowcard,.atile,.list-item,.slot,.readout,details.chain,.rec,.kp-info,.song .ai,.tabs,.mic-card){border-width:.5px}
+.glass :is(.card,.readout,details.chain,.song .ai,.mic-card),.ice :is(.card,.readout,details.chain,.song .ai,.mic-card){border-radius:14px}
+.glass :is(.sq,.mode,.mode.rowcard,.atile),.ice :is(.sq,.mode,.mode.rowcard,.atile){border-radius:16px}
+.glass .list-item,.ice .list-item{border-radius:12px}
+.glass :is(.card,.sq,.mode,.mode.colored,.mode.rowcard,.atile,.list-item,.slot,.readout,details.chain,.rec,.kp-info,.stage-blk,.song .ai,.tabs){
+  background:linear-gradient(150deg,rgba(255,255,255,.05) 0%,rgba(255,255,255,.012) 45%,rgba(255,255,255,.03) 100%);
+  border-color:rgba(255,255,255,.14);
+  -webkit-backdrop-filter:blur(10px) saturate(150%);backdrop-filter:blur(10px) saturate(150%);
+  box-shadow:inset 0 .5px 0 rgba(255,255,255,.3),0 8px 22px rgba(0,0,0,.18)}
+.glass .mode.colored,.glass .mode.rowcard{background:linear-gradient(150deg,color-mix(in srgb,var(--c) 14%,transparent) 0%,rgba(255,255,255,.012) 55%,rgba(255,255,255,.03) 100%);border-color:color-mix(in srgb,var(--c) 30%,rgba(255,255,255,.12))}
+.glass .atile{background:linear-gradient(150deg,color-mix(in srgb,var(--c) 15%,transparent) 0%,rgba(255,255,255,.012) 58%,rgba(255,255,255,.03) 100%);border-color:color-mix(in srgb,var(--c) 32%,rgba(255,255,255,.12))}
+.glass :is(.at-ico,.rc-ico){color:var(--c);background:color-mix(in srgb,var(--c) 14%,rgba(255,255,255,.04));border:.5px solid color-mix(in srgb,var(--c) 45%,transparent);box-shadow:inset 0 .5px 0 rgba(255,255,255,.3)}
+.glass .mode.colored .ico{color:var(--c)}
+.ice :is(.card,.sq,.mode,.mode.colored,.mode.rowcard,.atile,.list-item,.slot,.readout,details.chain,.rec,.kp-info,.stage-blk,.song .ai,.tabs,.mic-card){
+  background:
+    linear-gradient(118deg,rgba(255,255,255,0) 52%,rgba(255,255,255,.35) 59%,rgba(255,255,255,0) 66%),
+    linear-gradient(150deg,rgba(255,255,255,.34) 0%,rgba(236,246,252,.08) 45%,rgba(214,234,248,.14) 100%);
+  border-color:rgba(255,255,255,.8);
+  -webkit-backdrop-filter:blur(6px) saturate(150%) brightness(1.03);backdrop-filter:blur(6px) saturate(150%) brightness(1.03);
+  box-shadow:inset 0 1px .5px rgba(255,255,255,.9),inset 0 -4px 10px rgba(120,170,210,.16),inset 0 0 18px rgba(225,242,255,.28),0 8px 20px rgba(30,60,100,.09),0 22px 44px -24px rgba(30,60,100,.18)}
+.ice .atile,.ice .mode.colored{background:
+    linear-gradient(118deg,rgba(255,255,255,0) 52%,rgba(255,255,255,.35) 59%,rgba(255,255,255,0) 66%),
+    linear-gradient(150deg,rgba(255,255,255,.36) 0%,rgba(236,246,252,.08) 48%,color-mix(in srgb,var(--c) 10%,rgba(214,234,248,.12)) 100%)}
+.ice :is(.at-ico,.rc-ico){background:linear-gradient(150deg,rgba(255,255,255,.85),rgba(232,240,248,.45));border:.5px solid #fff}
+/* classic theme: thinner colour lines */
+html:not(.glass):not(.ice) .atile{border-top-width:1.5px}
+html:not(.glass):not(.ice) .mode.colored{border-left-width:2px}
+/* vivid fader caps */
+.fader .cap{background:linear-gradient(180deg,#ffffff 0%,#d9dde3 44%,#5b6068 50%,#d2d6dc 56%,#f6f7f9 100%)}
+.strip.bus .cap{background:linear-gradient(180deg,#ffe58a 0%,#f5b800 44%,#6b4f00 50%,#f2b400 56%,#ffe27a 100%)}
+.strip.send .cap{background:linear-gradient(180deg,#a9cbff 0%,#2f7bff 44%,#0d2a66 50%,#3a82ff 56%,#a3c7ff 100%)}
+.strip.master .cap{background:linear-gradient(180deg,#ff9a8c 0%,#ef2f1e 44%,#6a0f08 50%,#f0392a 56%,#ff9486 100%)}
+
+/* splash motion: slide in from the right */
+.sp-inner{transition:transform .5s cubic-bezier(.7,0,.84,0),opacity .45s ease}
+#splash.out .sp-inner{transform:translateX(-28vw);opacity:0}
+.sp-logo{animation:spIn 1.05s cubic-bezier(.16,1,.3,1) both}
+@keyframes spIn{0%{transform:translateX(75vw) rotate(160deg) scale(.6);opacity:0}55%{opacity:1}100%{transform:none;opacity:1}}
+.sp-ring{animation-delay:.35s}
+.sp-wave{animation-delay:1.05s}
+.sp-word{display:flex;justify-content:center;opacity:1!important;transform:none!important;animation:none!important;background:none!important;-webkit-background-clip:border-box!important;background-clip:border-box!important;color:#F4F2EE}
+.sp-word span{display:inline-block;opacity:0;transform:translateX(46px);animation:spLetter .6s cubic-bezier(.16,1,.3,1) forwards;animation-delay:calc(.7s + var(--i) * .038s)}
+@keyframes spLetter{to{opacity:1;transform:none}}
+.sp-line{height:2px;width:min(56vw,240px);margin:14px auto 0;border-radius:2px;background:linear-gradient(90deg,transparent,rgba(170,200,255,.9) 50%,transparent);transform:scaleX(0);transform-origin:100% 50%;animation:spLine .8s cubic-bezier(.16,1,.3,1) 1.45s forwards}
+@keyframes spLine{to{transform:scaleX(1)}}
+.sp-tag{display:none}
+@media (prefers-reduced-motion:reduce){.sp-logo,.sp-word span,.sp-line{animation:none!important;opacity:1;transform:none}.sp-inner{transition:opacity .3s}#splash.out .sp-inner{transform:none}}
+
+/* ===== splash: user logo assembles from all sides ===== */
+.sp-logo{width:min(38vw,150px);height:auto;filter:drop-shadow(0 0 22px rgba(170,200,255,.25));animation:spHit .55s cubic-bezier(.3,1.6,.5,1) 1.3s both!important;overflow:visible}
+@keyframes spHit{0%{transform:scale(1)}40%{transform:scale(1.06)}100%{transform:scale(1)}}
+.sp-logo .lg{transform-box:fill-box;transform-origin:50% 50%;opacity:0;animation-duration:1s;animation-timing-function:cubic-bezier(.16,1,.3,1);animation-fill-mode:forwards}
+.lg-arc{animation-name:lgArc;animation-delay:.1s}
+.lg-circle{animation-name:lgCircle;animation-delay:.25s}
+.lg-l{animation-name:lgL;animation-delay:.42s}
+.lg-r{animation-name:lgR;animation-delay:.52s}
+@keyframes lgArc{0%{opacity:0;transform:translateY(-70vh) rotate(-40deg)}60%{opacity:1}100%{opacity:1;transform:none}}
+@keyframes lgCircle{0%{opacity:0;transform:translateX(-80vw) scale(.4)}60%{opacity:1}100%{opacity:1;transform:none}}
+@keyframes lgL{0%{opacity:0;transform:translate(-60vw,60vh) rotate(-60deg)}60%{opacity:1}100%{opacity:1;transform:none}}
+@keyframes lgR{0%{opacity:0;transform:translate(60vw,60vh) rotate(60deg)}60%{opacity:1}100%{opacity:1;transform:none}}
+.sp-word span{transform:translate(var(--dx,0),var(--dy,0));animation:spLetter2 .65s cubic-bezier(.16,1,.3,1) forwards!important;animation-delay:calc(.95s + var(--i) * .04s)!important}
+@keyframes spLetter2{from{opacity:0;transform:translate(var(--dx,0),var(--dy,0))}to{opacity:1;transform:none}}
+.sp-line{animation-delay:1.7s!important}
+@media (prefers-reduced-motion:reduce){.sp-logo,.sp-logo .lg,.sp-word span{animation:none!important;opacity:1!important;transform:none!important}}
+/* home button with logo */
+.home-btn svg.logo-ico{width:23px;height:31px}
+/* faint full-screen logo watermark on the selection pages */
+#wm{position:fixed;inset:0;z-index:-1;pointer-events:none;display:none;place-items:center}
+body.wm #wm{display:grid}
+#wm svg{width:min(86vw,560px);height:auto;max-height:78vh;color:#fff;opacity:.05}
+.ice #wm svg{color:#0b1220;opacity:.06}
 </style>
 </head>
 <body>
 <div id="splash" aria-hidden="true"><div class="sp-inner">
-<svg class="sp-logo" viewBox="0 0 200 200"><defs><linearGradient id="spg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#C9D5E6"/><stop offset="1" stop-color="#5D7FAF"/></linearGradient><radialGradient id="sph" cx="45%" cy="35%" r="70%"><stop offset="0" stop-color="#262e3a"/><stop offset="1" stop-color="#05070a"/></radialGradient></defs>
-<circle cx="100" cy="100" r="74" fill="url(#sph)"/><circle class="sp-ring" cx="100" cy="100" r="78" fill="none" stroke="url(#spg)" stroke-width="6" transform="rotate(-90 100 100)"/>
-<g class="sp-lugs" fill="#E9EEF5"><rect x="96" y="6" width="8" height="15" rx="3" transform="rotate(0 100 100)"/><rect x="96" y="6" width="8" height="15" rx="3" transform="rotate(45 100 100)"/><rect x="96" y="6" width="8" height="15" rx="3" transform="rotate(90 100 100)"/><rect x="96" y="6" width="8" height="15" rx="3" transform="rotate(135 100 100)"/><rect x="96" y="6" width="8" height="15" rx="3" transform="rotate(180 100 100)"/><rect x="96" y="6" width="8" height="15" rx="3" transform="rotate(225 100 100)"/><rect x="96" y="6" width="8" height="15" rx="3" transform="rotate(270 100 100)"/><rect x="96" y="6" width="8" height="15" rx="3" transform="rotate(315 100 100)"/></g>
-<path class="sp-wave" d="M44 100 C56 60 68 60 78 100 S 100 140 112 100 S 132 72 142 100 S 152 112 158 100" fill="none" stroke="#fff" stroke-width="5" stroke-linecap="round"/></svg>
-<div class="sp-word">Tech Assistent</div><div class="sp-tag">Drums, Bass und Gitarre</div></div></div>
+<svg class="sp-logo" viewBox="0 0 466 650" aria-hidden="true">
+<g class="lg lg-arc"><path d="M23.8 255 A210 210 0 1 1 442.2 255" fill="none" stroke="#F4F2EE" stroke-width="10" stroke-linecap="round"/></g>
+<g class="lg lg-circle"><circle cx="233" cy="237" r="168" fill="none" stroke="#F4F2EE" stroke-width="10"/></g>
+<g class="lg lg-l"><path d="M255.7 287.5 L57.3 615.4 L72.7 624.6 L264.3 292.5 Z" fill="#F4F2EE"/></g>
+<g class="lg lg-r"><path d="M205.7 292.6 L404.3 624.7 L419.7 615.3 L214.3 287.4 Z" fill="#F4F2EE"/></g>
+</svg>
+<div class="sp-word" aria-label="Tech Assistent"><span style="--i:0;--dx:-60px;--dy:0px">T</span><span style="--i:1;--dx:0px;--dy:-40px">e</span><span style="--i:2;--dx:0px;--dy:40px">c</span><span style="--i:3;--dx:0px;--dy:-40px">h</span><span style="--i:4;--dx:0px;--dy:0px">&nbsp;</span><span style="--i:5;--dx:0px;--dy:40px">A</span><span style="--i:6;--dx:0px;--dy:-40px">s</span><span style="--i:7;--dx:0px;--dy:40px">s</span><span style="--i:8;--dx:0px;--dy:-40px">i</span><span style="--i:9;--dx:0px;--dy:40px">s</span><span style="--i:10;--dx:0px;--dy:-40px">t</span><span style="--i:11;--dx:0px;--dy:40px">e</span><span style="--i:12;--dx:0px;--dy:-40px">n</span><span style="--i:13;--dx:60px;--dy:0px">t</span></div><div class="sp-line"></div></div></div>
 <header class="bar" id="bar"></header>
 <main id="app"></main>
 <div id="toast" role="status" aria-live="polite"></div>
@@ -954,6 +1072,9 @@ function render(keepScroll) {
   bar.append(h('div', { class: 't' }, h('h1', {}, v.title),
     crumbs ? h('nav', { class: 'crumbs', 'aria-label': 'Pfad' }, crumbs.map(([l, go], i) => [i ? h('span', { 'aria-hidden': 'true' }, '›') : null, h('button', { type: 'button', onclick: go }, l)]))
       : (v.sub ? h('div', { class: 'sub' }, v.sub) : null)));
+  if (route.view !== 'artists') bar.append(h('button', { class: 'home-btn', type: 'button', 'aria-label': 'Zur Startseite (Künstlerauswahl)', title: 'Zur Startseite', onclick: () => nav('artists') }, logoSvg('logo-ico', 30)));
+  document.body.classList.add('wm');
+  saveRoute();
   renderTabs();
   app.append(...[v.body, v.after].flat(Infinity).filter(x => x != null && x !== false));
   if (pendingSlide) { app.classList.remove('slide-l', 'slide-r'); void app.offsetWidth; app.classList.add(pendingSlide > 0 ? 'slide-l' : 'slide-r'); pendingSlide = 0; }
@@ -993,9 +1114,14 @@ function viewArtists() {
     S.artists.push(a); normalize(); touch(); route.addingArtist = false; nav('mode', { artistId: a.id });
   };
   inp.addEventListener('keydown', e => { if (e.key === 'Enter') add(); });
-  const tiles = S.artists.map(a => h('button', { class: 'sq', type: 'button', onclick: () => { if (!reorderJustEnded()) nav('mode', { artistId: a.id }); } },
-    h('span', { class: 'sq-ini', 'aria-hidden': 'true' }, initials(a.name)),
-    h('span', {}, h('span', { class: 'sq-name' }, a.name), h('br'), h('span', { class: 'sq-meta' }, plural(a.productions.length, 'Produktion', 'Produktionen')))));
+  const artistMenu = ar => rowMenu({ title: ar.name, onChange: () => { touch(); render(true); },
+    rename: { value: ar.name, set: v => ar.name = v },
+    del: { label: 'Künstler löschen', text: `„${ar.name}“ wird mit allen Produktionen, Setlisten, Stimmungen und Instrumenten gelöscht. Das lässt sich nicht rückgängig machen.`, run: () => { S.artists = S.artists.filter(x => x !== ar); ar.productions.forEach(pp => pp.hasPhoto && removePhoto(pp)); } } });
+  const tiles = S.artists.map(a => h('div', { class: 'sqrow' },
+    h('button', { class: 'sq', type: 'button', onclick: () => { if (!reorderJustEnded()) nav('mode', { artistId: a.id }); } },
+      h('span', { class: 'sq-ini', 'aria-hidden': 'true' }, initials(a.name)),
+      h('span', {}, h('span', { class: 'sq-name' }, a.name), h('br'), h('span', { class: 'sq-meta' }, plural(a.productions.length, 'Produktion', 'Produktionen')))),
+    moreBtn(a.name, () => artistMenu(a))));
   tiles.push(h('button', { class: 'sq add', type: 'button', onclick: () => { route.addingArtist = true; render(true); setTimeout(() => document.getElementById('newArtist')?.focus(), 0); } },
     h('span', { class: 'sq-plus', 'aria-hidden': 'true' }, '+'), h('span', { class: 'sq-meta' }, 'Künstler hinzufügen')));
   return {
@@ -1003,13 +1129,10 @@ function viewArtists() {
     body: [
       (() => {
         const grid = h('div', { class: 'sq-grid' }, tiles), redraw = () => { touch(); render(true); };
-        enableReorder(grid, S.artists, redraw, { row: '.sq:not(.add)', head: '.sq', ignore: '',
-          onLongPress: i => { const ar = S.artists[i]; itemMenu({ title: ar.name, arr: S.artists, idx: i, onChange: redraw,
-            rename: { value: ar.name, set: v => ar.name = v },
-            del: { label: 'Künstler löschen', text: `„${ar.name}“ wird mit allen Produktionen, Setlisten, Stimmungen und Instrumenten gelöscht. Das lässt sich nicht rückgängig machen.`, run: () => { S.artists = S.artists.filter(x => x !== ar); ar.productions.forEach(pp => pp.hasPhoto && removePhoto(pp)); } } }); } });
+        enableReorder(grid, S.artists, redraw, { row: '.sqrow', head: '.sq', ignore: '.more-btn' });
         return grid;
       })(),
-      S.artists.length > 1 ? h('p', { class: 'foot', style: 'text-align:center;margin-top:10px' }, 'Lange drücken: umbenennen, verschieben oder löschen.') : (S.artists.length ? h('p', { class: 'foot', style: 'text-align:center;margin-top:10px' }, 'Lange drücken: umbenennen oder löschen.') : null),
+      S.artists.length ? null : null,
       h('div', { class: 'theme-row' }, h('span', {}, 'Design'), chipGroup([['ice', 'Eis'], ['glass', 'Glas'], ['classic', 'Klassisch']], currentTheme(), v => setTheme(v), 'Design')),
       adding && h('div', { class: 'card', style: 'margin-top:16px' },
         h('label', { class: 'field' }, h('span', {}, 'Neuer Künstler'), inp),
@@ -1024,7 +1147,7 @@ function viewMode() {
   const a = artist();
   const cnt = m => a.productions.filter(p => p.mode === m).length;
   const modeBtn = (m, title, desc) => h('button', { class: 'mode colored rowcard', style: `--c:${MODE_C[m]}`, type: 'button', onclick: () => nav('projects', { mode: m }) }, h('span', { class: 'rc-ico' }, areaIcon(m === 'live' ? 'live' : 'studio')),
-    h('span', { class: 'rc-text' }, h('b', {}, title), h('span', {}, desc), h('em', {}, plural(cnt(m), 'Produktion', 'Produktionen'))));
+    h('span', { class: 'rc-text' }, h('b', {}, title)));
   return {
     title: a.name, sub: 'Live oder Studio?', back: () => nav('artists'),
     body: [
@@ -1035,7 +1158,7 @@ function viewMode() {
       h('div', { class: 'card' },
         field('Name', a.name, v => a.name = v, { onchange: () => render(true) }),
         h('div', { class: 'row' }, delBtn('Künstler löschen', () => { S.artists = S.artists.filter(x => x.id !== a.id); touch(); nav('artists'); }))),
-      h('p', { class: 'foot' }, syncMode === 'account' ? 'Deine Daten werden automatisch in deinem Konto gespeichert und sind auf allen Geräten verfügbar.' : 'Deine Daten werden automatisch auf diesem Gerät gespeichert.')
+      null
     ]
   };
 }
@@ -1055,7 +1178,7 @@ function viewHome() {
       atile('setlists', 'Setlisten', plural(sets, 'Setliste', 'Setlisten'), () => nav('setlists')),
       studio && atile('chain', 'Recording Recall', plural(chainCount, 'Kanal', 'Kanäle'), () => nav('chain', { chainOwner: 'prod', prodId: route.prodId, chainFrom: 'home' })),
       studio && atile('console', 'Mischpult', 'Kanalzüge mit Fadern', () => { const ps2 = prods(); if (ps2.length === 1) nav('console', { chainOwner: 'prod', prodId: ps2[0].id }); else nav('chains', { toConsole: true }); })),
-    after: h('p', { class: 'foot', style: 'text-align:center' }, 'Tipp: In jedem Bereich wischst du nach links oder rechts, um zum nächsten Bereich zu wechseln.')
+    after: null
   };
 }
 
@@ -1074,14 +1197,15 @@ function viewProjects() {
   inp.addEventListener('keydown', e => { if (e.key === 'Enter') create(); });
   const createCard = h('div', { class: 'card' },
     h('label', { class: 'field' }, h('span', {}, studio ? 'Neue Produktion benennen (Album, Session …)' : 'Neue Tour oder Show benennen'), inp),
-    h('div', { class: 'row' }, h('button', { class: 'btn solid', type: 'button', onclick: create }, 'Speichern und weiter')));
+    h('div', { class: 'row' }, h('button', { class: 'btn solid accent', type: 'button', onclick: create }, 'Speichern und weiter')));
   return {
     title: studio ? 'Studio-Produktionen' : 'Touren und Shows', sub: a.name, back: () => nav('mode'),
     body: [
       ps.length ? [h('h2', { style: 'margin-top:4px' }, studio ? 'Produktion wählen' : 'Tour wählen'),
         prodListWithMenu(ps, p => nav('inst', { prodId: p.id }), p => [p.kind, fmtDate(p.date), plural((p.setlists || []).length, 'Setliste', 'Setlisten'), p.drums.length ? plural(p.drums.length, 'Trommel', 'Trommeln') : ''].filter(Boolean).join(', ')),
         h('h2', {}, studio ? 'Neue Produktion' : 'Neue Tour')] : h('p', { class: 'muted', style: 'margin-top:0' }, studio ? 'Leg zuerst die Produktion an. Alles, was du danach bei Drums, Bass und Gitarre einträgst, wird mit ihr verknüpft.' : 'Leg zuerst die Tour oder Show an. Alles, was du danach bei Drums, Bass und Gitarre einträgst, wird mit ihr verknüpft.'),
-      createCard
+      createCard,
+      h('div', { class: 'row', style: 'justify-content:center;margin-top:16px' }, importProductionButton())
     ]
   };
 }
@@ -1550,7 +1674,7 @@ function viewSetlists() {
     title: 'Setlisten', sub: `${a.name}, ${modeName()}`, back: () => nav(route.inst === 'drums' ? 'home' : 'ghome'),
     body: [
       h('div', { class: 'row', style: 'margin-top:0' }, h('button', { class: 'btn solid', type: 'button', onclick: create }, 'Neue Setliste anlegen'), importButton('Aus Datei importieren', null)),
-      h('p', { class: 'foot', style: 'margin:8px 0 14px' }, 'Import aus PDF, Word (.docx), Text- oder CSV-Datei: Die App liest die Songs aus und erkennt dabei auch Tonart und BPM.'),
+      null,
       list.length ? list.map(s => h('button', { class: 'list-item', type: 'button', onclick: () => nav('setlist', { setId: s.id }) },
         h('b', {}, s.name || 'Unbenannt'),
         h('span', {}, [fmtDate(s.date), s.venue, plural(s.songs.length, 'Song', 'Songs')].filter(Boolean).join(', '))))
@@ -1664,7 +1788,7 @@ function viewSetlist() {
         field('Datum', s.date, v => s.date = v, { type: 'date' }),
         field(studio ? 'Studio' : 'Ort', s.venue, v => s.venue = v, { placeholder: studio ? 'z. B. Hansa Studios' : 'z. B. Columbiahalle' }))),
       h('h2', {}, 'Songs', h('small', {}, plural(s.songs.length, 'Song', 'Songs'))),
-      songs.length ? [songList, h('p', { class: 'foot', style: 'margin-top:8px' }, 'Tippe auf einen Song zum Bearbeiten. Lange drücken und ziehen ändert die Reihenfolge.')] : h('div', { class: 'empty' }, 'Füge unten den ersten Song hinzu oder importiere eine Datei.'),
+      songs.length ? [songList, null] : h('div', { class: 'empty' }, 'Füge unten den ersten Song hinzu oder importiere eine Datei.'),
       h('div', { class: 'add-row' }, songInp, h('button', { class: 'btn solid', type: 'button', onclick: addSong }, 'Hinzufügen')),
       h('div', { class: 'row' }, importButton('Songs aus Datei hinzufügen', s)),
       h('div', { class: 'row', style: 'margin-top:32px' },
@@ -1903,7 +2027,7 @@ function viewTuner() {
   // --- tabs
   const panes = { pitch: pitchPane, lugs: lugPane, res: resPane };
   const tabs = h('div', { class: 'tabs', role: 'tablist' }, [['pitch', 'Pitch'], ['lugs', 'Lugs'], ['res', 'Resonanz']].map(([k, l]) =>
-    h('button', { type: 'button', role: 'tab', 'aria-selected': String(route.tTab === k), onclick: e => { route.tTab = k; tabs.querySelectorAll('button').forEach(b => b.setAttribute('aria-selected', String(b === e.currentTarget))); Object.entries(panes).forEach(([pk, el]) => el.hidden = pk !== k); } }, l)));
+    h('button', { type: 'button', role: 'tab', 'aria-selected': String(route.tTab === k), onclick: e => { route.tTab = k; saveRoute(); tabs.querySelectorAll('button').forEach(b => b.setAttribute('aria-selected', String(b === e.currentTarget))); Object.entries(panes).forEach(([pk, el]) => el.hidden = pk !== k); } }, l)));
   Object.entries(panes).forEach(([pk, el]) => el.hidden = pk !== route.tTab);
   drawLugs(); drawRes();
 
@@ -2053,7 +2177,7 @@ function instIcon(k) {
 }
 function viewInst() {
   const a = artist();
-  const card = (k, title, desc) => h('button', { class: 'mode colored rowcard', style: `--c:${INST_C[k]}`, type: 'button', onclick: () => nav(k === 'drums' ? 'home' : 'ghome', { inst: k }) }, h('span', { class: 'rc-ico' }, instIcon(k)), h('span', { class: 'rc-text' }, h('b', {}, title), h('span', {}, desc)));
+  const card = (k, title, desc) => h('button', { class: 'mode colored rowcard', style: `--c:var(--accent)`, type: 'button', onclick: () => nav(k === 'drums' ? 'home' : 'ghome', { inst: k }) }, h('span', { class: 'rc-ico' }, instIcon(k)), h('span', { class: 'rc-text' }, h('b', {}, title)));
   return {
     title: P()?.name || a.name, sub: 'Instrument wählen', back: () => nav('projects'),
     body: h('div', { class: 'modes' },
@@ -2197,7 +2321,7 @@ function viewGHome() {
       atile('setlists', 'Setlisten', plural(sets, 'Setliste', 'Setlisten'), () => nav('setlists')),
       studio && atile('chain', 'Recording Recall', plural(P().instChains[inst].channels.length, 'Kanal', 'Kanäle'), () => nav('chain', { chainOwner: 'inst' })),
       studio && atile('console', 'Mischpult', 'Kanalzüge mit Fadern', () => nav('console', { chainOwner: 'inst' }))),
-    after: h('p', { class: 'foot', style: 'text-align:center' }, 'Tipp: In jedem Bereich wischst du nach links oder rechts, um zum nächsten Bereich zu wechseln.')
+    after: null
   };
 }
 function viewTunings() {
@@ -2497,15 +2621,16 @@ function showTuningSheet(p, { anchorId, songId } = {}) {
 }
 
 /* ================= areas, icons, tab bar ================= */
-const AREA = { console: ['#A291B8', 'Mischpult'], tuner: ['#88A3C4', 'Tuner'], quick: ['#8FB0AA', 'Quick'], kits: ['#C4A36E', 'Kits'], chain: ['#A291B8', 'Recall'], setlists: ['#96A981', 'Setlisten'], tunings: ['#C79494', 'Stimmungen'], ginsts: ['#C4A36E', 'Instrumente'] };
-const INST_C = { drums: '#C88B62', bass: '#9C8DB4', guitar: '#83A79D' };
-const MODE_C = { live: '#B87A70', studio: '#7F98AE' };
+const AREA = { console: ['var(--a-chain)', 'Mischpult'], tuner: ['var(--a-tuner)', 'Tuner'], quick: ['var(--a-quick)', 'Quick'], kits: ['var(--a-kits)', 'Kits'], chain: ['var(--a-chain)', 'Recall'], setlists: ['var(--a-sets)', 'Setlisten'], tunings: ['var(--a-tunings)', 'Stimmungen'], ginsts: ['var(--a-kits)', 'Instrumente'] };
+const INST_C = { drums: 'var(--i-drums)', bass: 'var(--i-bass)', guitar: 'var(--i-guitar)' };
+const MODE_C = { live: 'var(--m-live)', studio: 'var(--m-studio)' };
 const VIEW_AREA = { console: 'chain', tuner: 'tuner', gtuner: 'tuner', quick: 'quick', kits: 'kits', kit: 'kits', chains: 'chain', chain: 'chain', setlists: 'setlists', setlist: 'setlists', tunings: 'tunings', tuning: 'tunings', ginsts: 'ginsts', ginst: 'ginsts' };
 function areaColor() {
+  if (route.mode && artist() && !['artists', 'mode'].includes(route.view)) return MODE_C[route.mode];
   const k = VIEW_AREA[route.view]; if (k) return AREA[k][0];
-  if (['home', 'drumMenu', 'ghome'].includes(route.view)) return INST_C[route.inst] || '#88A3C4';
-  if (route.view === 'inst') return MODE_C[route.mode];
-  return '#88A3C4';
+  if (['home', 'drumMenu', 'ghome'].includes(route.view)) return INST_C[route.inst] || 'var(--a-tuner)';
+  if (route.view === 'inst' || route.view === 'projects') return MODE_C[route.mode];
+  return 'var(--a-tuner)';
 }
 const ICON_PATHS = {
   tuner: ['M4 17a8 8 0 0 1 16 0', 'M12 17l4.5-5.5', 'M12 17h.01'],
@@ -2521,8 +2646,8 @@ const ICON_PATHS = {
 };
 function areaIcon(k, cls) { return svg('svg', { viewBox: '0 0 24 24', class: cls || '', fill: 'none', stroke: 'currentColor', 'stroke-width': 2, 'stroke-linecap': 'round', 'stroke-linejoin': 'round', 'aria-hidden': 'true' }, (ICON_PATHS[k] || []).map(d => svg('path', { d }))); }
 function atile(k, title, desc, onclick, wide) {
-  return h('button', { class: 'atile', style: `--c:${AREA[k][0]}${wide ? ';grid-column:1/-1;min-height:96px' : ''}`, type: 'button', onclick },
-    h('span', { class: 'at-ico' }, areaIcon(k)), h('span', {}, h('b', {}, title), h('small', {}, desc)));
+  return h('button', { class: 'atile', style: `--c:var(--accent)${wide ? ';grid-column:1/-1;min-height:96px' : ''}`, type: 'button', onclick },
+    h('span', { class: 'at-ico' }, areaIcon(k)), h('span', {}, h('b', {}, title)));
 }
 function tabsList() {
   const studio = route.mode === 'studio';
@@ -2592,7 +2717,7 @@ function renderTabs() {
   if (!inArea) { tb.hidden = true; document.body.classList.remove('has-tabs'); return; }
   const tabs = tabsList();
   const cur = VIEW_AREA[route.view];
-  tb.replaceChildren(...tabs.filter(Boolean).map(([k, l, go]) => h('button', { type: 'button', style: `--c:${AREA[k][0]}`, 'aria-current': cur === k ? 'page' : null, onclick: go }, areaIcon(k), l)));
+  tb.replaceChildren(...tabs.filter(Boolean).map(([k, l, go]) => h('button', { type: 'button', style: `--c:var(--accent)`, 'aria-current': cur === k ? 'page' : null, onclick: go }, areaIcon(k), l)));
   tb.hidden = false; document.body.classList.add('has-tabs');
 }
 
@@ -2687,7 +2812,7 @@ function viewConsole() {
       h('div', { class: 'row' },
         h('button', { class: 'btn', type: 'button', onclick: () => nav('chain') }, 'Zur Recording Recall'),
         all.length ? h('button', { class: 'btn ghost', type: 'button', onclick: () => { all.forEach(c => Object.assign(c.mix, { fader: 0, pan: 0, mute: false, solo: false })); C.master.fader = 0; touch(); draw(); } }, 'Alles auf 0 dB') : null),
-      h('p', { class: 'foot' }, 'Fader und Pan-Regler ziehen, Doppeltipp setzt zurück. Die Inserts zeigen die ersten vier Stufen der Signalkette, der Gain-Regler den eingetragenen Preamp-Gain. Ein Tipp auf den Kanalnamen öffnet die Signalkette.')
+      null
     ]
   };
 }
@@ -2754,7 +2879,7 @@ function askDialog({ title, text, buttons }) {
   const esc = e => { if (e.key === 'Escape') close(); };
   ov.addEventListener('click', e => { if (e.target === ov) close(); });
   document.addEventListener('keydown', esc);
-  ov.append(h('div', { class: 'sheet ask' }, h('div', { class: 'grab' }), h('h3', {}, title), h('p', { class: 'lead', style: 'color:var(--muted)' }, text),
+  ov.append(h('div', { class: 'sheet ask' }, h('div', { class: 'grab' }), h('h3', {}, title), text ? h('p', { class: 'lead', style: 'color:var(--muted)' }, text) : null,
     h('div', { class: 'ask-btns' }, buttons.filter(Boolean).map(b => h('button', { class: 'btn' + (b.primary ? ' solid' : b.danger ? ' danger armed' : ' ghost'), type: 'button', onclick: () => { close(); b.onClick && b.onClick(); } }, b.label)))));
   document.body.append(ov); ov.querySelector('button')?.focus();
 }
@@ -2773,7 +2898,7 @@ function renameDialog(title, value, onSave) {
 }
 function itemMenu({ title, arr, idx, onChange, rename, del }) {
   const move = d => { const [it] = arr.splice(idx, 1); arr.splice(idx + d, 0, it); onChange(); };
-  askDialog({ title, text: 'Tipp: Gedrückt halten und ziehen verschiebt den Eintrag direkt.', buttons: [
+  askDialog({ title, text: '', buttons: [
     { label: 'Umbenennen', primary: true, onClick: () => renameDialog(`${title} umbenennen`, rename.value, v => { rename.set(v); onChange(); toast('Umbenannt'); }) },
     idx > 0 && { label: 'Nach oben verschieben', onClick: () => move(-1) },
     idx < arr.length - 1 && { label: 'Nach unten verschieben', onClick: () => move(1) },
@@ -2783,16 +2908,31 @@ function itemMenu({ title, arr, idx, onChange, rename, del }) {
     { label: 'Abbrechen' }
   ] });
 }
+function moreBtn(label, onOpen) {
+  return h('button', { class: 'more-btn', type: 'button', 'aria-label': `Optionen für ${label}`, onclick: e => { e.stopPropagation(); onOpen(); } },
+    svg('svg', { viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', 'stroke-width': 2, 'stroke-linecap': 'round', 'aria-hidden': 'true' }, svg('path', { d: 'M5 7h14M5 12h14M5 17h14' })));
+}
+function rowMenu({ title, rename, del, onChange, extra = [] }) {
+  askDialog({ title, text: '', buttons: [
+    ...extra,
+    { label: 'Umbenennen', primary: !extra.length, onClick: () => renameDialog(`${title} umbenennen`, rename.value, v => { rename.set(v); onChange(); toast('Umbenannt'); }) },
+    { label: del.label, danger: true, onClick: () => askDialog({ title: `${del.label}?`, text: del.text, buttons: [
+      { label: 'Endgültig löschen', danger: true, onClick: () => { del.run(); onChange(); toast('Gelöscht'); } },
+      { label: 'Abbrechen' }] }) },
+    { label: 'Abbrechen' }
+  ] });
+}
 function prodListWithMenu(ps, onOpen, subtitle) {
   const a = artist();
-  const list = h('div', { class: 'prod-list' }, ps.map(p => h('button', { class: 'list-item', type: 'button', onclick: () => { if (!reorderJustEnded()) onOpen(p); } },
-    h('b', {}, p.name || 'Unbenannte Produktion'), h('span', {}, subtitle(p)))));
   const sync = () => { a.productions = [...ps, ...a.productions.filter(x => !ps.includes(x))]; touch(); render(true); };
-  enableReorder(list, ps, sync, { row: '.list-item', head: '.list-item', ignore: '',
-    onLongPress: i => itemMenu({ title: ps[i].name || 'Produktion', arr: ps, idx: i, onChange: sync,
-      rename: { value: ps[i].name, set: v => ps[i].name = v },
-      del: { label: 'Produktion löschen', text: `„${ps[i].name || 'Unbenannte Produktion'}“ wird mit Drumkit, Recording Recall und Kit-Foto gelöscht. Das lässt sich nicht rückgängig machen.`, run: () => { const p = ps[i]; ps.splice(i, 1); a.productions = a.productions.filter(x => x !== p); if (p.hasPhoto) removePhoto(p); } } }) });
-  return [list, h('p', { class: 'foot', style: 'margin-top:8px' }, 'Lange drücken: umbenennen, verschieben oder löschen. Gedrückt halten und ziehen ändert die Reihenfolge.')];
+  const menu = p => rowMenu({ title: p.name || 'Produktion', onChange: sync, extra: [{ label: 'Gespeicherte Infos teilen', primary: true, onClick: () => shareProductionDialog(p) }],
+    rename: { value: p.name, set: v => p.name = v },
+    del: { label: 'Produktion löschen', text: `„${p.name || 'Unbenannte Produktion'}“ wird mit Drumkit, Setlisten, Recording Recall und Kit-Foto gelöscht. Das lässt sich nicht rückgängig machen.`, run: () => { const i = ps.indexOf(p); if (i >= 0) ps.splice(i, 1); a.productions = a.productions.filter(x => x !== p); if (p.hasPhoto) removePhoto(p); } } });
+  const list = h('div', { class: 'prod-list' }, ps.map(p => h('div', { class: 'lrow' },
+    h('button', { class: 'list-item', type: 'button', onclick: () => { if (!reorderJustEnded()) onOpen(p); } }, h('b', {}, p.name || 'Unbenannte Produktion'), h('span', {}, subtitle(p))),
+    moreBtn(p.name || 'Produktion', () => menu(p)))));
+  enableReorder(list, ps, sync, { row: '.lrow', head: '.list-item', ignore: '.more-btn' });
+  return [list, null];
 }
 function drumAbbr(d) {
   const n = d.name || '', num = (n.match(/\d+/) || [''])[0]; let m;
@@ -2863,7 +3003,7 @@ function kitPhotoSection(p) {
     view,
     h('p', { class: 'kp-hint' }, KP.edit
       ? (KP.place ? 'Welche Trommel ist an dieser Stelle?' : 'Tippe im Foto auf eine Trommel, um sie zuzuordnen.')
-      : (marked ? 'Tippe auf eine Trommel, um sie zu stimmen.' : 'Noch keine Trommel zugeordnet. Tippe auf „Trommeln zuordnen“.')),
+      : (marked ? '' : 'Noch keine Trommel zugeordnet.')),
     KP.edit && KP.place ? h('div', { class: 'card kp-assign' },
       h('div', { class: 'chips' }, p.drums.map(d => h('button', { class: 'chip', type: 'button', onclick: () => { d.photoPos = { x: +KP.place.x.toFixed(4), y: +KP.place.y.toFixed(4) }; KP.place = null; touch(); render(true); } }, d.name + (d.photoPos ? ' ✓' : '')))),
       h('div', { class: 'row' }, h('button', { class: 'btn ghost small', type: 'button', onclick: () => { KP.place = null; render(true); } }, 'Abbrechen'))) : null,
@@ -3073,7 +3213,7 @@ ${String(text).slice(0, 12000)}`, { modelTier: 'default' });
       h('div', { class: 'ask-btns' },
         h('button', { class: 'btn solid', type: 'button', disabled: !n, onclick: commit }, target ? `${plural(n, 'Song', 'Songs')} hinzufügen` : `Setliste erstellen (${plural(n, 'Song', 'Songs')})`),
         h('button', { class: 'btn ghost', type: 'button', onclick: close }, 'Abbrechen')),
-      h('p', { class: 'foot', style: 'margin-top:10px' }, 'Abgehakte Songs werden übernommen. Tonart, BPM und Notizen kannst du danach in der Setliste ergänzen.')
+      null
     ].filter(x => x != null && x !== false));
   }
   draw(); document.body.append(ov);
@@ -3083,12 +3223,105 @@ ${String(text).slice(0, 12000)}`, { modelTier: 'default' });
 document.body.append(...Object.keys(STAGES).map((k, i) => h('datalist', { id: 'dl-' + i }, (GEAR[k] || []).map(g => h('option', { value: g })))));
 function currentTheme() { try { return localStorage.getItem('drumtech-theme') || 'glass'; } catch (e) { return 'glass'; } }
 function setTheme(v) { try { localStorage.setItem('drumtech-theme', v); } catch (e) {} document.documentElement.classList.toggle('glass', v === 'glass'); document.documentElement.classList.toggle('ice', v === 'ice'); }
-document.body.prepend(h('div', { id: 'bgfx', 'aria-hidden': 'true' }));
+document.body.prepend(h('div', { id: 'bgfx', 'aria-hidden': 'true' }), h('div', { id: 'wm', 'aria-hidden': 'true' }, logoSvg('', 6)));
 setTheme(currentTheme());
+function logoSvg(cls, sw = 10) {
+  return svg('svg', { viewBox: '0 0 466 650', class: cls || '', 'aria-hidden': 'true', fill: 'none', stroke: 'currentColor', 'stroke-width': sw, 'stroke-linecap': 'round' },
+    svg('path', { d: 'M23.8 255 A210 210 0 1 1 442.2 255' }), svg('circle', { cx: 233, cy: 237, r: 168 }),
+    svg('line', { x1: 260, y1: 290, x2: 65, y2: 620, 'stroke-width': sw * 1.25 }), svg('line', { x1: 210, y1: 290, x2: 412, y2: 620, 'stroke-width': sw * 1.25 }));
+}
+const ROUTE_KEY = 'drumtech-route', ROUTE_FIELDS = ['view', 'artistId', 'mode', 'prodId', 'inst', 'setId', 'tunId', 'ginstId', 'chainOwner', 'chainFrom', 'target', 'side', 'tunerFrom', 'gTun', 'gTunInst', 'tTab', 'toConsole'];
+function saveRoute() { try { const o = {}; ROUTE_FIELDS.forEach(k => { if (route[k] !== undefined) o[k] = route[k]; }); localStorage.setItem(ROUTE_KEY, JSON.stringify(o)); } catch (e) {} }
+function loadRoute() { try { return JSON.parse(localStorage.getItem(ROUTE_KEY) || 'null'); } catch (e) { return null; } }
+/* ================= share productions with band mates ================= */
+const SHARE_APP = 'tech-assistent';
+const b64url = bytes => { let bin = ''; const c = 0x8000; for (let i = 0; i < bytes.length; i += c) bin += String.fromCharCode.apply(null, bytes.subarray(i, i + c)); return btoa(bin).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, ''); };
+const unb64url = str => { const b = atob(str.replace(/-/g, '+').replace(/_/g, '/')); const out = new Uint8Array(b.length); for (let i = 0; i < b.length; i++) out[i] = b.charCodeAt(i); return out; };
+async function gzipStr(str) { if (typeof CompressionStream === 'undefined') return null; return new Uint8Array(await new Response(new Blob([str]).stream().pipeThrough(new CompressionStream('gzip'))).arrayBuffer()); }
+async function gunzipBytes(bytes) { return await new Response(new Blob([bytes]).stream().pipeThrough(new DecompressionStream('gzip'))).text(); }
+function buildPayload(p, withPhoto) {
+  const a = artist(), prod = JSON.parse(JSON.stringify(p));
+  const photo = withPhoto && p.hasPhoto ? (getPhoto(p) || null) : null;
+  if (!photo) prod.hasPhoto = false;
+  return { app: SHARE_APP, v: 1, sharedAt: new Date().toISOString(), artist: { name: a.name }, production: prod, photo };
+}
+const slugify = t => (t || 'produktion').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-zA-Z0-9]+/g, '-').replace(/^-|-$/g, '').toLowerCase() || 'produktion';
+function shareProductionDialog(p) {
+  const canLink = !IN_CLAUDE_HOST() && /^https?:/.test(location.protocol);
+  askDialog({ title: `„${p.name || 'Produktion'}“ teilen`, text: 'Per AirDrop teilst du über Bluetooth und WLAN direkt mit Bandkollegen in der Nähe. Sie bestätigen den Empfang und übernehmen die Infos in ihre App.', buttons: [
+    canLink && { label: 'Als Link teilen (AirDrop, Nachrichten …)', primary: true, onClick: () => shareProductionLink(p) },
+    { label: 'Als Datei teilen (inkl. Kit-Foto)', primary: !canLink, onClick: () => shareProductionFile(p) },
+    { label: 'Abbrechen' }
+  ] });
+}
+function IN_CLAUDE_HOST() { return !!(window.claude && typeof window.claude.use === 'function') || /claude(usercontent)?\.(ai|com)$/.test(location.hostname); }
+async function shareProductionFile(p) {
+  const json = JSON.stringify(buildPayload(p, true));
+  const name = `${slugify(artist().name)}-${slugify(p.name)}.techassistent.json`;
+  const file = new File([json], name, { type: 'application/json' });
+  try {
+    if (navigator.canShare && navigator.canShare({ files: [file] })) { await navigator.share({ files: [file], title: p.name || 'Produktion', text: `Tech Assistent: ${artist().name}, ${p.name}` }); return; }
+  } catch (e) { if (e && e.name === 'AbortError') return; }
+  const url = URL.createObjectURL(file), aEl = h('a', { href: url, download: name }); document.body.append(aEl); aEl.click(); aEl.remove(); setTimeout(() => URL.revokeObjectURL(url), 4000);
+  toast('Datei gespeichert. Teile sie z. B. über AirDrop.');
+}
+async function shareProductionLink(p) {
+  try {
+    const bytes = await gzipStr(JSON.stringify(buildPayload(p, false)));
+    if (!bytes) { shareProductionFile(p); return; }
+    const url = location.origin + location.pathname + '#import=' + b64url(bytes);
+    if (url.length > 120000) { toast('Zu viele Daten für einen Link, ich teile als Datei.'); shareProductionFile(p); return; }
+    if (navigator.share) { try { await navigator.share({ title: `${artist().name}: ${p.name}`, text: `Tech Assistent: ${p.name} übernehmen`, url }); return; } catch (e) { if (e && e.name === 'AbortError') return; } }
+    await navigator.clipboard.writeText(url); toast('Link kopiert');
+  } catch (e) { toast('Teilen hat nicht geklappt.'); }
+}
+function importProductionButton() {
+  const inp = h('input', { type: 'file', accept: '.json,.techassistent,application/json', style: 'display:none', onchange: async e => {
+    const f = e.target.files && e.target.files[0]; if (!f) return;
+    try { receivePayload(JSON.parse(await f.text())); } catch (err) { toast('Diese Datei kann ich nicht lesen.'); }
+    e.target.value = '';
+  } });
+  return h('label', { class: 'btn ghost small', tabindex: 0, onkeydown: e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); inp.click(); } } }, 'Geteilte Produktion übernehmen', inp);
+}
+function receivePayload(data) {
+  if (!data || data.app !== SHARE_APP || !data.production) { toast('Das ist keine geteilte Produktion aus dem Tech Assistent.'); return; }
+  const pr = data.production, artName = (data.artist && data.artist.name) || 'Unbekannt';
+  const songs = (pr.setlists || []).reduce((n, sl) => n + (sl.songs || []).length, 0);
+  askDialog({ title: 'Geteilte Infos übernehmen?', text: `${artName}: „${pr.name || 'Produktion'}“ (${pr.mode === 'studio' ? 'Studio' : 'Live'}) mit ${plural((pr.setlists || []).length, 'Setliste', 'Setlisten')}, ${plural(songs, 'Song', 'Songs')} und ${plural((pr.drums || []).length, 'Trommel', 'Trommeln')}.`, buttons: [
+    { label: 'In meine App übernehmen', primary: true, onClick: () => applyPayload(data) },
+    { label: 'Ablehnen' }
+  ] });
+}
+function applyPayload(data) {
+  const pr = JSON.parse(JSON.stringify(data.production)), artName = (data.artist && data.artist.name) || 'Unbekannt';
+  let a = S.artists.find(x => x.name.trim().toLowerCase() === artName.trim().toLowerCase());
+  if (!a) { a = { id: newId(), name: artName, productions: [], setlists: [] }; S.artists.push(a); }
+  normalize();
+  const finish = (p) => {
+    if (data.photo) savePhoto(p, data.photo); else touch();
+    normalize(); touch();
+    toast(`„${p.name}“ übernommen`);
+    nav('projects', { artistId: a.id, mode: p.mode || 'live' });
+  };
+  const existing = a.productions.find(x => x.id === pr.id);
+  if (existing) {
+    askDialog({ title: 'Produktion schon vorhanden', text: `„${existing.name}“ gibt es bei dir schon. Möchtest du sie mit dem geteilten Stand ersetzen oder als Kopie hinzufügen?`, buttons: [
+      { label: 'Mit geteiltem Stand ersetzen', primary: true, onClick: () => { const i = a.productions.indexOf(existing); a.productions[i] = pr; finish(pr); } },
+      { label: 'Als Kopie hinzufügen', onClick: () => { pr.id = newId(); pr.name = (pr.name || 'Produktion') + ' (geteilt)'; a.productions.unshift(pr); finish(pr); } },
+      { label: 'Abbrechen' }
+    ] });
+  } else { a.productions.unshift(pr); finish(pr); }
+}
+async function checkImportLink() {
+  const m = location.hash.match(/^#import=([A-Za-z0-9_-]+)$/); if (!m) return;
+  history.replaceState(null, '', location.pathname + location.search);
+  try { receivePayload(JSON.parse(await gunzipBytes(unb64url(m[1])))); } catch (e) { toast('Der geteilte Link ist unvollständig.'); }
+}
 function startApp() {
-  route = { ...route, view: 'artists' };
+  const saved = loadRoute();
+  route = saved && saved.view ? { ...route, ...saved } : { ...route, view: 'artists' };
   render();
-  initRemote().then(() => { if (route.view === 'artists') render(true); });
+  initRemote().then(() => { render(true); setTimeout(checkImportLink, 3000); });
 }
 startApp();
 </script>
