@@ -2752,7 +2752,7 @@ function viewSetlists() {
   return {
     title: 'Setlisten', sub: `${a.name}, ${modeName()}`, back: () => nav(route.inst === 'drums' ? 'home' : 'ghome'),
     body: [
-      h('div', { class: 'row', style: 'margin-top:0' }, h('button', { class: 'btn solid', type: 'button', onclick: create }, 'Neue Setliste anlegen'), importButton('Aus Datei importieren', null)),
+      h('div', { class: 'row', style: 'margin-top:0' }, h('button', { class: 'btn solid', type: 'button', onclick: create }, 'Neue Setliste anlegen'), importButton('Setliste aus Datei oder Foto hochladen', null)),
       null,
       list.length ? list.map(s => h('button', { class: 'list-item', type: 'button', onclick: () => nav('setlist', { setId: s.id }) },
         h('b', {}, s.name || 'Unbenannt'),
@@ -2893,7 +2893,7 @@ function viewSetlist() {
       h('h2', {}, 'Songs', h('small', {}, plural(s.songs.length, 'Song', 'Songs'))),
       songs.length ? [songList, null] : h('div', { class: 'empty' }, 'Füge unten den ersten Song hinzu oder importiere eine Datei.'),
       h('div', { class: 'add-row' }, songInp, h('button', { class: 'btn solid', type: 'button', onclick: addSong }, 'Hinzufügen')),
-      h('div', { class: 'row' }, importButton('Songs aus Datei hinzufügen', s)),
+      h('div', { class: 'row' }, importButton('Setliste aus Datei oder Foto hochladen', s)),
       h('div', { class: 'row', style: 'margin-top:32px' },
         h('button', { class: 'btn', type: 'button', disabled: !s.songs.length, onclick: () => showStage(s) }, 'Großansicht'),
         delBtn('Liste löschen', () => { P().setlists = P().setlists.filter(x => x !== s); touch(); nav('setlists'); }))
@@ -4342,9 +4342,52 @@ function parseSongs(text) {
   String(text).split(/\r?\n/).forEach(l => { const r = parseSongLine(l); if (!r) return; if (r.marker) { marker = r.marker; return; } if (/zugabe|encore/i.test(marker)) r.note = [r.note, 'Zugabe'].filter(Boolean).join(', '); out.push(r); });
   return out;
 }
+async function downscaleImage(file, max = 1600, mime = 'image/jpeg', q = .88, gray = false) {
+  const url = URL.createObjectURL(file);
+  try {
+    const img = await loadImg(url), sc = Math.min(1, max / Math.max(img.width, img.height));
+    const c = document.createElement('canvas'); c.width = Math.round(img.width * sc); c.height = Math.round(img.height * sc);
+    const g = c.getContext('2d'); if (gray) g.filter = 'grayscale(1) contrast(1.35)'; g.drawImage(img, 0, 0, c.width, c.height);
+    return await new Promise(res => c.toBlob(b => res(b), mime, q));
+  } finally { URL.revokeObjectURL(url); }
+}
+let tesseractReady = null;
+function getTesseract() { if (window.Tesseract) return Promise.resolve(window.Tesseract); return tesseractReady ||= loadScript('https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js').then(() => window.Tesseract); }
+async function importSetlistPhoto(file, target) {
+  toast('Foto wird ausgelesen …');
+  // 1) Claude reads the photo (claude.ai)
+  try {
+    const sample = window.claude && typeof window.claude.use === 'function' ? await window.claude.use('sample') : null;
+    const lim = sample ? await sample.limits().catch(() => null) : null;
+    if (sample && lim && lim.images) {
+      const img = await downscaleImage(file, 1600);
+      const r = await sample.json(`Auf dem Foto ist eine Setliste (gedruckt oder handgeschrieben, evtl. schräg fotografiert, z. B. auf der Bühne). Lies die Songtitel in der Reihenfolge des Auftritts aus. Ignoriere Überschriften, Bandname, Datum, Ort, Pausenhinweise, Zugabe-Markierungen und Liedtexte.
+Für jeden Song: "title" (Titel, wie geschrieben), "key" (nur wenn auf dem Foto angegeben, sonst ""; genau einer dieser Werte: ${KEY_NAMES.join(', ')}), "bpm" (Zahl nur wenn angegeben, sonst null), "note" (kurze Zusatzinfo neben dem Titel, z. B. Kapo, Gitarrenwechsel, sonst "").
+Antworte ausschließlich mit JSON: {"songs":[{"title":"","key":"","bpm":null,"note":""}]}`, { images: [img], modelTier: 'default' });
+      const arr = ((r && r.songs) || []).filter(x => x && x.title);
+      if (arr.length) {
+        showImportSheet({ fileName: file.name || 'Foto', text: '', fromPhoto: true, target,
+          songs: arr.map(x => ({ title: String(x.title).trim(), key: KEY_NAMES.includes(x.key) ? x.key : null, bpm: +x.bpm || null, note: x.note || '' })) });
+        return;
+      }
+    }
+  } catch (e) { if (e && e.code === 'rate_limited') { toast('Gerade zu viele Anfragen. Versuch es gleich noch einmal.'); return; } }
+  // 2) on-device text recognition
+  try {
+    const T = await getTesseract(); if (!T) throw new Error('ocr');
+    const img = await downscaleImage(file, 2200, 'image/png', 1, true);
+    toast('Texterkennung läuft …');
+    const res = await T.recognize(img, 'deu+eng');
+    const text = (res && res.data && res.data.text) || '';
+    const songs = parseSongs(text);
+    if (!songs.length) { toast('Auf dem Foto wurden keine Songtitel erkannt. Versuch ein schärferes Foto von oben.'); return; }
+    showImportSheet({ fileName: file.name || 'Foto', text, fromPhoto: true, target, songs });
+  } catch (e) { toast('Das Foto konnte nicht ausgelesen werden. Versuch es mit besserem Licht oder als Datei.'); }
+}
 function importButton(label, target) {
-  const inp = h('input', { type: 'file', accept: '.pdf,.txt,.csv,.md,.rtf,.docx,application/pdf,text/plain,text/csv', style: 'display:none', onchange: async e => {
+  const inp = h('input', { type: 'file', accept: '.pdf,.txt,.csv,.md,.rtf,.docx,application/pdf,text/plain,text/csv,image/*', style: 'display:none', onchange: async e => {
     const f = e.target.files && e.target.files[0]; e.target.value = ''; if (!f) return;
+    if (/^image\//.test(f.type) || /\.(png|jpe?g|heic|heif|webp)$/i.test(f.name)) { importSetlistPhoto(f, target); return; }
     toast('Datei wird gelesen …');
     let text = '';
     try { text = await fileToText(f); } catch (err) { toast('Die Datei konnte nicht gelesen werden.'); return; }
@@ -4352,9 +4395,9 @@ function importButton(label, target) {
   } });
   return h('label', { class: 'btn file-btn', tabindex: 0, onkeydown: e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); inp.click(); } } }, label, inp);
 }
-function showImportSheet({ fileName, text, songs, target }) {
+function showImportSheet({ fileName, text, songs, target, fromPhoto }) {
   const a = artist();
-  let list = songs.map(x => ({ ...x, on: true })), name = (fileName || 'Setliste').replace(/\.[^.]+$/, ''), busy = false, msg = '';
+  let list = songs.map(x => ({ ...x, on: true })), name = fromPhoto ? `Setliste vom ${fmtDate(new Date().toISOString().slice(0, 10))}` : (fileName || 'Setliste').replace(/\.[^.]+$/, ''), busy = false, msg = '';
   const ov = h('div', { class: 'sheet-ov', role: 'dialog', 'aria-modal': 'true', 'aria-label': 'Setliste importieren' });
   const sheet = h('div', { class: 'sheet' }); ov.append(sheet);
   const close = () => { ov.remove(); document.removeEventListener('keydown', esc); };
@@ -4391,7 +4434,8 @@ ${String(text).slice(0, 12000)}`, { modelTier: 'default' });
     const n = list.filter(x => x.on).length;
     sheet.replaceChildren(...[
       h('div', { class: 'grab' }),
-      h('h3', {}, target ? 'Songs aus Datei' : 'Setliste aus Datei'),
+      h('h3', {}, target ? (fromPhoto ? 'Songs aus Foto' : 'Songs aus Datei') : (fromPhoto ? 'Setliste aus Foto' : 'Setliste aus Datei')),
+      fromPhoto ? h('p', { class: 'muted', style: 'font-size:.85rem;margin:0' }, 'Bitte kurz prüfen: Bei Fotos kann die Erkennung einzelne Titel falsch lesen. Abgewählte Zeilen werden nicht übernommen.') : null,
       h('p', { class: 'lead' }, fileName),
       !target ? h('label', { class: 'field' }, h('span', {}, 'Name der Setliste'), h('input', { value: name, oninput: e => { name = e.target.value; } })) : null,
       list.length ? h('div', { class: 'imp-list' }, list.map((x, i) => h('label', { class: 'imp-row' + (x.on ? '' : ' off') },
