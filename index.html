@@ -1115,6 +1115,156 @@ body.wm #wm{display:grid}
 .sp-line{animation-delay:2.3s!important}
 @media (prefers-reduced-motion:reduce){.sp-logo-wrap{animation:none}.lg-layer{animation:lgxFade .8s ease forwards!important}}
 @keyframes lgxFade{to{opacity:1}}
+
+.onb-cardlist{width:min(320px,86vw);display:flex;flex-direction:column;gap:10px;margin:0 auto}
+.onb-cardi{display:block!important;text-align:left}
+.onb-cardh{display:flex;justify-content:space-between;align-items:center}
+.onb-sub{margin:8px 0 2px;padding:0 0 0 18px;font-size:.85rem;line-height:1.45;opacity:.85}
+.onb-sub li{margin:2px 0}
+.onb-sub li::marker{color:var(--blue)}
+.onb-tilegrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;width:min(300px,84vw);margin:0 auto}
+.onb-slide.text-first h2{margin-top:4px}
+.onb-slide.text-first > p{margin-bottom:18px}
+
+/* help bullets: unnumbered, sliding in */
+.onb-steps{counter-reset:none!important}
+.onb-steps li{counter-increment:none!important;grid-template-columns:14px 1fr!important;opacity:0;transform:translateX(26px);animation:stepIn .5s cubic-bezier(.16,1,.3,1) calc(.35s + var(--k) * .22s) forwards}
+.onb-steps li::before{content:""!important;width:7px!important;height:7px!important;margin-top:.5em!important;background:var(--blue)!important;border-radius:50%}
+.onb-steps.scripted li{animation:none}
+.onb-steps.scripted li.in{animation:stepIn .5s cubic-bezier(.16,1,.3,1) forwards}
+@keyframes stepIn{to{opacity:.92;transform:none}}
+/* artists demo */
+.dm-wrap{width:min(320px,86vw);margin:0 auto;display:flex;flex-direction:column;gap:10px;align-items:stretch;position:relative}
+.dm-list{position:relative;height:132px}
+.dm-card{position:absolute;left:0;right:0;height:60px;display:flex;align-items:center;gap:12px;padding:0 14px;border-radius:14px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.15);transition:transform .6s cubic-bezier(.3,1.2,.4,1),opacity .5s,box-shadow .3s;text-align:left}
+.ice .dm-card{background:rgba(255,255,255,.75);border-color:#fff}
+.dm-card b{flex:1;font:600 1.15rem "Barlow Condensed",sans-serif}
+.dm-a{top:0}
+.dm-k{top:72px;opacity:0;transform:translateY(-30px) scale(.96)}
+.dm-k.show{opacity:1;transform:none}
+.dm-ini{width:38px;height:38px;border-radius:10px;display:grid;place-items:center;font:700 .95rem "Barlow Condensed",sans-serif;background:rgba(255,255,255,.12);transition:background .4s,color .4s,transform .4s}
+.dm-ini.logo{background:linear-gradient(135deg,#e2342f,#b31d1a);color:#fff;transform:scale(1.08)}
+.dm-more{font-size:1.25rem;opacity:.7;border-radius:8px;padding:0 6px}
+.dm-more.ping{animation:dmPing .9s ease 2}
+@keyframes dmPing{50%{background:var(--blue);color:#fff;opacity:1}}
+.dm-menu{position:absolute;right:6px;top:58px;z-index:3;display:flex;flex-direction:column;gap:4px;padding:8px;border-radius:12px;background:rgba(20,24,34,.95);border:1px solid rgba(255,255,255,.18);opacity:0;transform:scale(.8);transform-origin:top right;transition:opacity .25s,transform .25s;pointer-events:none}
+.ice .dm-menu{background:rgba(255,255,255,.96);border-color:#fff;box-shadow:0 10px 24px rgba(30,60,100,.2)}
+.dm-menu span{font-size:.8rem;padding:4px 10px;border-radius:8px;text-align:left}
+.dm-menu span:first-child{background:var(--blue);color:#fff}
+.dm-menu.show{opacity:1;transform:none}
+.dm-list.swap .dm-k{transform:translateY(-72px);box-shadow:0 14px 30px rgba(0,0,0,.45)}
+.dm-list.swap .dm-a{transform:translateY(72px)}
+.dm-theme{align-self:center;display:flex;gap:6px;opacity:0;transform:translateY(10px);transition:opacity .4s,transform .4s}
+.dm-theme.show{opacity:1;transform:none}
+.dm-theme span{padding:6px 14px;border-radius:999px;font-size:.85rem;border:1px solid rgba(255,255,255,.2);transition:background .3s,color .3s}
+.dm-theme span.on{background:var(--blue);border-color:var(--blue);color:#fff}
+.onb-slide.lightdemo .dm-card{background:rgba(255,255,255,.85);color:#121821;border-color:#fff}
+@media (prefers-reduced-motion:reduce){.onb-steps li{animation:none!important;opacity:.92;transform:none}.dm-card,.dm-theme,.dm-menu{transition:none}}
+
+.onb-qb{animation:none}
+.onb-qb.tap,.onb-hb.tap{animation:dmTap 1s ease 2}
+@keyframes dmTap{0%,100%{transform:scale(1)}40%{transform:scale(.86);background:var(--blue-soft);box-shadow:0 0 0 6px var(--blue-soft)}}
+.dm-help,.dm-home{display:flex;flex-direction:column;gap:3px;text-align:left;padding:12px 14px;border-radius:14px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.15);opacity:0;transform:translateY(-12px) scale(.97);transition:opacity .45s,transform .45s cubic-bezier(.3,1.2,.4,1);max-height:0;overflow:hidden;padding-top:0;padding-bottom:0}
+.ice .dm-help,.ice .dm-home{background:rgba(255,255,255,.75);border-color:#fff}
+.dm-help.show,.dm-home.show{opacity:1;transform:none;max-height:120px;padding-top:12px;padding-bottom:12px}
+.dm-help b,.dm-home b{font:600 1.05rem "Barlow Condensed",sans-serif}
+.dm-help span,.dm-home span{font-size:.82rem;opacity:.75}
+.dm-help{border-color:var(--blue)}
+.dm-wrap .onb-hdr{width:auto}
+
+/* ===== help v3 mocks ===== */
+.onb-slide.text-first h2{margin-top:4px}
+.onb-slide.text-first > p{margin-bottom:16px}
+.dm-wrap{width:min(320px,86vw);margin:0 auto;display:flex;flex-direction:column;gap:10px;align-items:stretch;position:relative}
+.dm-wrap.center{align-items:center}
+.dm-row{display:flex;gap:6px;flex-wrap:wrap;justify-content:center}
+.dm-flow{display:flex;align-items:center;gap:6px;flex-wrap:wrap;justify-content:center}
+.dm-chip{display:inline-flex;align-items:center;padding:8px 13px;border-radius:999px;font:600 .95rem "Barlow Condensed",sans-serif;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.18);transition:opacity .4s,transform .45s cubic-bezier(.3,1.4,.5,1),background .3s,color .3s}
+.ice .dm-chip{background:rgba(255,255,255,.75);border-color:#fff}
+.dm-chip.pri{background:var(--blue);border-color:var(--blue);color:#fff}
+.dm-arrow{opacity:.7;font-size:1.3rem;transition:opacity .3s}
+.dx{opacity:0!important;transform:translateY(10px) scale(.95)}
+.dx.show{opacity:1!important;transform:none}
+.dm-arrow.dx.show{opacity:.7!important}
+.dm-c{display:flex;align-items:center;gap:12px;min-height:56px;padding:8px 14px;border-radius:14px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.15);text-align:left;transition:transform .55s cubic-bezier(.3,1.2,.4,1),opacity .45s,box-shadow .3s,border-color .3s,background .3s}
+.ice .dm-c{background:rgba(255,255,255,.75);border-color:#fff}
+.dm-ct{flex:1;display:flex;flex-direction:column;min-width:0}
+.dm-ct b{font:600 1.12rem "Barlow Condensed",sans-serif}
+.dm-ct span{font-size:.78rem;opacity:.7}
+.dm-c.hl{border-color:var(--blue);box-shadow:0 0 0 3px var(--blue-soft),0 10px 24px rgba(0,0,0,.3);transform:scale(1.03)}
+.dm-stack{position:relative;height:130px}
+.dm-stack.tall{height:136px}
+.dm-stack .dm-c{position:absolute;left:0;right:0}
+.dm-s0{top:0}.dm-s1{top:70px}
+.dm-stack.swap .dm-s1{transform:translateY(-70px);box-shadow:0 14px 30px rgba(0,0,0,.45);z-index:2}
+.dm-stack.swap .dm-s0{transform:translateY(70px)}
+.dm-stack .dm-s1.dx{transform:translateY(-20px) scale(.96)}
+.dm-stack .dm-s1.dx.show{transform:none}
+.dm-stack.swap .dm-s1.dx.show{transform:translateY(-70px)}
+.dm-menu{top:46px}
+.dm-menu.low{top:116px}
+.dm-input{display:flex;align-items:center;min-height:42px;padding:0 12px;border-radius:10px;background:rgba(0,0,0,.25);border:1px solid rgba(255,255,255,.15);font-size:.95rem;text-align:left}
+.ice .dm-input{background:rgba(255,255,255,.6)}
+.dm-caret{width:2px;height:18px;background:var(--blue);margin-left:2px;animation:blink 1s steps(1) infinite}
+@keyframes blink{50%{opacity:0}}
+.dm-pop{display:flex;flex-direction:column;gap:3px;text-align:left;padding:12px 14px;border-radius:14px;background:rgba(255,255,255,.07);border:1px solid var(--blue)}
+.ice .dm-pop{background:rgba(255,255,255,.75)}
+.dm-pop b{font:600 1.05rem "Barlow Condensed",sans-serif}.dm-pop span{font-size:.8rem;opacity:.75}
+.dm-pop.dm-home{border-color:rgba(255,255,255,.15)}
+.dm-t{opacity:1!important;animation:none!important;transition:transform .4s cubic-bezier(.3,1.4,.5,1),border-color .3s,box-shadow .3s}
+.dm-t.hl{border-color:var(--blue);box-shadow:0 0 0 3px var(--blue-soft);transform:scale(1.05)}
+.dm-drumbox .drumsvg{width:190px!important;height:190px!important}
+.dm-drumbox{transform:scale(.85);opacity:.4;transition:transform .5s cubic-bezier(.3,1.4,.5,1),opacity .4s}
+.dm-drumbox.pop{transform:none;opacity:1}
+.dm-hz{font:700 3.6rem/.95 "Barlow Condensed",sans-serif;font-variant-numeric:tabular-nums}
+.dm-hz small{font-size:.35em;margin-left:4px;opacity:.7}
+.dm-hz.big{font-size:4.2rem}
+.dm-needle{position:absolute;top:4px;bottom:4px;width:8px;margin-left:-4px;border-radius:4px;left:50%;background:var(--muted);transition:left .6s cubic-bezier(.3,1.3,.5,1),background .3s}
+.dm-status{min-height:1.4em;font:700 1.2rem "Barlow Condensed",sans-serif;color:#ff5b4f}
+.dm-status.ok{color:#36c97e}
+.dm-toast{background:#36c97e!important;border-color:#36c97e!important;color:#06210f}
+.dm-r{opacity:0;animation:none!important;transform:translateX(30px);transition:opacity .45s,transform .45s cubic-bezier(.16,1,.3,1)}
+.dm-r.show{opacity:1;transform:none}
+.dm-r.show .onb-bar em{animation:onbW 1s cubic-bezier(.16,1,.3,1) .2s forwards}
+.dm-r0{border-color:var(--blue)!important}
+.dm-apply.tap{animation:dmTap 1s ease 2}
+.dm-exp{display:flex;align-items:center;justify-content:space-between;gap:8px;max-height:0;overflow:hidden;padding:0 14px;opacity:0;transition:max-height .45s,opacity .35s,padding .35s;font-size:.8rem}
+.dm-exp.open{max-height:60px;opacity:1;padding:4px 14px}
+.dm-photo{opacity:.15;transition:opacity .6s}
+.dm-photo.in{opacity:1}
+.dm-dot{opacity:0;transform-box:fill-box;transform-origin:center;transform:scale(.3);transition:opacity .3s,transform .45s cubic-bezier(.3,1.6,.5,1)}
+.dm-dot.show{opacity:1;transform:none}
+.dm-dot.ping circle{animation:dotPing 1s ease 2}
+@keyframes dotPing{50%{stroke:#3B8BFF;stroke-width:6;stroke-opacity:1}}
+.dm-card2{border-radius:14px;padding:6px 14px;background:rgba(255,255,255,.07);border:1px solid var(--blue);transition:opacity .4s,transform .4s}
+.ice .dm-card2{background:rgba(255,255,255,.75)}
+.dm-btn.tap{animation:dmTap 1s ease 2}
+.dm-minif{height:90px;gap:26px!important}
+.dm-minif .onb-fader i{top:30%;animation:none}
+.dm-con{height:150px}
+.dm-con .onb-fader i{top:40%;animation:none!important;transition:top .7s cubic-bezier(.3,1.2,.4,1)}
+.dm-con .onb-fader.armed i{box-shadow:0 0 0 2px var(--blue),0 0 18px var(--blue)}
+.dm-con .onb-fader.tap{animation:dmTap .6s ease 1}
+.dm-chip.dm-m.red{background:#b84336;border-color:#b84336;color:#fff}
+.dm-chip.dm-s.gold{background:#d9a52b;border-color:#d9a52b;color:#1a1408}
+.dm-strs span{animation:none!important;transition:background .3s,border-color .3s,color .3s,transform .3s}
+.dm-strs span.chg{border-color:var(--blue);transform:scale(1.1)}
+.dm-strs span.ok{background:#2f9e5f;border-color:#5fd18f;color:#fff}
+.dm-strs span.near{border-color:var(--blue);box-shadow:0 0 12px var(--blue)}
+.dm-fld{opacity:0!important;animation:none!important;transform:translateX(30px);transition:opacity .45s,transform .45s cubic-bezier(.16,1,.3,1)}
+.dm-fld.show{opacity:1!important;transform:none}
+.dm-s0 .dm-ini.logo{background:linear-gradient(135deg,#e2342f,#b31d1a);color:#fff}
+.onb-logo.small{height:150px}
+.lightdemo .dm-c{background:rgba(255,255,255,.85);color:#121821;border-color:#fff}
+.dm-c.tap,.dm-more.tap{animation:dmTap 1s ease 1}
+@media (prefers-reduced-motion:reduce){.dx{opacity:1!important;transform:none}.dm-r,.dm-fld,.dm-dot{opacity:1!important;transform:none}}
+
+.dm-cl{align-items:flex-start!important;padding-top:12px!important;padding-bottom:12px!important}
+.dm-cl .dm-more{margin-top:2px}
+.dm-pop.dx:not(.show){max-height:0!important;padding-top:0!important;padding-bottom:0!important;border-width:0!important;margin:-5px 0!important;overflow:hidden}
+.dm-pop.dx{max-height:120px;transition:max-height .45s,padding .45s,opacity .45s,transform .45s}
+.dm-minif{gap:36px!important}
+.dm-minif .onb-fader i{width:26px!important;margin-left:-13px!important;height:16px!important}
 </style>
 </head>
 <body>
@@ -3648,7 +3798,7 @@ ${String(text).slice(0, 12000)}`, { modelTier: 'default' });
   draw(); document.body.append(ov);
 }
 /* ================= start ================= */
-(() => { const sp = document.getElementById('splash'); if (!sp) return; setTimeout(() => { sp.classList.add('out'); setTimeout(() => sp.remove(), 450); }, 3300); })();
+(() => { const sp = document.getElementById('splash'); if (!sp) return; setTimeout(() => { sp.classList.add('out'); setTimeout(() => sp.remove(), 450); }, 4100); })();
 document.body.append(...Object.keys(STAGES).map((k, i) => h('datalist', { id: 'dl-' + i }, (GEAR[k] || []).map(g => h('option', { value: g })))));
 function currentTheme() { try { const t = localStorage.getItem('drumtech-theme'); return t === 'ice' ? 'ice' : 'glass'; } catch (e) { return 'glass'; } }
 function setTheme(v) { try { localStorage.setItem('drumtech-theme', v); } catch (e) {} document.documentElement.classList.toggle('glass', v === 'glass'); document.documentElement.classList.toggle('ice', v === 'ice'); }
@@ -3746,112 +3896,177 @@ async function checkImportLink() {
   history.replaceState(null, '', location.pathname + location.search);
   try { receivePayload(JSON.parse(await gunzipBytes(unb64url(m[1])))); } catch (e) { toast('Der geteilte Link ist unvollständig.'); }
 }
-/* ================= help system: start page + context help on every page ================= */
+/* ================= help system v3: text on top, animated mock, short bullets that drive the mock ================= */
 const ONB_KEY = 'drumtech-onboarded';
-const START_SLIDES = [
-  { art: 'logo', title: 'Willkommen beim Tech Assistent', text: 'Dein Werkzeug für Drummer, Bassisten, Gitarristen und Backliner, live und im Studio.' },
-  { art: 'flow', title: 'So ist die App aufgebaut', text: 'Alles hängt an einer Tour oder Produktion. Was du dort einträgst, sehen Drums, Bass und Gitarre gemeinsam.',
-    steps: ['Künstler anlegen, z. B. „Die Ärzte“', '„Live“ oder „Studio“ wählen', 'Tour benennen, z. B. „Sommertour 25“', 'Instrument wählen und loslegen'] },
-  { art: { k: 'cards', items: ['Die Ärzte', 'Kraftklub'], menu: true }, title: 'Künstler verwalten', text: 'Beispiel: Logo für „Die Ärzte“ hinterlegen.',
-    steps: ['„Künstler hinzufügen“: Name eintragen, optional Logo, Schriftart oder Schriftzug aus einem Bild', 'Drei Striche ≡: Logo, Schriftzug, Umbenennen oder Löschen', 'Karte gedrückt halten und ziehen ändert die Reihenfolge', 'Unten wählst du das Design: Hell oder Dunkel'] },
-  { art: 'helpq', title: 'Hilfe auf jeder Seite', text: 'Auf jeder weiteren Seite findest du oben ein Fragezeichen.',
-    steps: ['Tippe auf das Fragezeichen neben dem Logo oben rechts', 'Du bekommst genau die Seite erklärt, auf der du gerade bist, mit Beispielen', 'Das Logo oben rechts bringt dich jederzeit zurück zur Startseite'] }
-];
-const S_QUICK = { art: 'quick', title: 'Stimmschrauben abgleichen', text: 'Beispiel: 14″-Snare mit 8 Stimmschrauben.',
-  steps: ['Größe und Anzahl der Schrauben wählen, Messart „Schrauben abgleichen“', '„Messung starten“, Handy über Schraube 1 (oben) halten und anschlagen: das ist die Referenz', 'Dann Schraube für Schraube anschlagen: jede zeigt ihre Abweichung in Cent', 'Rot heißt anziehen oder lösen, grün liegt innerhalb von ±5 Cent. „Automatisch“ aus: eine Schraube mehrfach messen'] };
-const S_FUND = { art: 'fund', title: 'Grundton messen', text: 'Beispiel: Standtom auf 110 Hz.',
-  steps: ['Messart „Grundton messen“ wählen', 'Optional eine Zielfrequenz eintragen, z. B. 110', 'Handy über die Mitte halten und in der Mitte anschlagen', 'Die Anzeige zeigt Hz, Notenname, Abweichung und Ausklingzeit'] };
-const S_TUNER = { art: 'tuner', title: 'Pitch stimmen', text: 'Beispiel: Tom 1 auf 146,8 Hz stimmen.',
-  steps: ['Unter „Einstellungen“ die Trommel und Fellseite wählen, die Zielfrequenz steht dann automatisch drin', '„Mikrofon starten“ und die Trommel anschlagen', 'Die Anzeige sagt „Höher stimmen“ oder „Tiefer stimmen“, bis „Stimmt“ erscheint', '„Als Pitch speichern“ legt den Wert in der Trommel ab'] };
-const S_LUGS = { art: 'quick', title: 'Lugs: Schrauben vergleichen', text: 'Im Reiter „Lugs“ gleichst du die Stimmschrauben einer gespeicherten Trommel ab.',
-  steps: ['Anzahl der Schrauben und Reihenfolge wählen (Uhrzeigersinn oder Stern)', 'Schraube 1 oben anschlagen: das ist die Referenz', 'Weitere Schrauben anschlagen, die Markierung springt automatisch weiter', '„Lug-Werte speichern“ sichert alles in der Trommel'] };
-const S_RESO = { art: 'reso', title: 'Resonanz: Schlag- und Resonanzfell', text: 'Beispiel: Tom 1 mit etwas höherem Resonanzfell.',
-  steps: ['Im Reiter „Resonanz“ das Feld „Schlagfell“ antippen und oben anschlagen', 'Dann das Resonanzfell unten anschlagen', 'Die App zeigt den Abstand in Halbtönen und das Verhältnis', '„Beide Werte speichern“ sichert beide Fellseiten'] };
-const S_RECO = { art: 'reco', title: 'Tuning-Empfehlung', text: 'Beispiel: Du speicherst zuerst das Standtom mit 98 Hz.',
-  steps: ['Nach dem Speichern erscheinen passende Töne für alle anderen Trommeln', 'Mit Setliste und Tonarten passen die Vorschläge zu den Songs', 'Balken: rot ist tief, weiß ist hoch', '„Als Zielwerte übernehmen“ und dann darauf stimmen'] };
-const S_PHOTO = { art: 'kit', title: 'Kit-Foto', text: 'Beispiel: Foto von oben mit fünf zugeordneten Trommeln.',
-  steps: ['„Foto aufnehmen“ oder „Aus Galerie wählen“', 'Im Foto auf eine Trommel tippen und auswählen, welche es ist', 'Kürzel und Farbe zeigen die Trommel und ihre Tonhöhe', 'Später öffnet ein Tipp auf die Trommel direkt den Tuner'] };
-const HELP = {
-  mode: [{ art: { k: 'cards', items: ['Live', 'Studio'] }, title: 'Live oder Studio', text: 'Hier wählst du, ob es um Konzerte oder Aufnahmen geht.',
-    steps: ['„Live“ für Touren, Festivals und TV-Shows', '„Studio“ für Alben und Sessions, zusätzlich mit Recording Recall und Mischpult', 'Danach wählst oder legst du die Tour bzw. Produktion an'] }],
-  projects: [
-    { art: { k: 'cards', items: ['Sommertour 25', 'Festivals 26'], menu: true }, title: 'Tour wählen oder anlegen', text: 'Beispiel: „Sommertour 25“ neu anlegen.',
-      steps: ['Unter „Neue Tour“ den Namen eintragen und „Speichern und weiter“ tippen', 'Eine vorhandene Tour antippen, um weiterzuarbeiten', 'Alles, was du danach einträgst, gehört zu dieser Tour'] },
-    { art: 'share', title: 'Bearbeiten und teilen', text: 'Beispiel: Tour an den Gitarristen schicken.',
-      steps: ['Drei Striche ≡: „Gespeicherte Infos teilen“, Umbenennen oder Löschen', 'Teilen per AirDrop, Nachrichten oder als Datei', 'Geschickte Touren übernimmst du mit „Geteilte Produktion übernehmen“', 'Gedrückt halten und ziehen ändert die Reihenfolge'] }],
-  inst: [{ art: { k: 'cards', items: ['Drums', 'Bass', 'Gitarre'] }, title: 'Instrument wählen', text: 'Jedes Instrument hat eigene Funktionen, teilt aber Setlisten und Song-Infos.',
-    steps: ['„Drums“: Tuning, Drumkit, Kit-Foto, Setlisten', '„Bass“ und „Gitarre“: Stimmgerät, Stimmungen mit Kapo, Instrumente, Setlisten', 'Im Studio kommen Recording Recall und Mischpult dazu'] }],
-  home: [{ art: { k: 'tiles', items: ['Quick Tuning', 'Tuner', 'Drumkit', 'Setlisten'] }, title: 'Drums-Übersicht', text: 'Von hier erreichst du alle Drum-Funktionen.',
-    steps: ['„Quick Tuning“: schnell stimmen ohne gespeichertes Kit', '„Tuner“: gespeicherte Trommeln stimmen, mit Lugs und Resonanz', '„Drumkit“: Trommeln, Felle, Mikrofone und Kit-Foto', '„Setlisten“: Songs mit Tonart, BPM und Akkorden. Im Studio zusätzlich Recording Recall und Mischpult', 'Unten in der Leiste oder per Wischen wechselst du direkt zwischen den Bereichen'] }],
-  ghome: [{ art: { k: 'tiles', items: ['Stimmgerät', 'Stimmungen', 'Instrumente', 'Setlisten'] }, title: 'Übersicht Bass und Gitarre', text: 'Alle Funktionen für dein Instrument.',
-    steps: ['„Stimmgerät“: Saiten stimmen, automatisch oder gezielt', '„Stimmungen und Kapo“: eigene Stimmungen aus Vorlagen', '„Instrumente“: Modell, Saiten, Amp und Mikrofone', '„Setlisten“: Stimmung und Kapo pro Song'] }],
-  quick: [S_QUICK, S_FUND],
-  tuner: [S_TUNER, S_LUGS, S_RESO, S_RECO],
-  kit: [{ art: { k: 'cards', items: ['Bassdrum  22 × 18″', 'Snare  14 × 5,5″', 'Tom 1  10 × 8″'] }, title: 'Drumkit anlegen', text: 'Beispiel: Standard-Kit mit fünf Trommeln.',
-      steps: ['Oben Art, Datum, Ort und Serie eintragen. Die Serie gilt für alle Trommeln', '„+ Bassdrum“, „+ Snare“ usw. oder „Standard-Set“ tippen', 'Trommel antippen zum Aufklappen: Größe, Felle, Mikrofon und Pitch', 'Felle und Mikrofone wählst du erst nach Hersteller, dann nach Typ'] },
-    S_PHOTO, S_RECO],
-  setlists: [{ art: 'sets', title: 'Setlisten', text: 'Beispiel: PDF-Setliste vom Tourmanager.',
-    steps: ['„Neue Setliste anlegen“ oder „Aus Datei importieren“ (PDF, Word, Text)', 'Erkannte Songs mit Tonart und BPM prüfen und übernehmen', 'Setlisten gelten automatisch für Drums, Bass und Gitarre dieser Tour'] }],
-  setlist: [
-    { art: 'song', title: 'Songs bearbeiten', text: 'Beispiel: „Westerland“ bekommt Tonart und BPM.',
-      steps: ['Song antippen zum Aufklappen', 'Titel, BPM, Notiz und Tonart eintragen', 'Gedrückt halten und ziehen ändert die Reihenfolge', '„Songs aus Datei hinzufügen“ hängt weitere Songs an', '„Großansicht“ zeigt die Liste groß für die Bühne'] },
-    { art: 'chords', title: 'Akkorde und Struktur', text: 'Beispiel: Songteile von „Westerland“.',
-      steps: ['Im Song „Akkorde und Struktur“ tippen, Gitarre oder Bass wählen', '„Abrufen“ holt Tonart, Tempo und Songteile mit Akkorden (in claude.ai)', 'Mit einem Tipp Tonart und BPM übernehmen', 'Bei Drums: „Tom-Tuning“ zeigt passende Tom-Töne für den Song'] }],
-  chain: [
-    { art: 'studio', title: 'Recording Recall', text: 'Beispiel: Snare-Kanal mit Neve 1073 und 1176.',
-      steps: ['„Kanäle aus Drumkit übernehmen“ legt einen Kanal pro Trommel an', 'Kanal antippen, „Stufe hinzufügen“: Preamp, EQ, Kompressor, Hall …', 'Gerät oder Plugin aus der Liste wählen und Einstellungen eintragen', 'Unten Busse und Effekte anlegen, z. B. Drum-Bus oder Hall-Send'] },
-    { art: 'switches', title: 'Schalter am Preamp', text: 'Phantomspeisung und Polarität setzt du per Schalter.',
-      steps: ['Roter DIP-Schalter: 48 V an oder aus', 'Metall-Kippschalter: Polarität normal oder gedreht', '„Als Mischpult anzeigen“ zeigt alle Kanäle als Kanalzüge'] }],
-  console: [{ art: 'hold', title: 'Mischpult', text: 'Beispiel: Snare-Fader auf −4 dB.',
-    steps: ['Finger kurz still auf Fader oder Pan-Regler halten, bis er aufleuchtet', 'Dann nach oben oder unten ziehen. Normales Wischen scrollt nur', 'Doppeltipp setzt auf 0 dB bzw. Mitte zurück', 'M und S schalten stumm bzw. solo, ein Tipp auf den Namen öffnet die Signalkette', 'Kappen: weiß Kanal, gelb Bus, blau Send, rot Master'] }],
-  tunings: [{ art: 'tunings', title: 'Stimmungen und Kapo', text: 'Beispiel: Drop D mit Kapo im 2. Bund.',
-    steps: ['„Neue Stimmung aus Vorlage“ wählen, z. B. „Drop D“', 'Jede Saite einzeln anpassen, Saiten hinzufügen oder entfernen', 'Kapo und Kammerton A4 einstellen', '„Im Stimmgerät öffnen“ stimmt direkt auf diese Stimmung'] }],
-  ginsts: [{ art: 'inst', title: 'Instrumente', text: 'Beispiel: Fender Precision Bass.',
-    steps: ['„Instrument anlegen“, Hersteller und Modell wählen', 'Saiten und Saitenstärke wählen', 'Standard-Stimmung, Amp, Mikrofon am Amp und DI-Box eintragen'] }],
-  gtuner: [{ art: 'strings', title: 'Stimmgerät', text: 'Beispiel: Gitarre in Standard-Stimmung.',
-    steps: ['Oben die Stimmung wählen, eigene oder Vorlage', '„Messung starten“ und eine Saite anschlagen', 'Die App erkennt die Saite automatisch, oder du tippst eine Saite gezielt an', 'Grün heißt: Saite stimmt (±3 Cent)'] }]
-};
-HELP.tuning = HELP.tunings; HELP.ginst = HELP.ginsts; HELP.kits = HELP.kit; HELP.chains = HELP.chain;
-let onbTimer = null;
-function onbArt(kind) {
-  const isObj = kind && typeof kind === 'object';
-  const box = h('div', { class: 'onb-art onb-' + (isObj ? kind.k : kind) });
-  if (isObj && kind.k === 'cards') box.append(h('div', { class: 'onb-cards' }, kind.items.map((t, i) => h('div', { class: 'onb-cardi', style: `--d:${i * .2}s` }, h('b', {}, t), h('span', { class: 'onb-chev' }, kind.menu ? '≡' : '›')))));
-  else if (isObj && kind.k === 'tiles') box.append(h('div', { class: 'onb-tiles' }, kind.items.map((t, i) => h('div', { class: 'onb-tile', style: `--d:${i * .15}s` }, t))));
-  else if (kind === 'logo') box.append(logoSvg('onb-logo', 9));
-  else if (kind === 'helpq') box.append(h('div', { class: 'onb-hdr' }, h('span', { class: 'onb-hdr-t' }, 'Tuner'), h('span', { class: 'onb-qb' }, h('span', { class: 'help-q' }, '?')), h('span', { class: 'onb-hb' }, logoSvg('', 30))));
-  else if (kind === 'flow') box.append(h('div', { class: 'onb-flow' }, ['Die Ärzte', 'Live', 'Sommertour 25', 'Drums'].map((t, i) => [i ? h('span', { class: 'onb-arrow', style: `--d:${i * .35 + .15}s` }, '›') : null, h('span', { class: 'onb-chip', style: `--d:${i * .35}s` }, t)])));
-  else if (kind === 'quick') {
-    const vals = [146.8, 147.1, 144.2, 147.0, 146.6, 150.9, 146.9, 147.2]; let k = 0;
-    const draw = () => { const v = vals.map((x, i) => i < k ? x : null); box.replaceChildren(drumGraphic({ n: 8, size: 14, vals: v, sel: k % 8, main: v[0] ? '146,8' : '–', sub: v[0] ? 'Referenz in Hz' : 'Schraube 1 anschlagen' })); };
-    draw(); onbTimer = setInterval(() => { k = k >= 8 ? 0 : k + 1; draw(); }, 750);
-  }
-  else if (kind === 'fund') box.append(drumGraphic({ n: 8, size: 16, vals: [], main: '110,0', sub: 'Grundton in Hz' }), h('div', { class: 'onb-meter' }, h('i', { class: 'onb-zone' }), h('i', { class: 'onb-needle' })));
-  else if (kind === 'tuner') box.append(h('div', { class: 'onb-tlabel' }, 'Tom 1, Ziel 146,8 Hz'), h('div', { class: 'onb-hz' }, '146,8', h('small', {}, 'Hz')), h('div', { class: 'onb-meter' }, h('i', { class: 'onb-zone' }), h('i', { class: 'onb-needle' })), h('div', { class: 'onb-ok' }, 'Stimmt'));
-  else if (kind === 'reso') box.append(h('div', { class: 'onb-slots' }, h('div', { class: 'onb-slot' }, h('span', {}, 'Schlagfell'), h('b', {}, '146,8')), h('div', { class: 'onb-slot on' }, h('span', {}, 'Resonanzfell'), h('b', {}, '155,6'))), h('div', { class: 'onb-tlabel', style: 'margin-top:12px' }, 'Resonanzfell 1,0 Halbtöne höher (Verhältnis 1,06)'));
-  else if (kind === 'reco') box.append(h('div', { class: 'onb-list' }, [['Tom 1', 'F3', '174,6 Hz', .78], ['Tom 2', 'D3', '146,8 Hz', .66], ['Standtom', 'A2', '110,0 Hz', .5], ['Bassdrum', 'A1', '55,0 Hz', .18]].map(([n, note, hz, w], i) => h('div', { class: 'onb-row onb-rec', style: `--d:${i * .25}s` }, h('b', {}, n), h('span', {}, note), h('span', {}, hz), h('i', { class: 'onb-bar' }, h('em', { style: `--w:${w}` }))))));
-  else if (kind === 'kit') box.append((() => {
-    const sv = svg('svg', { viewBox: '0 0 300 200', class: 'onb-photo' });
+let demoTimers = [], onbTimer = null;
+function clearDemo() { demoTimers.forEach(clearTimeout); demoTimers = []; clearInterval(onbTimer); }
+const later = (fn, ms) => demoTimers.push(setTimeout(fn, ms));
+const $q = (root, sel) => root.querySelector(sel), $qa = (root, sel) => [...root.querySelectorAll(sel)];
+const show = (root, sel) => $qa(root, sel).forEach(e => e.classList.add('show'));
+const hide = (root, sel) => $qa(root, sel).forEach(e => e.classList.remove('show'));
+const hlOnly = (root, sel, idx) => $qa(root, sel).forEach((e, i) => e.classList.toggle('hl', Array.isArray(idx) ? idx.includes(i) : i === idx));
+const tapEl = el => { if (!el) return; el.classList.remove('tap'); void el.offsetWidth; el.classList.add('tap'); };
+const mc = (title, o = {}) => h('div', { class: 'dm-c ' + (o.cls || ''), style: o.style || null }, o.ini ? h('span', { class: 'dm-ini' }, o.ini) : null, h('div', { class: 'dm-ct' }, h('b', {}, title), o.sub ? h('span', {}, o.sub) : null), o.right !== false ? h('span', { class: 'dm-more' }, o.right || '›') : null);
+const chip = (t, cls = '') => h('span', { class: 'dm-chip ' + cls }, t);
+
+/* ---------- mock builders ---------- */
+const ARTS = {
+  welcome: () => h('div', { class: 'dm-wrap center' }, logoSvg('onb-logo small', 9), h('div', { class: 'dm-row' }, chip('Drums', 'dx'), chip('Bass und Gitarre', 'dx'), chip('Live und Studio', 'dx'))),
+  flow: () => h('div', { class: 'dm-wrap center' }, h('div', { class: 'dm-flow' }, ['Die Ärzte', 'Live', 'Sommertour 25', 'Drums'].map((t, i) => [i ? h('span', { class: 'dm-arrow dx' }, '›') : null, chip(t, 'dx' + (i === 3 ? ' pri' : ''))]))),
+  artists: () => h('div', { class: 'dm-wrap' },
+    h('div', { class: 'dm-stack' }, mc('Die Ärzte', { ini: 'DÄ', right: '≡', cls: 'dm-s0' }), mc('Kraftklub', { ini: 'K', right: '≡', cls: 'dm-s1 dx' })),
+    h('div', { class: 'dm-menu' }, ['Logo hochladen', 'Schriftzug', 'Umbenennen', 'Löschen'].map(t => h('span', {}, t))),
+    h('div', { class: 'dm-row' }, chip('Hell', 'dm-light'), chip('Dunkel', 'dm-dark pri'))),
+  helpq: () => h('div', { class: 'dm-wrap' },
+    h('div', { class: 'onb-hdr' }, h('span', { class: 'onb-hdr-t' }, 'Tuner'), h('span', { class: 'onb-qb' }, h('span', { class: 'help-q' }, '?')), h('span', { class: 'onb-hb' }, logoSvg('', 30))),
+    h('div', { class: 'dm-pop dx' }, h('b', {}, 'Pitch stimmen'), h('span', {}, 'Trommel wählen, anschlagen, bis „Stimmt“ erscheint')),
+    h('div', { class: 'dm-pop dm-home dx' }, h('b', {}, 'Künstler wählen'), h('span', {}, 'Die Ärzte, Kraftklub'))),
+  mode: () => h('div', { class: 'dm-wrap' },
+    h('div', { class: 'dm-c dm-cl' }, h('div', { class: 'dm-ct' }, h('b', {}, 'Live'), h('ul', { class: 'onb-sub' }, ['Tuner und Quick Tuning', 'Drumkit mit Fellen, Mikrofonen und Foto', 'Instrumente, Stimmungen und Kapo', 'Setlisten mit Tonart und Akkorden', 'Infos mit der Band teilen'].map(t => h('li', {}, t)))), h('span', { class: 'dm-more' }, '›')),
+    h('div', { class: 'dm-c dm-cl' }, h('div', { class: 'dm-ct' }, h('b', {}, 'Studio'), h('ul', { class: 'onb-sub' }, ['Tuner und Quick Tuning', 'Drumkit mit Fellen, Mikrofonen und Foto', 'Instrumente, Stimmungen und Kapo', 'Setlisten', 'Recording Recall und Mischpult'].map(t => h('li', {}, t)))), h('span', { class: 'dm-more' }, '›')),
+    h('div', { class: 'dm-row' }, chip('Tour oder Produktion wählen', 'dx pri'))),
+  projects: () => h('div', { class: 'dm-wrap' },
+    h('div', { class: 'dm-input' }, h('span', { class: 'dm-typed' }, ''), h('i', { class: 'dm-caret' })),
+    h('div', { class: 'dm-stack' }, mc('Festivals 26', { right: '≡', cls: 'dm-s0' }), mc('Sommertour 25', { right: '≡', cls: 'dm-s1 dx' })),
+    h('div', { class: 'dm-menu' }, ['Gespeicherte Infos teilen', 'Umbenennen', 'Löschen'].map(t => h('span', {}, t)))),
+  inst: () => h('div', { class: 'dm-wrap' }, mc('Drums'), mc('Bass'), mc('Gitarre'), h('div', { class: 'dm-row' }, chip('Setlisten für alle', 'dx pri'))),
+  tiles4: names => h('div', { class: 'dm-wrap' }, h('div', { class: 'onb-tilegrid' }, names.map(t => h('div', { class: 'onb-tile dm-t' }, t)))),
+  quick: () => { const b = h('div', { class: 'dm-wrap center dm-drumbox' }); b._vals = Array(8).fill(null); b._draw = () => b.replaceChildren(drumGraphic({ n: 8, size: 14, vals: b._vals, sel: b._sel ?? 0, main: b._vals[0] ? fmtHz(b._vals[0]) : '–', sub: b._vals[0] ? 'Referenz in Hz' : 'Schraube 1 anschlagen' })); b._draw(); return b; },
+  fund: () => h('div', { class: 'dm-wrap center' }, h('div', { class: 'dm-row' }, chip('Schrauben abgleichen', 'dm-m1 pri'), chip('Grundton messen', 'dm-m2')), h('div', { class: 'dm-hz' }, h('span', { class: 'dm-hzv' }, '–'), h('small', {}, 'Hz')), h('div', { class: 'onb-meter' }, h('i', { class: 'onb-zone' }), h('i', { class: 'dm-needle' })), h('div', { class: 'dm-status' }, '')),
+  tuner: () => h('div', { class: 'dm-wrap center' }, chip('Tom 1, Ziel 146,8 Hz', 'dx'), h('div', { class: 'dm-hz' }, h('span', { class: 'dm-hzv' }, '–'), h('small', {}, 'Hz')), h('div', { class: 'onb-meter' }, h('i', { class: 'onb-zone' }), h('i', { class: 'dm-needle' })), h('div', { class: 'dm-status' }, ''), chip('146,8 Hz gespeichert', 'dx dm-toast')),
+  reso: () => h('div', { class: 'dm-wrap center' }, h('div', { class: 'onb-slots' }, h('div', { class: 'onb-slot dm-sl0' }, h('span', {}, 'Schlagfell'), h('b', {}, '–')), h('div', { class: 'onb-slot dm-sl1' }, h('span', {}, 'Resonanzfell'), h('b', {}, '–'))), chip('1,0 Halbtöne höher', 'dx'), chip('Beide Werte gespeichert', 'dx dm-toast')),
+  reco: () => h('div', { class: 'dm-wrap' }, chip('Setliste: E-Dur, A-Dur', 'dx dm-key'), h('div', { class: 'onb-list' }, [['Standtom', 'A2', '110,0 Hz', .5], ['Tom 2', 'D3', '146,8 Hz', .66], ['Tom 1', 'F3', '174,6 Hz', .78], ['Bassdrum', 'A1', '55,0 Hz', .18]].map(([n, note, hz, w], i) => h('div', { class: 'onb-row onb-rec dm-r dx' + (i === 0 ? ' dm-r0' : '') }, h('b', {}, n), h('span', {}, note), h('span', {}, hz), h('i', { class: 'onb-bar' }, h('em', { style: `--w:${w};--d:0s` })))))
+    , h('div', { class: 'dm-row' }, chip('Als Zielwerte übernehmen', 'dm-apply pri'))),
+  kit: () => h('div', { class: 'dm-wrap' },
+    h('div', { class: 'dm-row' }, chip('Serie: Sonor SQ2', 'dx dm-series')),
+    mc('Bassdrum', { sub: '22 × 18″', cls: 'dx dm-d0' }), h('div', { class: 'dm-exp' }, h('span', {}, 'Schlagfell'), chip('Remo › Emperor Clear', 'dx dm-head')),
+    mc('Snare', { sub: '14 × 5,5″', cls: 'dx dm-d1' }), mc('Tom 1', { sub: '10 × 8″', cls: 'dx dm-d2' })),
+  photo: () => h('div', { class: 'dm-wrap center' }, (() => {
+    const sv = svg('svg', { viewBox: '0 0 300 200', class: 'onb-photo dm-photo' });
     sv.append(svg('rect', { x: 0, y: 0, width: 300, height: 200, rx: 14, fill: '#2a241f' }));
     [[150, 150, 52, 'BD'], [82, 105, 34, 'SN'], [138, 72, 26, 'T1'], [190, 70, 28, 'T2'], [230, 128, 38, 'FT']].forEach(([x, y, r, l], i) => {
       sv.append(svg('circle', { cx: x, cy: y, r, fill: '#e6e0d2', stroke: '#8f9399', 'stroke-width': 5 }));
-      sv.append(svg('g', { class: 'onb-dot', style: `--d:${.3 + i * .35}s` }, svg('circle', { cx: x, cy: y, r: 11, fill: i === 2 ? '#ffffff' : '#c96a5a', stroke: '#000', 'stroke-opacity': .5, 'stroke-width': 2 }), svg('text', { x, y: y + 4, 'text-anchor': 'middle', 'font-size': 9, 'font-weight': 700, fill: '#111', 'font-family': 'Barlow Condensed, sans-serif' }, l)));
+      sv.append(svg('g', { class: 'dm-dot' + (i === 2 ? ' dm-dot-t1' : '') }, svg('circle', { cx: x, cy: y, r: 11, fill: i === 2 ? '#ffffff' : '#c96a5a', stroke: '#000', 'stroke-opacity': .5, 'stroke-width': 2 }), svg('text', { x, y: y + 4, 'text-anchor': 'middle', 'font-size': 9, 'font-weight': 700, fill: '#111', 'font-family': 'Barlow Condensed, sans-serif' }, l)));
     });
-    return sv;
-  })());
-  else if (kind === 'sets') box.append(h('div', { class: 'onb-file' }, '📄 setliste-sommertour.pdf'), h('div', { class: 'onb-list' }, [['Westerland', 'A-Dur', '128'], ['Junge', 'a-Moll', '96'], ['Schrei nach Liebe', 'E-Dur', '140']].map(([t, k, b], i) => h('div', { class: 'onb-row', style: `--d:${.5 + i * .25}s` }, h('b', {}, `${i + 1}  ${t}`), h('span', {}, k), h('span', {}, b + ' BPM')))));
-  else if (kind === 'song') box.append(h('div', { class: 'onb-card' }, h('div', { class: 'onb-field', style: '--d:0s' }, h('span', {}, '1'), h('b', {}, 'Westerland')), h('div', { class: 'onb-field', style: '--d:.3s' }, h('span', {}, 'BPM'), h('b', {}, '128')), h('div', { class: 'onb-field', style: '--d:.6s' }, h('span', {}, 'Tonart'), h('b', {}, 'A-Dur (A)')), h('div', { class: 'onb-field', style: '--d:.9s' }, h('span', {}, 'Notiz'), h('b', {}, 'Snare wechseln'))));
-  else if (kind === 'chords') box.append(h('div', { class: 'onb-list' }, [['Intro', 'A – D – E'], ['Strophe', 'A – F#m – D – E'], ['Refrain', 'D – E – A'], ['Outro', 'A – D – A']].map(([n, c], i) => h('div', { class: 'onb-row', style: `--d:${i * .25}s` }, h('b', {}, n), h('span', {}, c)))));
-  else if (kind === 'inst') box.append(h('div', { class: 'onb-card' }, [['Instrument', 'Fender Precision Bass'], ['Saiten', 'Ernie Ball Regular Slinky 45–105'], ['Stimmung', 'Drop D (D A D G)'], ['DI-Box', 'Radial J48']].map(([l, v], i) => h('div', { class: 'onb-field', style: `--d:${i * .35}s` }, h('span', {}, l), h('b', {}, v)))));
-  else if (kind === 'tunings') box.append(h('div', { class: 'onb-strings' }, ['D2', 'A2', 'D3', 'G3', 'H3', 'E4'].map((n, i) => h('span', { style: `--d:${i * .25}s` }, n))), h('div', { class: 'capo', style: 'margin-top:14px' }, 'Kapo im 2. Bund'));
-  else if (kind === 'strings') box.append(h('div', { class: 'onb-strings' }, ['E2', 'A2', 'D3', 'G3', 'H3', 'E4'].map((n, i) => h('span', { style: `--d:${i * .35}s` }, n))));
-  else if (kind === 'studio') box.append(h('div', { class: 'onb-chain' }, ['Neve 1073', '1176LN', 'Pultec EQP-1A'].map((t, i) => h('span', { class: 'onb-chip', style: `--d:${i * .3}s` }, t))), h('div', { class: 'onb-faders' }, [['', 0], ['', .3], ['bus', .6], ['send', .9], ['master', 1.2]].map(([c, d]) => h('div', { class: 'onb-fader ' + c, style: `--d:${d}s` }, h('i')))));
-  else if (kind === 'switches') box.append(h('div', { class: 'onb-sw' },
-    h('div', { class: 'dip-wrap' }, h('span', { class: 'dip-tag' }, '48V'), h('span', { class: 'dip onb-dip', role: 'presentation', 'aria-checked': 'true' }, h('span', { class: 'dip-slot' }, h('span', { class: 'dip-knob' }))), h('span', { class: 'dip-state on' }, 'ON')),
-    h('div', { class: 'dip-wrap' }, h('span', { class: 'dip-tag' }, 'Ø'), h('span', { class: 'tgl onb-tgl', role: 'presentation', 'aria-checked': 'true' }, h('span', { class: 'tgl-nut' }), h('span', { class: 'tgl-lever' })), h('span', { class: 'dip-state on' }, 'Ø gedreht'))));
-  else if (kind === 'hold') box.append(h('div', { class: 'onb-faders onb-hold' }, [['', 0], ['armed', 0], ['bus', 0], ['master', 0]].map(([c]) => h('div', { class: 'onb-fader ' + c }, h('i')))), h('div', { class: 'onb-tlabel', style: 'margin-top:12px' }, 'kurz halten, dann ziehen'));
-  else if (kind === 'share') box.append(h('div', { class: 'onb-menu' }, h('div', { class: 'onb-tour' }, h('b', {}, 'Sommertour 25'), h('span', { class: 'onb-lines' }, '≡')), ['Gespeicherte Infos teilen', 'Umbenennen', 'Produktion löschen'].map((t, i) => h('div', { class: 'onb-mi' + (i === 0 ? ' pri' : i === 2 ? ' del' : ''), style: `--d:${.5 + i * .25}s` }, t))), h('div', { class: 'onb-waves' }, h('i'), h('i'), h('i')));
-  return box;
+    return sv; })(), chip('Tom 1: 174,6 Hz, Tuner öffnet', 'dx pri')),
+  sets: () => h('div', { class: 'dm-wrap' }, chip('📄 setliste-sommertour.pdf', 'dx dm-file'), h('div', { class: 'onb-list' }, [['Westerland', 'A-Dur', '128'], ['Junge', 'a-Moll', '96'], ['Schrei nach Liebe', 'E-Dur', '140']].map(([t, k, b], i) => h('div', { class: 'onb-row dm-r dx' }, h('b', {}, `${i + 1}  ${t}`), h('span', {}, k), h('span', {}, b + ' BPM')))), h('div', { class: 'dm-row' }, chip('Drums', 'dx dm-i'), chip('Bass', 'dx dm-i'), chip('Gitarre', 'dx dm-i'))),
+  song: () => h('div', { class: 'dm-wrap' }, h('div', { class: 'dm-stack tall' }, mc('1  Westerland', { cls: 'dm-s0', sub: '' }), mc('2  Junge', { cls: 'dm-s1', sub: 'a-Moll, 96 BPM' })), h('div', { class: 'dm-card2 dx' }, [['Tonart', 'A-Dur (A)'], ['BPM', '128'], ['Notiz', 'Snare wechseln']].map(([l, v]) => h('div', { class: 'onb-field' }, h('span', {}, l), h('b', {}, v))))),
+  chords: () => h('div', { class: 'dm-wrap' }, h('div', { class: 'dm-row' }, chip('Akkorde und Struktur', 'dm-btn'), chip('Tonart A-Dur übernommen', 'dx pri')), h('div', { class: 'onb-list' }, [['Intro', 'A – D – E'], ['Strophe', 'A – F#m – D – E'], ['Refrain', 'D – E – A']].map(([n, c]) => h('div', { class: 'onb-row dm-r dx' }, h('b', {}, n), h('span', {}, c)))), h('div', { class: 'dm-row' }, chip('Tom-Tuning: F3, D3, A2', 'dx'))),
+  chain: () => h('div', { class: 'dm-wrap' }, h('div', { class: 'dm-row' }, ['Kick', 'Snare', 'Tom 1'].map(t => chip(t, 'dx dm-ch'))), h('div', { class: 'dm-flow' }, ['Preamp', 'EQ', 'Kompressor'].map((t, i) => [i ? h('span', { class: 'dm-arrow dx dm-st' }, '›') : null, chip(t, 'dx dm-st')])), chip('Neve 1073, Gain +42 dB', 'dx dm-dev'), chip('Drum-Bus', 'dx dm-bus')),
+  switches: () => h('div', { class: 'dm-wrap center' }, h('div', { class: 'onb-sw' },
+    h('div', { class: 'dip-wrap' }, h('span', { class: 'dip-tag' }, '48V'), h('span', { class: 'dip dm-dip', 'aria-checked': 'false' }, h('span', { class: 'dip-slot' }, h('span', { class: 'dip-knob' }))), h('span', { class: 'dip-state dm-dips' }, 'OFF')),
+    h('div', { class: 'dip-wrap' }, h('span', { class: 'dip-tag' }, 'Ø'), h('span', { class: 'tgl dm-tgl', 'aria-checked': 'false' }, h('span', { class: 'tgl-nut' }), h('span', { class: 'tgl-lever' })), h('span', { class: 'dip-state dm-tgls' }, 'normal'))),
+    h('div', { class: 'onb-faders dm-minif dx' }, ['', '', 'bus', 'master'].map(c => h('div', { class: 'onb-fader ' + c }, h('i'))))),
+  console: () => h('div', { class: 'dm-wrap center' }, h('div', { class: 'onb-faders dm-con' }, ['', 'dm-f1', 'bus', 'master'].map(c => h('div', { class: 'onb-fader ' + c }, h('i')))), h('div', { class: 'dm-row' }, chip('M', 'dm-m'), chip('S', 'dm-s'))),
+  tunings: () => h('div', { class: 'dm-wrap center' }, chip('Drop D', 'dx pri'), h('div', { class: 'onb-strings dm-strs' }, ['E2', 'A2', 'D3', 'G3', 'H3', 'E4'].map(n => h('span', {}, n))), h('div', { class: 'capo dx dm-capo' }, 'Kapo im 2. Bund')),
+  ginst: () => h('div', { class: 'dm-wrap' }, h('div', { class: 'onb-card' }, [['Instrument', 'Fender Precision Bass'], ['Saiten', 'Ernie Ball 45–105'], ['Stimmung', 'Drop D'], ['Amp und DI', 'Ampeg SVT, Radial J48']].map(([l, v]) => h('div', { class: 'onb-field dm-fld' }, h('span', {}, l), h('b', {}, v))))),
+  gtuner: () => h('div', { class: 'dm-wrap center' }, chip('Standard', 'dx'), h('div', { class: 'dm-hz big' }, h('span', { class: 'dm-hzv' }, '–')), h('div', { class: 'onb-meter' }, h('i', { class: 'onb-zone' }), h('i', { class: 'dm-needle' })), h('div', { class: 'onb-strings dm-strs' }, ['E2', 'A2', 'D3', 'G3', 'H3', 'E4'].map(n => h('span', {}, n))))
+};
+const needle = (root, pct, ok) => { const n = $q(root, '.dm-needle'); if (n) { n.style.left = pct + '%'; n.style.background = ok ? '#36c97e' : '#ff5b4f'; } };
+const setTxt = (root, sel, t) => { const e = $q(root, sel); if (e) e.textContent = t; };
+const DEMOS = {
+  welcome: [r => show(r, '.dm-chip:nth-child(1)'), r => show(r, '.dm-chip:nth-child(2)'), r => show(r, '.dm-chip:nth-child(3)')],
+  flow: [0, 1, 2, 3].map(k => r => { const ch = $qa(r, '.dm-flow > .dm-chip'), ar = $qa(r, '.dm-flow > .dm-arrow'); ch[k]?.classList.add('show'); if (k) ar[k - 1]?.classList.add('show'); }),
+  artists: [
+    r => show(r, '.dm-s1'),
+    r => { tapEl($q(r, '.dm-s0 .dm-more')); $q(r, '.dm-menu').classList.add('show'); later(() => { $q(r, '.dm-menu').classList.remove('show'); $q(r, '.dm-s0 .dm-ini').classList.add('logo'); }, 1300); },
+    r => $q(r, '.dm-stack').classList.add('swap'),
+    r => { const l = $q(r, '.dm-light'), d = $q(r, '.dm-dark'); later(() => { d.classList.remove('pri'); l.classList.add('pri'); r.closest('.onb-slide')?.classList.add('lightdemo'); }, 400); later(() => { l.classList.remove('pri'); d.classList.add('pri'); r.closest('.onb-slide')?.classList.remove('lightdemo'); }, 2000); }],
+  helpq: [
+    r => tapEl($q(r, '.onb-qb')),
+    r => show(r, '.dm-pop:not(.dm-home)'),
+    r => { hide(r, '.dm-pop:not(.dm-home)'); tapEl($q(r, '.onb-hb')); later(() => { setTxt(r, '.onb-hdr-t', 'Tech Assistent'); show(r, '.dm-home'); }, 700); }],
+  mode: [r => hlOnly(r, '.dm-c', 0), r => hlOnly(r, '.dm-c', 1), r => { hlOnly(r, '.dm-c', -1); show(r, '.dm-chip'); }],
+  projects: [
+    r => { const t = 'Sommertour 25'; [...t].forEach((c, k) => later(() => setTxt(r, '.dm-typed', t.slice(0, k + 1)), k * 60)); later(() => show(r, '.dm-s1'), t.length * 60 + 300); },
+    r => { tapEl($q(r, '.dm-s1')); },
+    r => { tapEl($q(r, '.dm-s1 .dm-more')); $q(r, '.dm-menu').classList.add('show', 'low'); later(() => $q(r, '.dm-menu').classList.remove('show'), 1600); },
+    r => $q(r, '.dm-stack').classList.add('swap')],
+  inst: [r => hlOnly(r, '.dm-c', 0), r => hlOnly(r, '.dm-c', [1, 2]), r => { hlOnly(r, '.dm-c', [0, 1, 2]); show(r, '.dm-chip'); }],
+  tiles: [0, 1, 2, 3].map(k => r => hlOnly(r, '.dm-t', k)),
+  quick: [
+    r => { r._sel = 0; r._draw(); r.classList.add('pop'); },
+    r => { r._vals[0] = 146.8; r._sel = 1; r._draw(); },
+    r => { const v = [146.8, 147.1, 140.2, 147.0, 146.6, 152.9, 146.9, 147.2]; for (let k = 1; k < 8; k++) later(() => { r._vals[k] = v[k]; r._sel = (k + 1) % 8; r._draw(); }, (k - 1) * 230); },
+    r => { r._vals[2] = 146.6; r._vals[5] = 147.0; r._sel = 2; r._draw(); later(() => { r._sel = 5; r._draw(); }, 600); }],
+  fund: [
+    r => { $q(r, '.dm-m1').classList.remove('pri'); $q(r, '.dm-m2').classList.add('pri'); },
+    r => { setTxt(r, '.dm-hzv', '106,2'); needle(r, 22, false); setTxt(r, '.dm-status', 'Höher stimmen'); },
+    r => { setTxt(r, '.dm-hzv', '110,0'); needle(r, 50, true); setTxt(r, '.dm-status', 'Stimmt'); $q(r, '.dm-status').classList.add('ok'); }],
+  tuner: [
+    r => show(r, '.dm-chip:not(.dm-toast)'),
+    r => { setTxt(r, '.dm-hzv', '141,3'); needle(r, 18, false); setTxt(r, '.dm-status', 'Höher stimmen'); },
+    r => { later(() => { setTxt(r, '.dm-hzv', '145,1'); needle(r, 38, false); }, 400); later(() => { setTxt(r, '.dm-hzv', '146,8'); needle(r, 50, true); setTxt(r, '.dm-status', 'Stimmt'); $q(r, '.dm-status').classList.add('ok'); }, 1100); },
+    r => show(r, '.dm-toast')],
+  reso: [r => { setTxt(r, '.dm-sl0 b', '146,8'); $q(r, '.dm-sl0').classList.add('on'); }, r => { setTxt(r, '.dm-sl1 b', '155,6'); $q(r, '.dm-sl0').classList.remove('on'); $q(r, '.dm-sl1').classList.add('on'); }, r => show(r, '.dm-chip:not(.dm-toast)'), r => show(r, '.dm-toast')],
+  reco: [r => show(r, '.dm-r0'), r => $qa(r, '.dm-r:not(.dm-r0)').forEach((e, k) => later(() => e.classList.add('show'), k * 250)), r => show(r, '.dm-key'), r => tapEl($q(r, '.dm-apply'))],
+  kit: [
+    r => ['.dm-d0', '.dm-d1', '.dm-d2'].forEach((s, k) => later(() => show(r, s), k * 250)),
+    r => { tapEl($q(r, '.dm-d0')); $q(r, '.dm-exp').classList.add('open'); },
+    r => show(r, '.dm-head'),
+    r => { show(r, '.dm-series'); $qa(r, '.dm-c .dm-ct span').forEach(e => later(() => { e.dataset.o = e.dataset.o || e.textContent; e.textContent = e.dataset.o + ', Sonor SQ2'; }, 500)); }],
+  photo: [r => $q(r, '.dm-photo').classList.add('in'), r => $qa(r, '.dm-dot').forEach((e, k) => later(() => e.classList.add('show'), k * 300)), r => { $q(r, '.dm-dot-t1').classList.add('ping'); show(r, '.dm-chip'); }],
+  sets: [r => show(r, '.dm-file'), r => $qa(r, '.dm-r').forEach((e, k) => later(() => e.classList.add('show'), k * 300)), r => $qa(r, '.dm-i').forEach((e, k) => later(() => e.classList.add('show'), k * 200))],
+  song: [r => { tapEl($q(r, '.dm-s0')); show(r, '.dm-card2'); }, r => { setTxt(r, '.dm-s0 .dm-ct span', 'A-Dur, 128 BPM'); hide(r, '.dm-card2'); }, r => $q(r, '.dm-stack').classList.add('swap')],
+  chords: [r => tapEl($q(r, '.dm-btn')), r => $qa(r, '.dm-r').forEach((e, k) => later(() => e.classList.add('show'), k * 300)), r => show(r, '.dm-row:first-child .dm-chip.dx'), r => show(r, '.dm-row:last-child .dm-chip')],
+  chain: [r => $qa(r, '.dm-ch').forEach((e, k) => later(() => e.classList.add('show'), k * 200)), r => $qa(r, '.dm-st').forEach((e, k) => later(() => e.classList.add('show'), k * 180)), r => show(r, '.dm-dev'), r => show(r, '.dm-bus')],
+  switches: [r => { $q(r, '.dm-dip').setAttribute('aria-checked', 'true'); setTxt(r, '.dm-dips', 'ON'); $q(r, '.dm-dips').classList.add('on'); }, r => { $q(r, '.dm-tgl').setAttribute('aria-checked', 'true'); setTxt(r, '.dm-tgls', 'Ø gedreht'); $q(r, '.dm-tgls').classList.add('on'); }, r => show(r, '.dm-minif')],
+  console: [
+    r => $q(r, '.dm-f1').classList.add('armed'),
+    r => { $q(r, '.dm-f1 i').style.top = '62%'; },
+    r => { tapEl($q(r, '.dm-f1')); later(() => { $q(r, '.dm-f1 i').style.top = '40%'; $q(r, '.dm-f1').classList.remove('armed'); }, 400); },
+    r => { $q(r, '.dm-m').classList.add('red'); later(() => { $q(r, '.dm-m').classList.remove('red'); $q(r, '.dm-s').classList.add('gold'); }, 900); }],
+  tunings: [r => { show(r, '.dm-chip'); later(() => { const s = $q(r, '.dm-strs span'); s.textContent = 'D2'; s.classList.add('chg'); }, 300); }, r => { const s = $qa(r, '.dm-strs span')[4]; s.textContent = 'A3'; s.classList.add('chg'); }, r => show(r, '.dm-capo'), r => $qa(r, '.dm-strs span').forEach((e, k) => later(() => e.classList.add('ok'), k * 200))],
+  ginst: [0, 1, 2].map(k => r => { const f = $qa(r, '.dm-fld'); (k === 2 ? f.slice(2) : [f[k]]).forEach(e => e.classList.add('show')); }),
+  gtuner: [r => show(r, '.dm-chip'), r => { setTxt(r, '.dm-hzv', 'A2'); needle(r, 30, false); }, r => $qa(r, '.dm-strs span')[1].classList.add('near'), r => { needle(r, 50, true); const s = $qa(r, '.dm-strs span')[1]; s.classList.remove('near'); s.classList.add('ok'); }]
+};
+const SL = (art, demo, title, text, steps, extra = {}) => ({ art, demo, title, text, steps, ...extra });
+const START_SLIDES = [
+  SL('welcome', 'welcome', 'Willkommen beim Tech Assistent', 'Dein Werkzeug für Musiker, Backliner und Toningenieure, live und im Studio.', ['Drums stimmen und Kits speichern', 'Bass und Gitarre stimmen', 'Setlisten, Recording Recall und Mischpult']),
+  SL('flow', 'flow', 'So ist die App aufgebaut', 'Alles hängt an einer Tour oder Produktion und gilt für alle Instrumente.', ['Künstler anlegen', 'Live oder Studio wählen', 'Tour benennen', 'Instrument wählen']),
+  SL('artists', 'artists', 'Künstler verwalten', 'Künstler anlegen, mit Logo versehen und sortieren.', ['„Künstler hinzufügen“', '≡: Logo, Schriftzug, Umbenennen, Löschen', 'Gedrückt halten und ziehen: sortieren', 'Design: Hell oder Dunkel']),
+  SL('helpq', 'helpq', 'Hilfe auf jeder Seite', 'Auf jeder weiteren Seite findest du oben ein Fragezeichen.', ['Fragezeichen oben rechts antippen', 'Die aktuelle Seite wird erklärt', 'Logo oben rechts: zurück zur Startseite'])
+];
+const HELP = {
+  mode: [SL('mode', 'mode', 'Live oder Studio', 'Wähle, ob es um Konzerte oder Aufnahmen geht.', ['Live: Konzerte, Touren, TV', 'Studio: Aufnahmen mit Recall und Mischpult', 'Danach Tour oder Produktion wählen'])],
+  projects: [SL('projects', 'projects', 'Tour wählen oder anlegen', 'Alles, was du danach einträgst, gehört zu dieser Tour.', ['Neue Tour benennen und speichern', 'Tour antippen zum Öffnen', '≡: Teilen, Umbenennen, Löschen', 'Gedrückt halten und ziehen: sortieren'])],
+  inst: [SL('inst', 'inst', 'Instrument wählen', 'Jedes Instrument hat eigene Funktionen.', ['Drums: Tuning, Kit, Setlisten', 'Bass und Gitarre: Stimmgerät, Stimmungen, Instrumente', 'Setlisten und Song-Infos gelten für alle'])],
+  home: [SL(['tiles4', ['Quick Tuning', 'Tuner', 'Drumkit', 'Setlisten']], 'tiles', 'Drums-Übersicht', 'Alle Drum-Funktionen auf einen Blick.', ['Quick Tuning: schnell stimmen', 'Tuner: gespeicherte Trommeln', 'Drumkit: Trommeln, Felle, Foto', 'Setlisten: Songs mit Tonart'])],
+  ghome: [SL(['tiles4', ['Stimmgerät', 'Stimmungen', 'Instrumente', 'Setlisten']], 'tiles', 'Bass und Gitarre', 'Alle Funktionen für dein Instrument.', ['Stimmgerät: Saiten stimmen', 'Stimmungen: Vorlagen und Kapo', 'Instrumente: Modell, Saiten, Amp', 'Setlisten: Stimmung pro Song'])],
+  quick: [
+    SL('quick', 'quick', 'Stimmschrauben abgleichen', 'Beispiel: 14″-Snare mit 8 Schrauben.', ['Größe und Schrauben wählen', 'Schraube 1 anschlagen: Referenz', 'Restliche Schrauben anschlagen', 'Rot nachstimmen, grün passt']),
+    SL('fund', 'fund', 'Grundton messen', 'Beispiel: Standtom auf 110 Hz.', ['Messart „Grundton messen“', 'In der Mitte anschlagen', 'Nachstimmen bis „Stimmt“'])],
+  tuner: [
+    SL('tuner', 'tuner', 'Pitch stimmen', 'Beispiel: Tom 1 auf 146,8 Hz.', ['Trommel wählen', 'Mikrofon starten, anschlagen', 'Nachstimmen bis „Stimmt“', 'Wert speichern']),
+    SL('quick', 'quick', 'Lugs abgleichen', 'Im Reiter „Lugs“ vergleichst du die Schrauben.', ['Anzahl und Reihenfolge wählen', 'Schraube 1 anschlagen: Referenz', 'Weitere Schrauben anschlagen', 'Rot nachstimmen, grün passt']),
+    SL('reso', 'reso', 'Resonanzfell', 'Im Reiter „Resonanz“ vergleichst du beide Felle.', ['Schlagfell anschlagen', 'Resonanzfell anschlagen', 'Abstand in Halbtönen ablesen', 'Beide Werte speichern']),
+    SL('reco', 'reco', 'Tuning-Empfehlung', 'Nach dem Speichern der ersten Trommel kommen Vorschläge.', ['Erste Trommel speichern', 'Vorschläge für alle Trommeln', 'Passend zu den Tonarten der Setliste', 'Als Zielwerte übernehmen'])],
+  kit: [
+    SL('kit', 'kit', 'Drumkit anlegen', 'Trommeln mit Größe, Fellen und Mikrofonen.', ['Trommeln hinzufügen', 'Antippen zum Aufklappen', 'Felle: erst Hersteller, dann Typ', 'Serie oben gilt für alle']),
+    SL('photo', 'photo', 'Kit-Foto', 'Foto von oben, Trommeln antippen und zuordnen.', ['Foto aufnehmen', 'Trommeln antippen und zuordnen', 'Antippen öffnet den Tuner']),
+    SL('reco', 'reco', 'Tuning-Empfehlung', 'Passende Töne für das ganze Kit.', ['Erste Trommel speichern', 'Vorschläge für alle Trommeln', 'Passend zur Setliste', 'Als Zielwerte übernehmen'])],
+  setlists: [SL('sets', 'sets', 'Setlisten', 'Setlisten anlegen oder aus Dateien übernehmen.', ['PDF, Word oder Text importieren', 'Songs mit Tonart und BPM erkannt', 'Gilt für Drums, Bass und Gitarre'])],
+  setlist: [
+    SL('song', 'song', 'Songs bearbeiten', 'Tonart, BPM und Notizen pro Song.', ['Song antippen', 'Tonart, BPM, Notiz eintragen', 'Gedrückt halten und ziehen: sortieren']),
+    SL('chords', 'chords', 'Akkorde und Struktur', 'Songteile mit Akkorden abrufen (in claude.ai).', ['„Akkorde und Struktur“ tippen', 'Songteile werden geladen', 'Tonart übernehmen', 'Drums: Tom-Tuning zum Song'])],
+  chain: [
+    SL('chain', 'chain', 'Recording Recall', 'Signalketten pro Kanal festhalten.', ['Kanäle aus dem Kit übernehmen', 'Stufen hinzufügen', 'Gerät wählen, Werte eintragen', 'Busse und Effekte anlegen']),
+    SL('switches', 'switches', 'Schalter am Preamp', 'Phantomspeisung und Polarität per Schalter.', ['48 V per DIP-Schalter', 'Polarität per Kippschalter', 'Als Mischpult anzeigen'])],
+  console: [SL('console', 'console', 'Mischpult', 'Fader und Pan sind gegen Verstellen geschützt.', ['Kurz halten, bis es leuchtet', 'Dann ziehen', 'Doppeltipp: zurück auf 0 dB', 'M stumm, S solo'])],
+  tunings: [SL('tunings', 'tunings', 'Stimmungen und Kapo', 'Eigene Stimmungen aus Vorlagen.', ['Vorlage wählen, z. B. Drop D', 'Saiten anpassen', 'Kapo einstellen', 'Im Stimmgerät öffnen'])],
+  ginsts: [SL('ginst', 'ginst', 'Instrumente', 'Deine Instrumente mit allen Details.', ['Hersteller und Modell wählen', 'Saiten und Stärke wählen', 'Stimmung, Amp und DI eintragen'])],
+  gtuner: [SL('gtuner', 'gtuner', 'Stimmgerät', 'Saiten automatisch oder gezielt stimmen.', ['Stimmung wählen', 'Saite anschlagen', 'Saite wird erkannt', 'Grün heißt: stimmt'])]
+};
+HELP.tuning = HELP.tunings; HELP.ginst = HELP.ginsts; HELP.kits = HELP.kit; HELP.chains = HELP.chain;
+function onbArt(art) {
+  const [name, arg] = Array.isArray(art) ? art : [art];
+  const el = ARTS[name] ? ARTS[name](arg) : h('div');
+  return h('div', { class: 'onb-art onb-' + name }, el);
+}
+function runDemo(name, slideEl) {
+  clearDemo();
+  const steps = DEMOS[name] || [], lis = [...slideEl.querySelectorAll('.onb-steps li')], root = slideEl.querySelector('.onb-art > *');
+  lis.forEach((li, k) => later(() => { li.classList.add('in'); if (steps[k] && root) steps[k](root); }, 700 + k * 2200));
 }
 function showHelp(slides) {
   if (document.getElementById('onb') || !slides || !slides.length) return;
@@ -3863,15 +4078,17 @@ function showHelp(slides) {
   const ov = h('div', { id: 'onb', role: 'dialog', 'aria-modal': 'true', 'aria-label': 'Hilfe' },
     slides.length > 1 ? bars : h('div', { style: 'height:3px' }), h('button', { class: 'onb-skip', type: 'button', onclick: () => close() }, 'Schließen'), stage,
     h('div', { class: 'onb-nav' }, slides.length > 1 ? backBtn : null, nextBtn));
-  const close = () => { clearInterval(onbTimer); try { localStorage.setItem(ONB_KEY, '1'); } catch (e) {} ov.classList.add('out'); setTimeout(() => ov.remove(), 300); };
+  const close = () => { clearDemo(); try { localStorage.setItem(ONB_KEY, '1'); } catch (e) {} ov.classList.add('out'); setTimeout(() => ov.remove(), 300); };
   function go(n, dir) {
     if (n < 0) return;
     if (n >= slides.length) { close(); return; }
-    const d = dir || (n >= i ? 1 : -1); i = n; clearInterval(onbTimer);
+    const d = dir || (n >= i ? 1 : -1); i = n; clearDemo();
     const sl = slides[i];
-    stage.replaceChildren(h('div', { class: 'onb-slide ' + (d > 0 ? 'in-r' : 'in-l') }, onbArt(sl.art), h('h2', {}, sl.title), h('p', {}, sl.text),
-      sl.steps ? h('ol', { class: 'onb-steps' }, sl.steps.map(t => h('li', {}, t))) : null));
+    stage.replaceChildren(h('div', { class: 'onb-slide text-first ' + (d > 0 ? 'in-r' : 'in-l') },
+      h('h2', {}, sl.title), h('p', {}, sl.text), onbArt(sl.art),
+      sl.steps ? h('ul', { class: 'onb-steps' + (sl.demo ? ' scripted' : '') }, sl.steps.map((t, k) => h('li', { style: `--k:${k}` }, t))) : null));
     stage.scrollTop = 0;
+    if (sl.demo) runDemo(sl.demo, stage.firstChild);
     [...bars.children].forEach((b, k) => { b.className = k <= i ? 'done' : ''; });
     backBtn.disabled = i === 0;
     nextBtn.textContent = i === slides.length - 1 ? (slides === START_SLIDES ? 'Los geht’s' : 'Verstanden') : 'Weiter';
@@ -3884,8 +4101,8 @@ function showHelp(slides) {
 }
 function showOnboarding() { showHelp(START_SLIDES); }
 function pageHelpSlides() {
-  if (route.view === 'setlist' && route.inst !== 'drums') { const sl = HELP.setlist.map(x => ({ ...x })); sl[1] = { ...sl[1], steps: sl[1].steps.slice(0, 3).concat('Unter jedem Song wählst du Stimmung und Kapo für dein Instrument') }; return sl; }
-  if (route.view === 'chain' && route.chainOwner === 'inst') return [{ ...HELP.chain[0], steps: ['„Kanal hinzufügen“, z. B. für Amp-Mikrofon oder DI', 'Stufen hinzufügen: Preamp, EQ, Kompressor …', 'Gerät oder Plugin wählen und Einstellungen eintragen', 'Busse und Effekte unten anlegen'] }, HELP.chain[1]];
+  if (route.view === 'setlist' && route.inst !== 'drums') return [HELP.setlist[0], { ...HELP.setlist[1], steps: ['„Akkorde und Struktur“ tippen', 'Songteile werden geladen', 'Tonart übernehmen', 'Stimmung und Kapo pro Song'] }];
+  if (route.view === 'chain' && route.chainOwner === 'inst') return [{ ...HELP.chain[0], steps: ['Kanal hinzufügen, z. B. Amp oder DI', 'Stufen hinzufügen', 'Gerät wählen, Werte eintragen', 'Busse und Effekte anlegen'] }, HELP.chain[1]];
   return HELP[route.view] || null;
 }
 function startApp() {
