@@ -1329,6 +1329,25 @@ body.wm #wm{display:grid}
 .bk-status{flex:none;font-size:.78rem;color:var(--muted)}
 .bk-status.warn{color:#e8a13a}
 .bk-file{margin:10px 0 4px;font-size:.9rem}
+
+/* click track: round "bulb" that lights up on visual beats */
+.ck-tempo{gap:14px}
+.ck-bulb{--bulb:rgba(255,255,255,.05);position:relative;width:min(52vw,210px);aspect-ratio:1;border-radius:50%;display:grid;place-items:center;flex:none;
+  background:radial-gradient(circle at 50% 38%,rgba(255,255,255,.10),var(--bulb) 62%);border:1px solid var(--line-strong);
+  box-shadow:inset 0 2px 10px rgba(255,255,255,.06),inset 0 -10px 24px rgba(0,0,0,.35)}
+.ice .ck-bulb{--bulb:rgba(255,255,255,.65);border-color:#fff;box-shadow:inset 0 2px 8px #fff,0 8px 22px rgba(30,60,100,.15)}
+.ck-bulb .ck-bpm{position:relative;z-index:1;transition:color .2s}
+.ck-bulb::after{content:"";position:absolute;inset:-1px;border-radius:50%;opacity:0;pointer-events:none}
+.ck-bulb.f-beat::after{background:radial-gradient(circle at 50% 40%,#fff 0%,#f4f6ff 55%,#cfd8ff 100%);box-shadow:0 0 46px 10px rgba(255,255,255,.55);animation:bulbOff .2s ease-out forwards}
+.ck-bulb.f-acc::after{background:radial-gradient(circle at 50% 40%,#ffb3a8 0%,#ff2a2a 55%,#c40f0f 100%);box-shadow:0 0 56px 14px rgba(255,40,40,.65);animation:bulbOff .24s ease-out forwards}
+.ck-bulb.f-sub::after{background:radial-gradient(circle,rgba(255,255,255,.45),rgba(255,255,255,.12));animation:bulbOffSub .14s ease-out forwards}
+.ck-bulb.f-beat .ck-bpm{animation:bulbTxtDark .2s ease-out}
+.ck-bulb.f-acc .ck-bpm{animation:bulbTxtLight .24s ease-out}
+@keyframes bulbOff{0%{opacity:1}100%{opacity:0}}
+@keyframes bulbOffSub{0%{opacity:.6}100%{opacity:0}}
+@keyframes bulbTxtDark{0%{color:#121821}100%{color:inherit}}
+@keyframes bulbTxtLight{0%{color:#fff}100%{color:inherit}}
+.ck-bulb .ck-bpm{font-size:clamp(3.2rem,15vw,4.4rem)}
 </style>
 </head>
 <body>
@@ -1870,6 +1889,7 @@ const metronomeIcon = () => svg('svg', { viewBox: '0 0 24 24', fill: 'none', str
 function viewClick() {
   const C = Click;
   const bpmEl = h('div', { class: 'ck-bpm' }, String(C.bpm), h('small', {}, 'BPM'));
+  const bulb = h('div', { class: 'ck-bulb', role: 'img', 'aria-label': 'Tempo-Anzeige' }, bpmEl);
   const slider = h('input', { type: 'range', min: '30', max: '300', value: String(C.bpm), 'aria-label': 'Tempo in BPM', oninput: e => { C.setBpm(+e.target.value); bpmEl.firstChild.textContent = String(C.bpm); } });
   const setB = v => { C.setBpm(v); bpmEl.firstChild.textContent = String(C.bpm); slider.value = String(C.bpm); };
   const beatsEl = h('div', { class: 'ck-beats', role: 'group', 'aria-label': 'Betonung pro Zählzeit' });
@@ -1887,7 +1907,10 @@ function viewClick() {
   C.onState = () => { startBtn.textContent = C.running ? 'Stopp' : 'Start'; startBtn.classList.toggle('on', C.running); if (!C.running) beatsEl.querySelectorAll('.ck-beat').forEach(b => b.classList.remove('now')); };
   C.onBeat = ev => {
     if (ev.kind !== 'sub') { const bs = beatsEl.querySelectorAll('.ck-beat'); bs.forEach((b, i) => b.classList.toggle('now', i === ev.beat)); }
-    if (C.out !== 'audio' && (ev.kind !== 'sub' || C.sub > 1)) clickFlash(ev.kind);
+    if (C.out !== 'audio' && (ev.kind !== 'sub' || C.sub > 1)) {
+      bulb.classList.remove('f-acc', 'f-beat', 'f-sub'); void bulb.offsetWidth;
+      bulb.classList.add(ev.kind === 'acc' ? 'f-acc' : ev.kind === 'beat' ? 'f-beat' : 'f-sub');
+    }
   };
   startBtn.classList.toggle('on', C.running);
   return {
@@ -1896,7 +1919,7 @@ function viewClick() {
       h('div', { class: 'card ck-main' },
         h('div', { class: 'ck-tempo' },
           h('button', { class: 'ck-pm', type: 'button', 'aria-label': 'Langsamer', onclick: () => setB(C.bpm - 1) }, '−'),
-          bpmEl,
+          bulb,
           h('button', { class: 'ck-pm', type: 'button', 'aria-label': 'Schneller', onclick: () => setB(C.bpm + 1) }, '+')),
         slider,
         h('div', { class: 'row', style: 'justify-content:center' }, h('button', { class: 'btn ghost', type: 'button', onclick: () => { C.tap(); setB(C.bpm); } }, 'Tap Tempo')),
@@ -1907,7 +1930,7 @@ function viewClick() {
       h('h2', {}, 'Unterteilung'), h('div', { class: 'card' }, subChips),
       h('h2', {}, 'Sound'), h('div', { class: 'card' }, soundChips, h('p', { class: 'muted', style: 'font-size:.85rem;margin:10px 0 0' }, 'Von weich bis durchdringend. Antippen spielt eine kurze Hörprobe.')),
       h('h2', {}, 'Ausgabe'), h('div', { class: 'card' }, outChips,
-        C.out !== 'audio' ? h('p', { class: 'muted', style: 'font-size:.85rem;margin:10px 0 0' }, 'Optisch blinkt der ganze Bildschirm im Tempo, betonte Zählzeiten rot. Bei Lichtempfindlichkeit bitte vorsichtig verwenden.') : null)
+        C.out !== 'audio' ? h('p', { class: 'muted', style: 'font-size:.85rem;margin:10px 0 0' }, 'Optisch leuchtet der runde Kreis mit der BPM-Zahl im Tempo auf, betonte Zählzeiten rot.') : null)
     ]
   };
 }
