@@ -1265,6 +1265,36 @@ body.wm #wm{display:grid}
 .dm-pop.dx{max-height:120px;transition:max-height .45s,padding .45s,opacity .45s,transform .45s}
 .dm-minif{gap:36px!important}
 .dm-minif .onb-fader i{width:26px!important;margin-left:-13px!important;height:16px!important}
+
+.free-tuner{display:flex;align-items:center;justify-content:center;gap:6px;margin:26px auto 8px;padding:6px;width:max-content;max-width:100%;border-radius:999px;border:1px solid var(--line);background:rgba(255,255,255,.04)}
+.glass .free-tuner{background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.14)}
+.ice .free-tuner{background:rgba(255,255,255,.7);border-color:#fff;box-shadow:0 4px 14px rgba(30,60,100,.1)}
+.ft-ico{width:34px;height:34px;display:grid;place-items:center;color:var(--blue)}
+.ft-ico svg{width:20px;height:20px}
+.ft-btn{all:unset;box-sizing:border-box;cursor:pointer;padding:8px 14px;border-radius:999px;font:600 .85rem Barlow,sans-serif;color:var(--ink);border:1px solid transparent}
+.ft-btn:hover{background:rgba(255,255,255,.08)}
+.ft-btn:focus-visible{outline:2px solid var(--blue);outline-offset:1px}
+.ice .ft-btn:hover{background:rgba(20,40,80,.06)}
+
+.ft-corner{all:unset;box-sizing:border-box;cursor:pointer;position:fixed;right:calc(env(safe-area-inset-right,0px) + 16px);bottom:calc(env(safe-area-inset-bottom,0px) + 16px);z-index:12;width:44px;height:44px;border-radius:50%;display:grid;place-items:center;color:var(--muted);border:1px solid var(--line);background:rgba(255,255,255,.04);opacity:.75;transition:opacity .2s,color .2s}
+.ft-corner svg{width:22px;height:22px}
+.ft-corner:hover,.ft-corner:focus-visible{opacity:1;color:var(--ink)}
+.ft-corner:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+.glass .ft-corner{background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.14);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px)}
+.ice .ft-corner{background:rgba(255,255,255,.7);border-color:#fff;box-shadow:0 3px 10px rgba(30,60,100,.12)}
+.bar .t h1{margin:0;line-height:1.15;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bar{min-height:56px}
+
+.hdr-combo{display:flex;align-items:center;gap:10px;min-width:0}
+.hdr-combo .wordmark{flex:none}
+.hdr-logo{height:26px;max-width:90px;object-fit:contain;flex:none;border-radius:4px}
+.hdr-artist{flex:none;max-width:45%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.hdr-sep{flex:none;width:1px;height:18px;background:var(--line-strong);opacity:.9}
+.hdr-prod{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--muted);font-weight:600}
+.bar h1 .hdr-combo{font-size:1.05rem;gap:8px}
+.hdr-artist{flex:0 0 auto;max-width:58%}
+.hdr-prod{flex:1 1 auto}
+.hdr-logo{height:24px}
 </style>
 </head>
 <body>
@@ -1448,18 +1478,30 @@ function render(keepScroll) {
   bar.replaceChildren(); app.replaceChildren();
   const views = { artists: viewArtists, mode: viewMode, projects: viewProjects, home: viewHome, kits: viewKits, kit: viewKit, chains: viewChains, chain: viewChain, console: viewConsole, setlists: viewSetlists, setlist: viewSetlist, tuner: viewTuner,
     inst: viewInst, drumMenu: viewDrumMenu, quick: viewQuick, ghome: viewGHome, tunings: viewTunings, tuning: viewTuning, ginsts: viewGInsts, ginst: viewGInst, gtuner: viewGTuner };
-  if (route.view !== 'artists' && !artist()) route.view = 'artists';
-  else if (!['artists', 'mode', 'projects'].includes(route.view) && !P()) route.view = 'projects';
+  const freeTuner = route.view === 'tuner' && route.tunerFrom === 'free';
+  if (!freeTuner && route.view !== 'artists' && !artist()) route.view = 'artists';
+  else if (!freeTuner && !['artists', 'mode', 'projects'].includes(route.view) && !P()) route.view = 'projects';
   const v = views[route.view]();
   currentBack = v.back || null;
   if (v.back) bar.append(h('button', { class: 'back', type: 'button', onclick: v.back, 'aria-label': 'Zurück' }, '‹'));
   document.documentElement.style.setProperty('--accent', areaColor());
-  const crumbs = artist() && !['artists', 'mode'].includes(route.view) ? [[artist().name, () => nav('mode')], [modeName(), () => nav('projects')]] : null;
-  if (crumbs && route.view !== 'projects' && P()) crumbs.push([P().name || 'Ohne Namen', () => nav('inst')]);
-  if (crumbs && !['inst', 'projects'].includes(route.view)) crumbs.push([instName(), () => nav(route.inst === 'drums' ? 'home' : 'ghome')]);
-  bar.append(h('div', { class: 't' }, h('h1', { style: v.titleStyle || null }, v.titleNode || v.title),
-    crumbs ? h('nav', { class: 'crumbs', 'aria-label': 'Pfad' }, crumbs.map(([l, go], i) => [i ? h('span', { 'aria-hidden': 'true' }, '›') : null, h('button', { type: 'button', onclick: go }, l)]))
-      : (v.sub ? h('div', { class: 'sub' }, v.sub) : null)));
+  // header: only the artist lettering/name or the production name, plus help and home
+  const ar = artist(), pr = P();
+  let hTitle, hNode = null, hStyle = null;
+  if (route.view === 'artists') hTitle = 'Tech Assistent';
+  else if (route.view === 'tuner' && route.tunerFrom === 'free') hTitle = 'Drum-Tuner';
+  else if (pr && !['mode', 'projects'].includes(route.view)) {
+    hTitle = `${ar.name}, ${pr.name || 'Ohne Namen'}`;
+    const logo = !ar.wordmarkV && ar.logoV ? getAsset('logo-' + ar.id, () => render(true)) : null;
+    const ident = ar.wordmarkV ? artistNameNode(ar, 17, 120)
+      : logo ? h('img', { class: 'hdr-logo', src: logo, alt: ar.name })
+      : h('span', { class: 'hdr-artist', style: artistFontStyle(ar) }, ar.name);
+    hNode = h('span', { class: 'hdr-combo' }, ident, h('span', { class: 'hdr-sep', 'aria-hidden': 'true' }), h('span', { class: 'hdr-prod' }, pr.name || 'Ohne Namen'));
+  }
+  else if (ar) { hTitle = ar.name; hNode = ar.wordmarkV ? artistNameNode(ar, 24, 200) : null; hStyle = artistFontStyle(ar); }
+  else hTitle = v.title;
+  bar.append(h('div', { class: 't' }, h('h1', { style: hStyle }, hNode || hTitle)));
+  document.title = hTitle === 'Tech Assistent' ? 'Tech Assistent' : `${hTitle} – Tech Assistent`;
   if (route.view !== 'artists' && pageHelpSlides()) bar.append(h('button', { class: 'qhelp', type: 'button', 'aria-label': 'Hilfe zu dieser Seite', title: 'Hilfe zu dieser Seite', onclick: () => showHelp(pageHelpSlides()) }, h('span', { class: 'help-q' }, '?')));
   if (route.view !== 'artists') bar.append(h('button', { class: 'home-btn', type: 'button', 'aria-label': 'Zur Startseite (Künstlerauswahl)', title: 'Zur Startseite', onclick: () => nav('artists') }, logoSvg('logo-ico', 30)));
   document.body.classList.add('wm');
@@ -1532,6 +1574,7 @@ function viewArtists() {
       h('div', { class: 'theme-row' }, h('span', {}, 'Design'), chipGroup([['ice', 'Hell'], ['glass', 'Dunkel']], currentTheme(), v => setTheme(v), 'Design')),
       h('div', { class: 'help-row' }, h('button', { class: 'help-btn', type: 'button', 'aria-label': 'Einführung ansehen', title: 'Einführung ansehen', onclick: () => showOnboarding() },
         logoSvg('help-logo', 22), h('span', { class: 'help-q', 'aria-hidden': 'true' }, '?'), h('i', { class: 'spark s1' }), h('i', { class: 'spark s2' }), h('i', { class: 'spark s3' }))),
+      h('button', { class: 'ft-corner', type: 'button', 'aria-label': 'Drum-Tuner ohne Speichern öffnen', title: 'Drum-Tuner', onclick: () => { Tuner.range = 'Alles'; route.L = null; route.R = null; nav('tuner', { artistId: null, prodId: null, target: null, side: 'top', tTab: 'lugs', tunerFrom: 'free' }); } }, areaIcon('tuner')),
       adding && h('div', { class: 'card', style: 'margin-top:16px' },
         h('label', { class: 'field' }, h('span', {}, 'Neuer Künstler'), inp),
         brandingFields({ logo: pend.logo, fontFamily: pend.fontFamily, fontName: pend.fontName, name: pend.name,
@@ -2646,8 +2689,8 @@ function viewTuner() {
   });
 
   return {
-    title: 'Tuner', sub: d ? `${d.name}, ${sideName(route.side)}` : `${a.name}, ${modeName()}`,
-    back: () => route.tunerFrom === 'kit' && p ? nav('kit', { prodId: p.id }) : nav('home'),
+    title: route.tunerFrom === 'free' ? 'Drum-Tuner' : 'Tuner', sub: d ? `${d.name}, ${sideName(route.side)}` : (a ? `${a.name}, ${modeName()}` : 'Freies Stimmen, ohne Speichern'),
+    back: () => route.tunerFrom === 'free' ? nav('artists') : route.tunerFrom === 'kit' && p ? nav('kit', { prodId: p.id }) : nav('home'),
     body: [
       photoSlot,
       h('div', { class: 'readout' }, hzEl, noteEl),
@@ -3212,6 +3255,12 @@ var currentBack = null;
 const DETAIL_VIEWS = ['setlist', 'tuning', 'ginst', 'console'];
 function isDetailView() { return DETAIL_VIEWS.includes(route.view); }
 function swipeNeighbors() {
+  if (route.view === 'tuner' && route.tunerFrom === 'free') {
+    const order = ['pitch', 'lugs', 'res'], idx = Math.max(0, order.indexOf(route.tTab || 'lugs'));
+    const to = k => () => { route.tTab = k; saveRoute(); render(true); };
+    const prev = idx > 0 ? to(order[idx - 1]) : null, next = idx < order.length - 1 ? to(order[idx + 1]) : null;
+    return { prev, next, canPrev: !!prev, canNext: !!next };
+  }
   const inArea = !!artist() && (VIEW_AREA[route.view] || ['home', 'ghome'].includes(route.view));
   const tabs = inArea ? tabsList() : [], idx = tabs.findIndex(t => t[0] === VIEW_AREA[route.view]);
   const detail = isDetailView();
