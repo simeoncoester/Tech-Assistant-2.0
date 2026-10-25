@@ -1295,6 +1295,31 @@ body.wm #wm{display:grid}
 .hdr-artist{flex:0 0 auto;max-width:58%}
 .hdr-prod{flex:1 1 auto}
 .hdr-logo{height:24px}
+
+.ft-corner.left{right:auto;left:calc(env(safe-area-inset-left,0px) + 16px)}
+#clickflash{position:fixed;inset:0;z-index:60;pointer-events:none;opacity:0}
+.ck-main{display:flex;flex-direction:column;gap:14px;align-items:stretch}
+.ck-tempo{display:flex;align-items:center;justify-content:center;gap:18px}
+.ck-bpm{font:700 4.6rem/1 "Barlow Condensed",sans-serif;min-width:3.2ch;text-align:center;font-variant-numeric:tabular-nums}
+.ck-bpm small{display:block;font-size:.9rem;font-weight:600;color:var(--muted);letter-spacing:.08em}
+.ck-pm{all:unset;cursor:pointer;width:52px;height:52px;border-radius:50%;display:grid;place-items:center;font:600 1.8rem Barlow,sans-serif;border:1px solid var(--line);background:rgba(255,255,255,.05)}
+.ck-pm:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.ice .ck-pm{background:rgba(255,255,255,.75);border-color:#fff}
+.ck-beats{display:flex;justify-content:center;flex-wrap:wrap;gap:8px}
+.ck-beat{all:unset;cursor:pointer;width:40px;height:40px;border-radius:50%;display:grid;place-items:center;font:700 1rem "Barlow Condensed",sans-serif;border:1px solid var(--line-strong);background:rgba(255,255,255,.04);transition:transform .08s,background .08s}
+.ck-beat.acc{border-color:#e5483d;color:#ff6b5f}
+.ck-beat.now{background:var(--ink);color:var(--bg,#05070a);transform:scale(1.12)}
+.ck-beat.acc.now{background:#ff2a2a;color:#fff;border-color:#ff2a2a}
+.ck-beat:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.ck-start{min-height:56px;font-size:1.15rem}
+.ck-start.on{background:linear-gradient(180deg,#ff6a5c,#c92a1f)!important;border-color:#ff8a7e!important}
+.dm-beats{display:flex;gap:8px;justify-content:center;margin:6px 0}
+.dm-beats i{width:22px;height:22px;border-radius:50%;border:1px solid rgba(255,255,255,.35);transition:background .1s,transform .1s}
+.dm-beats i.hid{display:none}
+.dm-beats i.acc{border-color:#ff5b4f}
+.dm-beats i.now{background:#fff;transform:scale(1.15)}
+.dm-beats i.acc.now{background:#ff2a2a}
+.onb-slide.flash-acc .onb-art{filter:drop-shadow(0 0 18px rgba(255,60,60,.6))}
 </style>
 </head>
 <body>
@@ -1469,6 +1494,7 @@ const openSet = new Set();
 const drumOpen = new Set();
 function nav(view, params = {}) {
   if (['tuner', 'quick', 'gtuner'].includes(route.view) && view !== route.view) Tuner.stop();
+  if (route.view === 'click' && view !== 'click') Click.stop();
   route = { ...route, ...params, view };
   render();
 }
@@ -1477,8 +1503,8 @@ function render(keepScroll) {
   const bar = document.getElementById('bar'), app = document.getElementById('app');
   bar.replaceChildren(); app.replaceChildren();
   const views = { artists: viewArtists, mode: viewMode, projects: viewProjects, home: viewHome, kits: viewKits, kit: viewKit, chains: viewChains, chain: viewChain, console: viewConsole, setlists: viewSetlists, setlist: viewSetlist, tuner: viewTuner,
-    inst: viewInst, drumMenu: viewDrumMenu, quick: viewQuick, ghome: viewGHome, tunings: viewTunings, tuning: viewTuning, ginsts: viewGInsts, ginst: viewGInst, gtuner: viewGTuner };
-  const freeTuner = route.view === 'tuner' && route.tunerFrom === 'free';
+    inst: viewInst, drumMenu: viewDrumMenu, quick: viewQuick, ghome: viewGHome, tunings: viewTunings, tuning: viewTuning, ginsts: viewGInsts, ginst: viewGInst, gtuner: viewGTuner, click: viewClick };
+  const freeTuner = (route.view === 'tuner' && route.tunerFrom === 'free') || route.view === 'click';
   if (!freeTuner && route.view !== 'artists' && !artist()) route.view = 'artists';
   else if (!freeTuner && !['artists', 'mode', 'projects'].includes(route.view) && !P()) route.view = 'projects';
   const v = views[route.view]();
@@ -1490,6 +1516,7 @@ function render(keepScroll) {
   let hTitle, hNode = null, hStyle = null;
   if (route.view === 'artists') hTitle = 'Tech Assistent';
   else if (route.view === 'tuner' && route.tunerFrom === 'free') hTitle = 'Drum-Tuner';
+  else if (route.view === 'click') hTitle = 'Clicktrack';
   else if (pr && !['mode', 'projects'].includes(route.view)) {
     hTitle = `${ar.name}, ${pr.name || 'Ohne Namen'}`;
     const logo = !ar.wordmarkV && ar.logoV ? getAsset('logo-' + ar.id, () => render(true)) : null;
@@ -1574,6 +1601,7 @@ function viewArtists() {
       h('div', { class: 'theme-row' }, h('span', {}, 'Design'), chipGroup([['ice', 'Hell'], ['glass', 'Dunkel']], currentTheme(), v => setTheme(v), 'Design')),
       h('div', { class: 'help-row' }, h('button', { class: 'help-btn', type: 'button', 'aria-label': 'Einführung ansehen', title: 'Einführung ansehen', onclick: () => showOnboarding() },
         logoSvg('help-logo', 22), h('span', { class: 'help-q', 'aria-hidden': 'true' }, '?'), h('i', { class: 'spark s1' }), h('i', { class: 'spark s2' }), h('i', { class: 'spark s3' }))),
+      h('button', { class: 'ft-corner left', type: 'button', 'aria-label': 'Clicktrack öffnen', title: 'Clicktrack', onclick: () => nav('click', { artistId: null, prodId: null }) }, metronomeIcon()),
       h('button', { class: 'ft-corner', type: 'button', 'aria-label': 'Drum-Tuner ohne Speichern öffnen', title: 'Drum-Tuner', onclick: () => { Tuner.range = 'Alles'; route.L = null; route.R = null; nav('tuner', { artistId: null, prodId: null, target: null, side: 'top', tTab: 'lugs', tunerFrom: 'free' }); } }, areaIcon('tuner')),
       adding && h('div', { class: 'card', style: 'margin-top:16px' },
         h('label', { class: 'field' }, h('span', {}, 'Neuer Künstler'), inp),
@@ -1735,6 +1763,144 @@ function brandingFields(o) {
       h('span', { class: 'brand-l' }, 'Schriftzug aus Bild'),
       o.wordmark ? h('span', { class: 'wordmark brand-wm', style: wmStyle(o.wordmark, o.wordmarkRatio, 40) }) : h('span', { class: 'brand-ph' }, 'optional, Schriftzug aus einem Foto oder Logo übernehmen'),
       h('span', { class: 'brand-btns' }, fileBtn(o.wordmark ? 'Ändern' : 'Bild wählen', 'image/png,image/jpeg,image/webp,image/svg+xml,.svg', onWordFile), o.wordmark ? h('button', { class: 'btn ghost small', type: 'button', onclick: o.onClearWordmark }, 'Entfernen') : null)));
+}
+
+/* ================= click track (metronome) ================= */
+const CLICK_KEY = 'drumtech-click';
+const Click = {
+  ctx: null, running: false, bpm: 120, num: 4, den: 4, sub: 1, accents: null, out: 'audio', sound: 'beep', noise: null,
+  nextTime: 0, step: 0, timer: null, queue: [], raf: 0, wake: null, onBeat: null, onState: null, taps: [],
+  load() { try { Object.assign(this, JSON.parse(localStorage.getItem(CLICK_KEY) || '{}')); } catch (e) {} this.fixAccents(); },
+  save() { try { localStorage.setItem(CLICK_KEY, JSON.stringify({ bpm: this.bpm, num: this.num, den: this.den, sub: this.sub, accents: this.accents, out: this.out, sound: this.sound })); } catch (e) {} },
+  defaultAccents() { const n = this.num; if (this.den === 8 && n % 3 === 0 && n > 3) return Array.from({ length: n }, (_, i) => i % 3 === 0); return Array.from({ length: n }, (_, i) => i === 0); },
+  fixAccents(reset) { if (reset || !Array.isArray(this.accents) || this.accents.length !== this.num) this.accents = this.defaultAccents(); },
+  start() {
+    this.ensureCtx();
+    this.running = true; this.step = 0; this.queue = []; this.nextTime = this.ctx.currentTime + .1;
+    clearInterval(this.timer); this.timer = setInterval(() => this.schedule(), 25); this.schedule();
+    cancelAnimationFrame(this.raf); this.loop();
+    if (navigator.wakeLock) navigator.wakeLock.request('screen').then(w => { this.wake = w; }).catch(() => {});
+    this.onState && this.onState();
+  },
+  stop() {
+    if (!this.running) return;
+    this.running = false; clearInterval(this.timer); cancelAnimationFrame(this.raf); this.queue = [];
+    try { this.wake && this.wake.release(); } catch (e) {} this.wake = null;
+    this.onState && this.onState();
+  },
+  schedule() {
+    if (!this.ctx) return;
+    while (this.nextTime < this.ctx.currentTime + .12) {
+      const per = this.num * this.sub, s = this.step % per, beat = Math.floor(s / this.sub), isBeat = s % this.sub === 0;
+      const kind = isBeat ? (this.accents[beat] ? 'acc' : 'beat') : 'sub';
+      if (this.out !== 'visual') this.blip(this.nextTime, kind);
+      this.queue.push({ t: this.nextTime, beat, kind });
+      this.nextTime += 60 / this.bpm / this.sub; this.step++;
+    }
+  },
+  ensureCtx() {
+    try { if (navigator.audioSession) navigator.audioSession.type = 'playback'; } catch (e) {}
+    if (!this.ctx) this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+    if (this.ctx.state !== 'running') this.ctx.resume();
+    if (!this.noise) { const n = this.ctx.sampleRate * .5, buf = this.ctx.createBuffer(1, n, this.ctx.sampleRate), d = buf.getChannelData(0); for (let i = 0; i < n; i++) d[i] = Math.random() * 2 - 1; this.noise = buf; }
+  },
+  env(g, t, peak, attack, decay) { g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(peak, t + attack); g.gain.exponentialRampToValueAtTime(0.0001, t + attack + decay); },
+  tone(t, type, freq, peak, attack, decay, dest, freqEnd) {
+    const c = this.ctx, o = c.createOscillator(), g = c.createGain();
+    o.type = type; o.frequency.setValueAtTime(freq, t); if (freqEnd) o.frequency.exponentialRampToValueAtTime(freqEnd, t + decay);
+    this.env(g, t, peak, attack, decay); o.connect(g); g.connect(dest || c.destination); o.start(t); o.stop(t + attack + decay + .02);
+  },
+  noiseHit(t, filterType, freq, q, peak, attack, decay) {
+    const c = this.ctx, src = c.createBufferSource(), f = c.createBiquadFilter(), g = c.createGain();
+    src.buffer = this.noise; f.type = filterType; f.frequency.value = freq; f.Q.value = q;
+    this.env(g, t, peak, attack, decay); src.connect(f); f.connect(g); g.connect(c.destination); src.start(t); src.stop(t + attack + decay + .02);
+  },
+  blip(t, kind) {
+    const A = kind === 'acc', S = kind === 'sub', vol = S ? .3 : A ? 1 : .7;
+    switch (this.sound) {
+      case 'wood': // warm, round woodblock
+        this.tone(t, 'sine', A ? 1250 : S ? 820 : 950, .9 * vol, .001, .07, null, A ? 1050 : S ? 700 : 800);
+        this.noiseHit(t, 'bandpass', A ? 2600 : 2000, 3, .25 * vol, .001, .015); break;
+      case 'cowbell': { // piercing two-tone bell
+        const c = this.ctx, bp = c.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = A ? 1100 : 850; bp.Q.value = 2.2; bp.connect(c.destination);
+        const f1 = A ? 680 : 540, f2 = f1 * 1.48, d = S ? .09 : A ? .32 : .22;
+        this.tone(t, 'square', f1, .32 * vol, .001, d, bp); this.tone(t, 'square', f2, .26 * vol, .001, d * .85, bp); break; }
+      case 'shaker': // soft, airy
+        this.noiseHit(t, 'highpass', A ? 5200 : 6500, .7, (A ? .55 : S ? .16 : .3), A ? .012 : .008, A ? .11 : S ? .045 : .07); break;
+      case 'sticks': // crisp, hard stick click
+        this.tone(t, 'triangle', A ? 2600 : S ? 1700 : 2100, .55 * vol, .0005, .025);
+        this.noiseHit(t, 'bandpass', A ? 4200 : 3400, 1.5, .5 * vol, .0005, .03); break;
+      default: // classic electronic beep
+        this.tone(t, 'sine', A ? 1760 : kind === 'beat' ? 1175 : 880, S ? .22 : A ? .9 : .6, .002, .053);
+    }
+  },
+  preview(snd) { this.sound = snd; this.save(); this.ensureCtx(); const t = this.ctx.currentTime + .03; this.blip(t, 'acc'); this.blip(t + .32, 'beat'); this.blip(t + .64, 'beat'); },
+  loop() {
+    const now = this.ctx.currentTime;
+    while (this.queue.length && this.queue[0].t <= now) { const ev = this.queue.shift(); this.onBeat && this.onBeat(ev); }
+    if (this.running) this.raf = requestAnimationFrame(() => this.loop());
+  },
+  tap() {
+    const t = performance.now(); this.taps = this.taps.filter(x => t - x < 2500); this.taps.push(t);
+    if (this.taps.length >= 2) { const d = []; for (let i = 1; i < this.taps.length; i++) d.push(this.taps[i] - this.taps[i - 1]); const avg = d.reduce((a, b) => a + b, 0) / d.length; this.setBpm(Math.round(60000 / avg)); }
+  },
+  setBpm(v) { this.bpm = Math.max(30, Math.min(300, Math.round(v))); this.save(); }
+};
+Click.load();
+function clickFlash(kind) {
+  let el = document.getElementById('clickflash');
+  if (!el) { el = h('div', { id: 'clickflash', 'aria-hidden': 'true' }); document.body.append(el); }
+  el.style.transition = 'none';
+  el.style.background = kind === 'acc' ? '#ff2a2a' : '#ffffff';
+  el.style.opacity = kind === 'sub' ? '.18' : kind === 'acc' ? '.95' : '.85';
+  void el.offsetWidth;
+  el.style.transition = 'opacity .14s ease-out'; el.style.opacity = '0';
+}
+const metronomeIcon = () => svg('svg', { viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', 'stroke-width': 1.8, 'stroke-linecap': 'round', 'stroke-linejoin': 'round', 'aria-hidden': 'true' },
+  svg('path', { d: 'M9 3h6l4 18H5L9 3z' }), svg('path', { d: 'M7.2 15h9.6' }), svg('path', { d: 'M12 15l5-9' }));
+function viewClick() {
+  const C = Click;
+  const bpmEl = h('div', { class: 'ck-bpm' }, String(C.bpm), h('small', {}, 'BPM'));
+  const slider = h('input', { type: 'range', min: '30', max: '300', value: String(C.bpm), 'aria-label': 'Tempo in BPM', oninput: e => { C.setBpm(+e.target.value); bpmEl.firstChild.textContent = String(C.bpm); } });
+  const setB = v => { C.setBpm(v); bpmEl.firstChild.textContent = String(C.bpm); slider.value = String(C.bpm); };
+  const beatsEl = h('div', { class: 'ck-beats', role: 'group', 'aria-label': 'Betonung pro Zählzeit' });
+  const drawBeats = () => beatsEl.replaceChildren(...C.accents.map((a, i) => h('button', { class: 'ck-beat' + (a ? ' acc' : ''), type: 'button', 'aria-pressed': String(a), 'aria-label': `Zählzeit ${i + 1}${a ? ', betont' : ''}`, onclick: () => { C.accents[i] = !C.accents[i]; C.save(); drawBeats(); } }, String(i + 1))));
+  drawBeats();
+  const SIGS = [[2, 4], [3, 4], [4, 4], [5, 4], [6, 8], [7, 8], [12, 8]];
+  const sigChips = h('div', { class: 'chips', role: 'group', 'aria-label': 'Taktart' }, SIGS.map(([n, d]) => h('button', { class: 'chip', type: 'button', 'aria-pressed': String(C.num === n && C.den === d), onclick: () => { C.num = n; C.den = d; C.fixAccents(true); C.save(); render(true); } }, `${n}/${d}`)));
+  const numSel = h('select', { 'aria-label': 'Zählzeiten pro Takt', onchange: e => { C.num = +e.target.value; C.fixAccents(true); C.save(); render(true); } }, Array.from({ length: 16 }, (_, i) => h('option', { value: String(i + 1), selected: C.num === i + 1 }, String(i + 1))));
+  const denSel = h('select', { 'aria-label': 'Notenwert', onchange: e => { C.den = +e.target.value; C.fixAccents(true); C.save(); render(true); } }, [2, 4, 8, 16].map(d => h('option', { value: String(d), selected: C.den === d }, String(d))));
+  const subChips = h('div', { class: 'chips', role: 'group', 'aria-label': 'Unterteilung' }, [[1, 'Keine'], [2, 'Achtel'], [3, 'Triolen'], [4, 'Sechzehntel']].map(([v, l]) => h('button', { class: 'chip', type: 'button', 'aria-pressed': String(C.sub === v), onclick: () => { C.sub = v; C.save(); render(true); } }, l)));
+  const SOUNDS = [['beep', 'Klassisch'], ['wood', 'Woodblock'], ['shaker', 'Shaker'], ['sticks', 'Sticks'], ['cowbell', 'Cowbell']];
+  const soundChips = h('div', { class: 'chips', role: 'group', 'aria-label': 'Sound' }, SOUNDS.map(([v, l]) => h('button', { class: 'chip', type: 'button', 'aria-pressed': String(C.sound === v), onclick: e => { C.preview(v); soundChips.querySelectorAll('.chip').forEach(c => c.setAttribute('aria-pressed', String(c === e.currentTarget))); } }, l)));
+  const outChips = h('div', { class: 'chips', role: 'group', 'aria-label': 'Ausgabe' }, [['audio', 'Akustisch'], ['visual', 'Optisch'], ['both', 'Beides']].map(([v, l]) => h('button', { class: 'chip', type: 'button', 'aria-pressed': String(C.out === v), onclick: () => { C.out = v; C.save(); render(true); } }, l)));
+  const startBtn = h('button', { class: 'btn solid ck-start', type: 'button', onclick: () => { C.running ? C.stop() : C.start(); } }, C.running ? 'Stopp' : 'Start');
+  C.onState = () => { startBtn.textContent = C.running ? 'Stopp' : 'Start'; startBtn.classList.toggle('on', C.running); if (!C.running) beatsEl.querySelectorAll('.ck-beat').forEach(b => b.classList.remove('now')); };
+  C.onBeat = ev => {
+    if (ev.kind !== 'sub') { const bs = beatsEl.querySelectorAll('.ck-beat'); bs.forEach((b, i) => b.classList.toggle('now', i === ev.beat)); }
+    if (C.out !== 'audio' && (ev.kind !== 'sub' || C.sub > 1)) clickFlash(ev.kind);
+  };
+  startBtn.classList.toggle('on', C.running);
+  return {
+    title: 'Clicktrack', back: () => { C.stop(); nav('artists'); },
+    body: [
+      h('div', { class: 'card ck-main' },
+        h('div', { class: 'ck-tempo' },
+          h('button', { class: 'ck-pm', type: 'button', 'aria-label': 'Langsamer', onclick: () => setB(C.bpm - 1) }, '−'),
+          bpmEl,
+          h('button', { class: 'ck-pm', type: 'button', 'aria-label': 'Schneller', onclick: () => setB(C.bpm + 1) }, '+')),
+        slider,
+        h('div', { class: 'row', style: 'justify-content:center' }, h('button', { class: 'btn ghost', type: 'button', onclick: () => { C.tap(); setB(C.bpm); } }, 'Tap Tempo')),
+        beatsEl, startBtn),
+      h('h2', {}, 'Taktart'),
+      h('div', { class: 'card' }, sigChips, h('div', { class: 'grid', style: 'margin-top:12px' }, h('label', { class: 'field' }, h('span', {}, 'Zählzeiten'), numSel), h('label', { class: 'field' }, h('span', {}, 'Notenwert'), denSel)),
+        h('p', { class: 'muted', style: 'font-size:.85rem;margin:10px 0 0' }, 'Tippe eine Zählzeit an, um sie zu betonen (rot).')),
+      h('h2', {}, 'Unterteilung'), h('div', { class: 'card' }, subChips),
+      h('h2', {}, 'Sound'), h('div', { class: 'card' }, soundChips, h('p', { class: 'muted', style: 'font-size:.85rem;margin:10px 0 0' }, 'Von weich bis durchdringend. Antippen spielt eine kurze Hörprobe.')),
+      h('h2', {}, 'Ausgabe'), h('div', { class: 'card' }, outChips,
+        C.out !== 'audio' ? h('p', { class: 'muted', style: 'font-size:.85rem;margin:10px 0 0' }, 'Optisch blinkt der ganze Bildschirm im Tempo, betonte Zählzeiten rot. Bei Lichtempfindlichkeit bitte vorsichtig verwenden.') : null)
+    ]
+  };
 }
 
 /* ================= view: mode ================= */
@@ -3960,6 +4126,10 @@ const chip = (t, cls = '') => h('span', { class: 'dm-chip ' + cls }, t);
 
 /* ---------- mock builders ---------- */
 const ARTS = {
+  click: () => h('div', { class: 'dm-wrap center' }, h('div', { class: 'dm-hz' }, h('span', { class: 'dm-hzv' }, '120'), h('small', {}, 'BPM')),
+    h('div', { class: 'dm-row' }, chip('4/4', 'pri dm-sg1'), chip('6/8', 'dm-sg2'), chip('Achtel', 'dx dm-sub')),
+    h('div', { class: 'dm-beats' }, [0, 1, 2, 3, 4, 5].map(i => h('i', { class: (i === 0 ? 'acc' : '') + (i > 3 ? ' hid' : '') }))),
+    h('div', { class: 'dm-row' }, chip('Akustisch', 'dm-o1 pri'), chip('Optisch', 'dm-o2'))),
   welcome: () => h('div', { class: 'dm-wrap center' }, logoSvg('onb-logo small', 9), h('div', { class: 'dm-row' }, chip('Drums', 'dx'), chip('Bass und Gitarre', 'dx'), chip('Live und Studio', 'dx'))),
   flow: () => h('div', { class: 'dm-wrap center' }, h('div', { class: 'dm-flow' }, ['Die Ärzte', 'Live', 'Sommertour 25', 'Drums'].map((t, i) => [i ? h('span', { class: 'dm-arrow dx' }, '›') : null, chip(t, 'dx' + (i === 3 ? ' pri' : ''))]))),
   artists: () => h('div', { class: 'dm-wrap' },
@@ -4014,6 +4184,11 @@ const ARTS = {
 const needle = (root, pct, ok) => { const n = $q(root, '.dm-needle'); if (n) { n.style.left = pct + '%'; n.style.background = ok ? '#36c97e' : '#ff5b4f'; } };
 const setTxt = (root, sel, t) => { const e = $q(root, sel); if (e) e.textContent = t; };
 const DEMOS = {
+  click: [
+    r => { [104, 112, 96].forEach((v, k) => later(() => setTxt(r, '.dm-hzv', String(v)), k * 350)); },
+    r => { $q(r, '.dm-sg1').classList.remove('pri'); $q(r, '.dm-sg2').classList.add('pri'); $qa(r, '.dm-beats i').forEach((e, i) => { e.classList.remove('hid'); e.classList.toggle('acc', i === 0 || i === 3); }); },
+    r => show(r, '.dm-sub'),
+    r => { $q(r, '.dm-o1').classList.remove('pri'); $q(r, '.dm-o2').classList.add('pri'); const bs = $qa(r, '.dm-beats i'); let k = 0; const tick = () => { bs.forEach((e, i) => e.classList.toggle('now', i === k % 6)); r.closest('.onb-slide')?.classList.toggle('flash-acc', k % 6 === 0 || k % 6 === 3); k++; if (k < 18) later(tick, 330); else bs.forEach(e => e.classList.remove('now')); }; tick(); }],
   welcome: [r => show(r, '.dm-chip:nth-child(1)'), r => show(r, '.dm-chip:nth-child(2)'), r => show(r, '.dm-chip:nth-child(3)')],
   flow: [0, 1, 2, 3].map(k => r => { const ch = $qa(r, '.dm-flow > .dm-chip'), ar = $qa(r, '.dm-flow > .dm-arrow'); ch[k]?.classList.add('show'); if (k) ar[k - 1]?.classList.add('show'); }),
   artists: [
@@ -4106,6 +4281,7 @@ const HELP = {
   ginsts: [SL('ginst', 'ginst', 'Instrumente', 'Deine Instrumente mit allen Details.', ['Hersteller und Modell wählen', 'Saiten und Stärke wählen', 'Stimmung, Amp und DI eintragen'])],
   gtuner: [SL('gtuner', 'gtuner', 'Stimmgerät', 'Saiten automatisch oder gezielt stimmen.', ['Stimmung wählen', 'Saite anschlagen', 'Saite wird erkannt', 'Grün heißt: stimmt'])]
 };
+HELP.click = [SL('click', 'click', 'Clicktrack', 'Tempo, Taktart und Unterteilung, hörbar oder als Lichtblitz.', ['Tempo einstellen oder antippen', 'Taktart und Betonung wählen', 'Unterteilung wählen', 'Akustisch, optisch oder beides'])];
 HELP.tuning = HELP.tunings; HELP.ginst = HELP.ginsts; HELP.kits = HELP.kit; HELP.chains = HELP.chain;
 function onbArt(art) {
   const [name, arg] = Array.isArray(art) ? art : [art];
