@@ -1348,6 +1348,12 @@ body.wm #wm{display:grid}
 @keyframes bulbTxtDark{0%{color:#121821}100%{color:inherit}}
 @keyframes bulbTxtLight{0%{color:#fff}100%{color:inherit}}
 .ck-bulb .ck-bpm{font-size:clamp(3.2rem,15vw,4.4rem)}
+
+.mode.rowcard.locked{cursor:not-allowed;opacity:.55;filter:grayscale(1);border-style:dashed!important}
+.mode.rowcard.locked::after{display:none!important}
+.mode.rowcard.locked .rc-ico{color:var(--muted)}
+.mode.rowcard.locked .rc-text{display:flex;flex-direction:column;gap:2px}
+.uc-tag{font:600 .72rem Barlow,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
 </style>
 </head>
 <body>
@@ -1533,6 +1539,7 @@ function render(keepScroll) {
   const views = { artists: viewArtists, mode: viewMode, projects: viewProjects, home: viewHome, kits: viewKits, kit: viewKit, chains: viewChains, chain: viewChain, console: viewConsole, setlists: viewSetlists, setlist: viewSetlist, tuner: viewTuner,
     inst: viewInst, drumMenu: viewDrumMenu, quick: viewQuick, ghome: viewGHome, tunings: viewTunings, tuning: viewTuning, ginsts: viewGInsts, ginst: viewGInst, gtuner: viewGTuner, click: viewClick, backups: viewBackups };
   const freeTuner = (route.view === 'tuner' && route.tunerFrom === 'free') || route.view === 'click';
+  if (route.mode === 'studio' && !['artists', 'mode'].includes(route.view) && !freeTuner && studioLocked()) route.view = artist() ? 'mode' : 'artists';
   if (!freeTuner && route.view !== 'artists' && !artist()) route.view = 'artists';
   else if (!freeTuner && !['artists', 'mode', 'projects'].includes(route.view) && !P()) route.view = 'projects';
   const v = views[route.view]();
@@ -2008,10 +2015,24 @@ function viewBackups() {
 }
 
 /* ================= view: mode ================= */
+/* Studio is temporarily locked on the public tester link (GitHub Pages). Unlock on a device with #studio-freigeben, lock again with #studio-sperren. */
+function studioLocked() {
+  try {
+    if (location.hash === '#studio-freigeben') { localStorage.setItem('drumtech-dev', '1'); history.replaceState(null, '', location.pathname + location.search); }
+    if (location.hash === '#studio-sperren') { localStorage.removeItem('drumtech-dev'); history.replaceState(null, '', location.pathname + location.search); }
+    if (localStorage.getItem('drumtech-dev') === '1') return false;
+  } catch (e) {}
+  return /github\.io$/i.test(location.hostname);
+}
+const lockIcon = () => svg('svg', { viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', 'stroke-width': 2, 'stroke-linecap': 'round', 'stroke-linejoin': 'round', 'aria-hidden': 'true' }, svg('rect', { x: 5, y: 11, width: 14, height: 10, rx: 2 }), svg('path', { d: 'M8 11V7a4 4 0 0 1 8 0v4' }));
 function viewMode() {
   const a = artist();
   const cnt = m => a.productions.filter(p => p.mode === m).length;
-  const modeBtn = (m, title, desc) => h('button', { class: 'mode colored rowcard', style: `--c:${MODE_C[m]}`, type: 'button', onclick: () => nav('projects', { mode: m }) }, h('span', { class: 'rc-ico' }, areaIcon(m === 'live' ? 'live' : 'studio')),
+  const locked = m => m === 'studio' && studioLocked();
+  const modeBtn = (m, title, desc) => locked(m)
+    ? h('button', { class: 'mode rowcard locked', type: 'button', 'aria-disabled': 'true', 'aria-label': `${title}, Under Construction`, onclick: () => toast('Der Studio-Bereich ist noch im Aufbau.') },
+        h('span', { class: 'rc-ico' }, lockIcon()), h('span', { class: 'rc-text' }, h('b', {}, title), h('span', { class: 'uc-tag' }, 'Under Construction')))
+    : h('button', { class: 'mode colored rowcard', style: `--c:${MODE_C[m]}`, type: 'button', onclick: () => nav('projects', { mode: m }) }, h('span', { class: 'rc-ico' }, areaIcon(m === 'live' ? 'live' : 'studio')),
     h('span', { class: 'rc-text' }, h('b', {}, title)));
   return {
     title: a.name, titleNode: a.wordmarkV ? artistNameNode(a, 24, 200) : null, titleStyle: artistFontStyle(a), sub: 'Live oder Studio?', back: () => nav('artists'),
