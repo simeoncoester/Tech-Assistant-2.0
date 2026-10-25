@@ -1354,6 +1354,101 @@ body.wm #wm{display:grid}
 .mode.rowcard.locked .rc-ico{color:var(--muted)}
 .mode.rowcard.locked .rc-text{display:flex;flex-direction:column;gap:2px}
 .uc-tag{font:600 .72rem Barlow,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+
+.stage li{cursor:pointer}
+.stage li:focus-visible{outline:2px solid var(--blue);outline-offset:2px;border-radius:8px}
+.stage-song{position:fixed;inset:0;z-index:22;background:#000;color:#fff;display:flex;flex-direction:column;padding:calc(env(safe-area-inset-top,0px) + 12px) 22px calc(env(safe-area-inset-bottom,0px) + 14px);overflow:hidden;touch-action:pan-y}
+.ss-top{display:flex;justify-content:space-between;align-items:center}
+.ss-close{all:unset;cursor:pointer;width:44px;height:44px;border-radius:50%;display:grid;place-items:center;font-size:1.9rem;line-height:1;color:#ccd;background:#15171c;border:1px solid #2a2d34}
+.ss-close:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+.ss-count{font:600 1rem "Barlow Condensed",sans-serif;color:#8f97a3;letter-spacing:.04em}
+.ss-body{flex:1;display:flex;flex-direction:column;justify-content:center;gap:14px;overflow-y:auto;padding:10px 0}
+.ss-body.in-r{animation:ssInR .32s cubic-bezier(.16,1,.3,1)}
+.ss-body.in-l{animation:ssInL .32s cubic-bezier(.16,1,.3,1)}
+@keyframes ssInR{from{opacity:0;transform:translateX(60px)}}
+@keyframes ssInL{from{opacity:0;transform:translateX(-60px)}}
+.ss-num{font:700 clamp(2.2rem,10vw,3.4rem)/1 "Barlow Condensed",sans-serif;color:var(--blue)}
+.ss-title{margin:0;padding:0;font:700 clamp(2.8rem,13vw,5.6rem)/1.02 "Barlow Condensed",sans-serif;word-break:break-word;hyphens:auto}
+.ss-title::before{display:none!important}
+.ss-info{margin:6px 0 0;display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px}
+.ss-info div{background:#101216;border:1px solid #23262d;border-radius:14px;padding:10px 14px}
+.ss-info dt{font:600 .8rem Barlow,sans-serif;color:#8f97a3;text-transform:uppercase;letter-spacing:.06em}
+.ss-info dd{margin:2px 0 0;font:700 clamp(1.5rem,7vw,2.2rem)/1.1 "Barlow Condensed",sans-serif}
+.ss-secs{display:flex;flex-direction:column;gap:6px;margin-top:4px}
+.ss-sec{display:flex;gap:12px;align-items:baseline;border-bottom:1px solid #1d2026;padding:6px 0}
+.ss-sec b{min-width:5.5em;font:600 1rem Barlow,sans-serif;color:#8f97a3}
+.ss-sec span{font:700 clamp(1.2rem,5.5vw,1.7rem) "Barlow Condensed",sans-serif}
+.ss-next{font-size:.95rem;color:#8f97a3;margin-top:6px}
+.ss-next b{color:#d7dbe2}
+.ss-prog{display:flex;gap:3px;height:4px;margin-top:8px}
+.ss-prog i{flex:1;border-radius:2px;background:#262a31}
+.ss-prog i.done{background:#4c5563}
+.ss-prog i.on{background:var(--blue)}
+.ss-prog.cont{background:#262a31;border-radius:2px}
+.ss-prog.cont i{flex:none;background:var(--blue);border-radius:2px}
+.ss-info div.wide{grid-column:1/-1}
+
+/* single song view v2: title on top, tiles in the middle, mini setlist strip at the bottom */
+.ss-body{justify-content:flex-start!important;gap:0!important;padding:6px 0 10px!important;min-height:0}
+.ss-head{display:flex;align-items:baseline;gap:14px;padding-bottom:12px;border-bottom:1px solid #1d2026}
+.ss-head .ss-num{flex:none}
+.ss-head .ss-title{flex:1;min-width:0}
+.ss-mid{flex:1;display:flex;flex-direction:column;justify-content:center;gap:16px;padding:16px 0 8px;overflow-y:auto;min-height:0}
+.ss-info{display:grid!important;grid-template-columns:1fr 1fr!important;gap:10px!important;margin:0!important}
+.ss-tile{background:#101216;border:1px solid #23262d;border-radius:14px;padding:10px 14px;display:flex;flex-direction:column;gap:2px;min-width:0}
+.ss-tile.wide{grid-column:1/-1}
+.ss-tile b{font:700 clamp(1.5rem,7vw,2.2rem)/1.1 "Barlow Condensed",sans-serif;word-break:break-word}
+.ss-l{font:600 .78rem Barlow,sans-serif;color:#8f97a3;text-transform:uppercase;letter-spacing:.06em}
+.ss-block{display:flex;flex-direction:column;gap:8px}
+.ss-secs{display:grid!important;grid-template-columns:1fr 1fr;gap:8px!important;margin:0!important}
+.ss-sec{border-bottom:1px solid #23262d!important;padding:8px 12px!important}
+.ss-sec b{font-size:clamp(1.1rem,5vw,1.5rem)!important;color:#fff;min-width:0!important}
+.ss-notes{display:flex;flex-wrap:wrap;gap:8px}
+.ss-note{background:#1a1408;border:1px solid #4a3a12;color:#ffd77a;border-radius:12px;padding:8px 14px;font:700 clamp(1.1rem,5vw,1.5rem)/1.15 "Barlow Condensed",sans-serif}
+.ss-empty{color:#8f97a3;text-align:center}
+.ss-next,.ss-prog{display:none!important}
+.ss-strip{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding:8px 2px 2px;border-top:1px solid #1d2026;-webkit-mask-image:linear-gradient(90deg,transparent,#000 8%,#000 92%,transparent);mask-image:linear-gradient(90deg,transparent,#000 8%,#000 92%,transparent)}
+.ss-strip::-webkit-scrollbar{display:none}
+.ss-chip{all:unset;cursor:pointer;flex:none;max-width:42vw;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font:500 .78rem Barlow,sans-serif;color:#b9c0ca;background:#121419;border:1px solid #23262d;border-radius:999px;padding:5px 10px}
+.ss-chip b{color:#8f97a3;font-weight:700}
+.ss-chip.done{opacity:.5}
+.ss-chip.on{background:var(--blue);border-color:var(--blue);color:#fff}
+.ss-chip.on b{color:#fff}
+.ss-chip:focus-visible{outline:2px solid var(--blue);outline-offset:1px}
+.ss-sec .ss-l{font:600 .72rem/1.2 Barlow,sans-serif!important;color:#8f97a3!important;letter-spacing:.06em}
+.ss-sec{display:flex!important;flex-direction:column!important;align-items:flex-start!important;gap:2px!important}
+
+.ss-ht{flex:1;min-width:0;display:flex;flex-direction:column;gap:8px}
+.ss-meta{display:flex;flex-wrap:wrap;gap:8px}
+.ss-meta span{font:700 clamp(1.3rem,6vw,1.9rem)/1 "Barlow Condensed",sans-serif;color:#d7dbe2;background:#121419;border:1px solid #262a31;border-radius:10px;padding:6px 12px}
+.ss-head{border-bottom:1px solid rgba(255,255,255,.08)!important;padding-bottom:14px!important}
+.ss-note{all:unset;cursor:pointer;-webkit-user-select:none;user-select:none;touch-action:manipulation;background:#1a1408;border:1px solid #4a3a12;color:#ffd77a;border-radius:12px;padding:8px 14px;font:700 clamp(1.1rem,5vw,1.5rem)/1.15 "Barlow Condensed",sans-serif;transition:opacity .25s,transform .25s}
+.ss-note.gone{opacity:0;transform:scale(.7)}
+.ss-note:focus-visible{outline:2px solid #ffd77a;outline-offset:2px}
+.ss-restore{all:unset;cursor:pointer;align-self:center;font:500 .8rem Barlow,sans-serif;color:#8f97a3;padding:6px 10px;border-radius:999px;border:1px dashed #3a3f48}
+
+.sheet-blk{margin-top:14px;padding-top:12px;border-top:1px solid var(--line);display:flex;flex-direction:column;gap:4px}
+.sheet-info{display:flex;flex-direction:column;gap:2px;margin-top:4px}
+.sheet-name{font-weight:600;word-break:break-all}
+.sheet-info small{color:var(--muted)}
+.ss-sheetbtn{all:unset;cursor:pointer;font:700 clamp(1.1rem,5vw,1.5rem)/1 "Barlow Condensed",sans-serif;color:#fff;background:var(--blue);border-radius:10px;padding:7px 14px}
+.ss-sheetbtn:focus-visible{outline:2px solid #fff;outline-offset:2px}
+.sh-ov{position:fixed;inset:0;z-index:30;background:#000;color:#eef1f5;display:flex;flex-direction:column;padding:calc(env(safe-area-inset-top,0px) + 10px) 14px calc(env(safe-area-inset-bottom,0px) + 10px);animation:shIn .28s cubic-bezier(.16,1,.3,1)}
+.sh-ov.in-stage{position:absolute}
+@keyframes shIn{from{transform:translateY(40px);opacity:0}}
+.ice .sh-ov:not(.in-stage){background:#fff;color:#111}
+.sh-top{display:flex;align-items:center;gap:10px;padding-bottom:10px;border-bottom:1px solid rgba(255,255,255,.1)}
+.sh-top b{flex:1;min-width:0;font:700 1.25rem "Barlow Condensed",sans-serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sh-zoom{display:flex;gap:6px}
+.sh-zoom button,.sh-close{all:unset;cursor:pointer;font:600 .95rem Barlow,sans-serif;padding:8px 12px;border-radius:10px;background:#16181d;border:1px solid #2a2d34;color:#e6e9ee}
+.sh-close{background:var(--blue);border-color:var(--blue);color:#fff}
+.sh-content{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:12px 2px 40px;touch-action:pan-y}
+.sh-text{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;line-height:1.45;white-space:pre-wrap;word-break:break-word}
+.sh-text .sh-c{color:#7fb2ff;font-weight:700}
+.sh-text .sh-h{color:#ffd77a;font-weight:700;margin-top:.6em;font-family:"Barlow Condensed",sans-serif;font-size:1.15em;text-transform:uppercase;letter-spacing:.04em}
+.sh-text .sh-gap{height:.6em}
+.sh-img,.sh-page{display:block;width:100%;height:auto;border-radius:6px;margin:0 auto 12px;background:#fff}
+.sh-miss{color:#8f97a3}
 </style>
 </head>
 <body>
@@ -2014,6 +2109,104 @@ function viewBackups() {
   };
 }
 
+/* ================= own chord sheets / lead sheets ================= */
+const CHORD_RE = /^(N\.?C\.?|[A-H](?:#|b|♯|♭)?(?:maj|min|m|dim|aug|sus|add|M)?\d*(?:(?:add|sus|maj|b|#|♭|♯)\d+)*(?:\/[A-H](?:#|b|♯|♭)?)?)$/;
+const SECTION_RE = /^\s*[\[(]?\s*((?:pre[- ]?)?(?:intro|verse|vers|strophe|chorus|refrain|bridge|solo|outro|interlude|zwischenspiel|ende|coda|break|instrumental|hook|tag|middle ?8|post[- ]?chorus))\b\s*(\d+)?\s*[\])]?\s*:?\s*(.*)$/i;
+const sectionMatch = line => { const t = String(line || '').trim(); if (t.length > 60) return null; const m = t.match(SECTION_RE); if (!m) return null; const rest = (m[3] || '').trim(); return !rest || /^(x\s?\d+|\d+\s?x)$/i.test(rest) || isChordLine(rest) ? m : null; };
+const isChordLine = line => { const toks = line.replace(/[|()\[\]]/g, ' ').split(/\s+/).filter(Boolean); if (!toks.length) return false; const n = toks.filter(t => CHORD_RE.test(t.replace(/[,.;]$/, '')) || /^(x\d|%|-|–|\/)$/i.test(t)).length; return n / toks.length >= .75 && toks.some(t => CHORD_RE.test(t.replace(/[,.;]$/, ''))); };
+function keyFromChordName(s) {
+  const m = String(s || '').trim().match(/^([A-H])(#|♯|b|♭)?\s*(m(?!aj)|moll|minor|-moll)?/i); if (!m) return '';
+  const base = { C: 'C', D: 'D', E: 'E', F: 'F', G: 'G', A: 'A', B: 'H', H: 'H' }[m[1].toUpperCase()];
+  const sharp = m[2] === '#' || m[2] === '♯', flat = m[2] === 'b' || m[2] === '♭', minor = !!m[3];
+  const SH = { C: 'Cis', D: 'Dis', E: 'Eis', F: 'Fis', G: 'Gis', A: 'Ais', H: 'His' }, FL = { C: 'Ces', D: 'Des', E: 'Es', F: 'Fes', G: 'Ges', A: 'As', H: 'B' };
+  let n = sharp ? SH[base] : flat ? FL[base] : base;
+  const cand = minor ? `${n.toLowerCase()}-Moll` : `${n}-Dur`;
+  return KEY_NAMES.includes(cand) ? cand : '';
+}
+function parseChordSheet(text) {
+  const lines = String(text || '').replace(/\r/g, '').split('\n');
+  const sections = []; let cur = null, key = '', bpm = null, chordLines = 0;
+  const push = ch => { if (!cur) { cur = { name: sections.length ? 'Teil' : 'Intro', chords: [] }; sections.push(cur); } ch.forEach(c => { if (cur.chords[cur.chords.length - 1] !== c) cur.chords.push(c); }); };
+  for (const raw of lines) {
+    const line = raw.trim(); if (!line) continue;
+    const km = line.match(/^(?:key|tonart|tonalit[ée]|tono)\s*[:=]?\s*([A-H][#♯b♭]?\s*(?:m(?!aj)|moll|minor)?)/i); if (km && !key) key = keyFromChordName(km[1]);
+    const bm = line.match(/(\d{2,3})\s*bpm/i) || line.match(/(?:tempo|bpm)\s*[:=]?\s*(\d{2,3})/i); if (bm && !bpm) { const v = +bm[1]; if (v >= 30 && v <= 300) bpm = v; }
+    const sm = sectionMatch(line);
+    if (sm) {
+      cur = { name: (sm[1].charAt(0).toUpperCase() + sm[1].slice(1).toLowerCase()) + (sm[2] ? ' ' + sm[2] : ''), chords: [] }; sections.push(cur);
+      if (sm[3] && isChordLine(sm[3])) { push(sm[3].replace(/[|()\[\]]/g, ' ').split(/\s+/).filter(t => CHORD_RE.test(t.replace(/[,.;]$/, ''))).map(t => t.replace(/[,.;]$/, ''))); chordLines++; }
+      continue;
+    }
+    if (isChordLine(line)) { chordLines++; push(line.replace(/[|()\[\]]/g, ' ').split(/\s+/).filter(t => CHORD_RE.test(t.replace(/[,.;]$/, ''))).map(t => t.replace(/[,.;]$/, ''))); }
+  }
+  return { sections: sections.filter(s => s.chords.length).map(s => ({ name: s.name, chords: s.chords.slice(0, 24).join(' – ') })), key, bpm, chordLines };
+}
+async function importSheet(song, file) {
+  const isImg = /^image\//.test(file.type) || /\.(png|jpe?g|heic|heif|webp|gif)$/i.test(file.name);
+  const isPdf = file.type === 'application/pdf' || /\.pdf$/i.test(file.name);
+  let text = '';
+  if (!isImg) { try { text = await fileToText(file); } catch (e) { text = ''; } }
+  const parsed = parseChordSheet(text);
+  const kind = isImg ? 'image' : isPdf ? 'pdf' : 'text';
+  if (kind !== 'text') await FileStore.put('sheet-' + song.id, { blob: file, name: file.name, type: file.type, size: file.size });
+  else FileStore.del('sheet-' + song.id);
+  song.sheet = { name: file.name, kind, text: String(text || '').slice(0, 80000), sections: parsed.sections, key: parsed.key, bpm: parsed.bpm, size: file.size, added: Date.now() };
+  return parsed;
+}
+function renderSheetText(text, size) {
+  const pre = h('div', { class: 'sh-text', style: `font-size:${size}px` });
+  String(text || '').replace(/\r/g, '').split('\n').forEach(raw => {
+    const line = raw.replace(/\t/g, '    ');
+    const t = line.trim();
+    const cls = !t ? 'sh-gap' : sectionMatch(t) ? 'sh-h' : isChordLine(t) ? 'sh-c' : 'sh-l';
+    pre.append(h('div', { class: cls }, line || ' '));
+  });
+  return pre;
+}
+async function renderSheetInto(box, song, size = 17) {
+  const sh = song.sheet; box.replaceChildren();
+  if (!sh) return;
+  if (sh.kind === 'text') { box.append(renderSheetText(sh.text, size)); return; }
+  let rec = null; try { rec = await FileStore.get('sheet-' + song.id); } catch (e) {}
+  if (!rec || !rec.blob) {
+    if (sh.text) { box.append(h('p', { class: 'sh-miss' }, 'Originaldatei nicht auf diesem Gerät, hier der erkannte Text:'), renderSheetText(sh.text, size)); }
+    else box.append(h('p', { class: 'sh-miss' }, 'Die Sheet-Datei ist auf diesem Gerät nicht vorhanden.'));
+    return;
+  }
+  if (sh.kind === 'image') { const url = URL.createObjectURL(rec.blob); box.append(h('img', { class: 'sh-img', src: url, alt: `Sheet: ${song.title || ''}` })); return; }
+  box.append(h('p', { class: 'sh-miss' }, 'Sheet wird geladen …'));
+  try {
+    const pdfjs = await getPdfjs();
+    const doc = await pdfjs.getDocument({ data: new Uint8Array(await rec.blob.arrayBuffer()) }).promise;
+    box.replaceChildren();
+    const w = Math.max(280, box.clientWidth || 360), dpr = Math.min(3, window.devicePixelRatio || 1);
+    for (let n = 1; n <= Math.min(doc.numPages, 30); n++) {
+      const page = await doc.getPage(n), vp0 = page.getViewport({ scale: 1 }), scale = (w / vp0.width) * dpr, vp = page.getViewport({ scale });
+      const c = h('canvas', { class: 'sh-page', width: Math.round(vp.width), height: Math.round(vp.height), 'aria-label': `Seite ${n}` });
+      box.append(c); await page.render({ canvasContext: c.getContext('2d'), viewport: vp }).promise;
+    }
+  } catch (e) {
+    box.replaceChildren(sh.text ? renderSheetText(sh.text, size) : h('p', { class: 'sh-miss' }, 'Das PDF konnte nicht angezeigt werden.'));
+  }
+}
+function openSheetViewer(song, host) {
+  let size = 17;
+  const content = h('div', { class: 'sh-content' });
+  const ov = h('div', { class: 'sh-ov' + (host ? ' in-stage' : ''), role: 'dialog', 'aria-modal': 'true', 'aria-label': `Sheet: ${song.title || ''}` });
+  const close = () => ov.remove();
+  const zoom = d => { size = Math.max(12, Math.min(34, size + d)); const t = content.querySelector('.sh-text'); if (t) t.style.fontSize = size + 'px'; };
+  ov.append(
+    h('div', { class: 'sh-top' },
+      h('b', {}, song.title || 'Sheet'),
+      song.sheet && song.sheet.kind === 'text' ? h('span', { class: 'sh-zoom' }, h('button', { type: 'button', 'aria-label': 'Schrift kleiner', onclick: () => zoom(-2) }, 'A−'), h('button', { type: 'button', 'aria-label': 'Schrift größer', onclick: () => zoom(2) }, 'A+')) : null,
+      h('button', { class: 'sh-close', type: 'button', onclick: close }, 'Schließen')),
+    content);
+  (host || document.body).append(ov);
+  renderSheetInto(content, song, size);
+  ov.querySelector('.sh-close').focus();
+  return ov;
+}
+
 /* ================= view: mode ================= */
 /* Studio is temporarily locked on the public tester link (GitHub Pages). Unlock on a device with #studio-freigeben, lock again with #studio-sperren. */
 function studioLocked() {
@@ -2605,6 +2798,7 @@ function viewSetlist() {
     song.ai ||= {};
     const box = h('div', { class: 'ai' });
     let instr = song.aiInst || (route.inst === 'bass' ? 'bass' : 'guitar'), busy = false, msg = '';
+    let sheetMsg = sheetMsgs.get(song.id) || '';
     async function fetchIt() {
       if (!(song.title || '').trim()) { msg = 'Bitte zuerst einen Songtitel eintragen.'; draw(); return; }
       busy = true; msg = ''; draw();
@@ -2631,7 +2825,29 @@ function viewSetlist() {
           h('button', { class: 'btn solid small', type: 'button', disabled: busy, onclick: fetchIt }, busy ? 'Wird abgerufen …' : r ? 'Neu abrufen' : 'Abrufen')),
         msg ? h('p', { class: 'err' }, msg) : null,
         r ? aiResult(song, r) : (!busy && !msg ? h('p', { class: 'muted', style: 'font-size:.9rem' }, `Ruft Tonart, Songstruktur und ${instr === 'bass' ? 'Basstöne' : 'Akkorde'} für „${song.title || 'diesen Song'}“ von ${a.name} ab.`) : null),
-        h('p', { class: 'ai-note' }, 'KI-Vorschlag aus dem Wissen von Claude, kein Live-Abruf aus dem Internet. Bitte vor dem Gig mit dem Original abgleichen. Liedtexte werden nicht angezeigt.')].filter(Boolean));
+        h('p', { class: 'ai-note' }, 'KI-Vorschlag aus dem Wissen von Claude, kein Live-Abruf aus dem Internet. Bitte vor dem Gig mit dem Original abgleichen. Liedtexte werden nicht angezeigt.'),
+        sheetBlock()].filter(Boolean));
+    }
+    function sheetBlock() {
+      const sh = song.sheet;
+      const inp = h('input', { type: 'file', accept: '.pdf,.txt,.docx,.rtf,.md,.chopro,.cho,.pro,image/*', style: 'display:none', onchange: async e => {
+        const f = e.target.files && e.target.files[0]; e.target.value = ''; if (!f) return;
+        sheetMsg = 'Sheet wird gelesen …'; draw();
+        try { const r = await importSheet(song, f); touch(); sheetMsg = song.sheet.kind === 'image' ? 'Foto gespeichert. Bilder werden angezeigt, aber nicht ausgelesen.' : r.sections.length ? `${plural(r.sections.length, 'Songteil', 'Songteile')} mit Akkorden erkannt.` : (song.sheet.text ? 'Sheet gespeichert. Es wurden keine Akkordzeilen erkannt.' : 'Sheet gespeichert. Text konnte nicht ausgelesen werden, es wird als Bild angezeigt.'); }
+        catch (err) { sheetMsg = 'Die Datei konnte nicht gelesen werden.'; }
+        sheetMsgs.set(song.id, sheetMsg); render(true);
+      } });
+      const pick = h('label', { class: 'btn small' + (sh ? '' : ' solid'), tabindex: 0, onkeydown: e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); inp.click(); } } }, sh ? 'Ersetzen' : 'Chordsheet hochladen', inp);
+      const canKey = sh && sh.key && song.key !== sh.key, canBpm = sh && sh.bpm && !song.bpm;
+      return h('div', { class: 'sheet-blk' },
+        h('b', {}, 'Eigenes Chordsheet oder Leadsheet'),
+        sh ? h('div', { class: 'sheet-info' }, h('span', { class: 'sheet-name' }, sh.name),
+          h('small', {}, [sh.sections.length ? plural(sh.sections.length, 'Songteil', 'Songteile') + ' erkannt' : (sh.kind === 'image' ? 'Foto' : 'keine Akkordzeilen erkannt'), sh.key ? `Tonart ${sh.key}` : '', sh.bpm ? `${sh.bpm} BPM` : ''].filter(Boolean).join(', '))) : h('p', { class: 'muted', style: 'font-size:.88rem;margin:4px 0 0' }, 'PDF, Word, Text oder Foto. Text-Sheets werden ausgelesen: Songteile, Akkorde, Tonart und BPM.'),
+        sheetMsg ? h('p', { class: 'muted', style: 'font-size:.85rem;margin:6px 0 0' }, sheetMsg) : null,
+        h('div', { class: 'row' }, pick,
+          sh ? h('button', { class: 'btn small', type: 'button', onclick: () => openSheetViewer(song) }, 'Ansehen') : null,
+          (canKey || canBpm) ? h('button', { class: 'btn small', type: 'button', onclick: () => { if (canKey) song.key = sh.key; if (canBpm) song.bpm = sh.bpm; touch(); render(true); } }, 'Tonart und BPM übernehmen') : null,
+          sh ? h('button', { class: 'btn ghost small', type: 'button', onclick: () => { FileStore.del('sheet-' + song.id); delete song.sheet; sheetMsg = ''; touch(); render(true); } }, 'Entfernen') : null));
     }
     draw(); return box;
   };
@@ -2641,6 +2857,7 @@ function viewSetlist() {
     if (song.bpm) out.push(h('span', { class: 'bdg' }, `${song.bpm} BPM`));
     if (ik && song[ik]) { const t = P().tunings.find(x => x.id === song[ik].tuningId); if (t) out.push(h('span', { class: 'bdg' }, t.name)); if (song[ik].capo) out.push(h('span', { class: 'bdg' }, `Kapo ${song[ik].capo}`)); }
     if (song.ai && (song.ai.guitar || song.ai.bass)) out.push(h('span', { class: 'bdg ai' }, 'Akkorde'));
+    if (song.sheet) out.push(h('span', { class: 'bdg ai' }, 'Sheet'));
     if (song.note) out.push(h('span', { class: 'bdg note' }, song.note));
     return out;
   };
@@ -2686,8 +2903,61 @@ function viewSetlist() {
 function showStage(s) {
   const ov = h('div', { class: 'stage', role: 'dialog', 'aria-label': 'Großansicht' },
     h('button', { class: 'close', type: 'button', onclick: () => ov.remove() }, 'Schließen'),
-    h('ol', {}, s.songs.map(x => h('li', {}, h('div', {}, x.title || '–', (() => { const t = [x.key, x.bpm ? x.bpm + ' BPM' : '', stageTun(x), x.note].filter(Boolean).join(', '); return t ? h('small', {}, t) : null; })())))));
+    h('ol', {}, s.songs.map((x, i) => h('li', { role: 'button', tabindex: 0, 'aria-label': `${i + 1}. ${x.title || 'Song'} groß anzeigen`, onclick: () => showStageSong(s, i), onkeydown: e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); showStageSong(s, i); } } },
+      h('div', {}, x.title || '–', (() => { const t = [x.key, x.bpm ? x.bpm + ' BPM' : '', stageTun(x), x.note].filter(Boolean).join(', '); return t ? h('small', {}, t) : null; })())))));
   document.body.append(ov); ov.querySelector('.close').focus();
+}
+const stageDone = new Set();
+const sheetMsgs = new Map();
+function showStageSong(s, start) {
+  let i = start;
+  const ov = h('div', { class: 'stage-song', role: 'dialog', 'aria-modal': 'true', 'aria-label': 'Song-Ansicht' });
+  const close = () => { ov.remove(); document.removeEventListener('keydown', onKey); };
+  const go = (n, dir) => { if (n < 0 || n >= s.songs.length || n === i) return; ov.querySelector('.sh-ov')?.remove(); i = n; draw(dir); };
+  const noteTile = n => {
+    const el = h('button', { class: 'ss-note', type: 'button', 'aria-label': `${n.t}. Doppeltippen, wenn erledigt` }, n.t);
+    let last = 0;
+    const done = () => { if (el.classList.contains('gone')) return; el.classList.add('gone'); stageDone.add(n.key); navigator.vibrate?.(10); setTimeout(() => draw(), 260); };
+    el.addEventListener('touchend', e => { const t = Date.now(); if (t - last < 320) { e.preventDefault(); done(); last = 0; } else last = t; });
+    el.addEventListener('dblclick', done);
+    return el;
+  };
+  function draw(dir = 0) {
+    const x = s.songs[i];
+    const ins = route.inst === 'bass' ? 'bass' : route.inst === 'guitar' ? 'guitar' : null;
+    const ai = x.ai ? (ins ? x.ai[ins] : (x.ai.guitar || x.ai.bass)) : null;
+    const info = [['Stimmung', stageTun(x)]].filter(r => r[1]);
+    const allNotes = String(x.note || '').split('/').map(t => t.trim()).filter(Boolean).map((t, k) => ({ t, key: `${x.id || i}:${k}:${t}` }));
+    const notes = allNotes.filter(n => !stageDone.has(n.key)), doneCount = allNotes.length - notes.length;
+    const meta = [x.key, x.bpm ? `${x.bpm} BPM` : ''].filter(Boolean);
+    const own = x.sheet && x.sheet.sections && x.sheet.sections.length ? x.sheet.sections : null;
+    const secs = own || (ai && ai.known !== false ? (ai.sections || []).filter(sec => sec.name || sec.chords) : []);
+    const sheetBtn = x.sheet ? h('button', { class: 'ss-sheetbtn', type: 'button', onclick: () => openSheetViewer(x, ov) }, '▤ Sheet') : null;
+    const strip = h('div', { class: 'ss-strip', role: 'tablist', 'aria-label': 'Songs der Setliste' }, s.songs.map((y, k) =>
+      h('button', { class: 'ss-chip' + (k === i ? ' on' : k < i ? ' done' : ''), type: 'button', role: 'tab', 'aria-selected': String(k === i), onclick: () => go(k, k > i ? 1 : -1) }, h('b', {}, String(k + 1)), ' ', y.title || '–')));
+    ov.replaceChildren(
+      h('div', { class: 'ss-top' },
+        h('button', { class: 'ss-close', type: 'button', 'aria-label': 'Zurück zur Liste', onclick: close }, '×'),
+        h('span', { class: 'ss-count' }, `${i + 1} / ${s.songs.length}`)),
+      h('div', { class: 'ss-body' + (dir > 0 ? ' in-r' : dir < 0 ? ' in-l' : '') },
+        h('div', { class: 'ss-head' }, h('span', { class: 'ss-num' }, String(i + 1)), h('div', { class: 'ss-ht' }, h('h2', { class: 'ss-title' }, x.title || '–'), (meta.length || sheetBtn) ? h('div', { class: 'ss-meta' }, meta.map(m => h('span', {}, m)), sheetBtn) : null)),
+        h('div', { class: 'ss-mid' },
+          info.length ? h('div', { class: 'ss-info' }, info.map(([k, v]) => h('div', { class: 'ss-tile' + (k === 'Stimmung' ? ' wide' : '') }, h('span', { class: 'ss-l' }, k), h('b', {}, v)))) : null,
+          secs.length ? h('div', { class: 'ss-block' }, h('span', { class: 'ss-l' }, own ? 'Aus deinem Sheet' : ins === 'bass' ? 'Struktur und Basstöne' : 'Akkorde und Struktur'),
+            h('div', { class: 'ss-secs' }, secs.map(sec => h('div', { class: 'ss-tile ss-sec' }, h('span', { class: 'ss-l' }, sec.name || ''), h('b', {}, sec.chords || ''))))) : null,
+          allNotes.length ? h('div', { class: 'ss-block' }, h('span', { class: 'ss-l' }, allNotes.length > 1 ? 'Notizen' : 'Notiz'),
+            h('div', { class: 'ss-notes' }, notes.map(n => noteTile(n)),
+              doneCount ? h('button', { class: 'ss-restore', type: 'button', onclick: () => { allNotes.forEach(n => stageDone.delete(n.key)); draw(); } }, `↺ ${doneCount} erledigt`) : null)) : null,
+          !info.length && !secs.length && !allNotes.length ? h('p', { class: 'ss-empty' }, meta.length ? '' : 'Keine Infos zu diesem Song hinterlegt.') : null)),
+      strip);
+    requestAnimationFrame(() => { const on = strip.querySelector('.on'); if (on) strip.scrollTo({ left: on.offsetLeft - strip.clientWidth / 2 + on.offsetWidth / 2, behavior: dir ? 'smooth' : 'auto' }); });
+  }
+  let sx = 0, sy = 0, st = 0;
+  ov.addEventListener('touchstart', e => { const t = e.touches[0]; sx = t.clientX; sy = t.clientY; st = Date.now(); }, { passive: true });
+  ov.addEventListener('touchend', e => { if (e.target.closest && e.target.closest('.ss-strip, .sh-ov')) return; const t = e.changedTouches[0], dx = t.clientX - sx, dy = t.clientY - sy; if (Math.abs(dx) > 50 && Math.abs(dy) < Math.abs(dx) * .7 && Date.now() - st < 900) dx < 0 ? go(i + 1, 1) : go(i - 1, -1); }, { passive: true });
+  const onKey = e => { if (!document.body.contains(ov)) { document.removeEventListener('keydown', onKey); return; } if (e.key === 'ArrowRight') go(i + 1, 1); else if (e.key === 'ArrowLeft') go(i - 1, -1); else if (e.key === 'Escape') close(); };
+  document.addEventListener('keydown', onKey);
+  draw(); document.body.append(ov); ov.querySelector('.ss-close').focus();
 }
 
 /* ================= tuner engine ================= */
