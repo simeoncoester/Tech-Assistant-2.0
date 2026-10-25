@@ -1098,16 +1098,28 @@ body.wm #wm{display:grid}
 .onb-art.onb-hold{flex-direction:column}
 .onb-faders.onb-hold{height:150px}
 .onb-art.onb-tiles,.onb-art.onb-cards,.onb-art.onb-helpq{justify-content:center}
+
+/* ===== splash v3: four separate layers fly in from all sides (HTML transforms, reliable on iOS) ===== */
+.sp-logo-wrap{position:relative;width:min(38vw,150px);aspect-ratio:466/650;margin:0 auto;filter:drop-shadow(0 0 22px rgba(170,200,255,.25));animation:spHit2 .6s cubic-bezier(.3,1.6,.5,1) 1.75s both}
+@keyframes spHit2{0%{transform:scale(1)}40%{transform:scale(1.07)}100%{transform:scale(1)}}
+.lg-layer{position:absolute;left:0;top:0;width:100%;height:100%;overflow:visible;opacity:0;transform-origin:50% 50%;will-change:transform,opacity;animation-duration:1.05s;animation-timing-function:cubic-bezier(.2,1.15,.35,1);animation-fill-mode:forwards}
+.lgx-arc{animation-name:lgxArc;animation-delay:.15s}
+.lgx-circle{animation-name:lgxCircle;animation-delay:.4s}
+.lgx-l{animation-name:lgxL;animation-delay:.65s}
+.lgx-r{animation-name:lgxR;animation-delay:.8s}
+@keyframes lgxArc{0%{opacity:0;transform:translate3d(0,-65vh,0) rotate(-40deg)}35%{opacity:1}100%{opacity:1;transform:translate3d(0,0,0) rotate(0)}}
+@keyframes lgxCircle{0%{opacity:0;transform:translate3d(-80vw,0,0) scale(.45)}35%{opacity:1}100%{opacity:1;transform:translate3d(0,0,0) scale(1)}}
+@keyframes lgxL{0%{opacity:0;transform:translate3d(-60vw,60vh,0) rotate(-55deg)}35%{opacity:1}100%{opacity:1;transform:translate3d(0,0,0) rotate(0)}}
+@keyframes lgxR{0%{opacity:0;transform:translate3d(60vw,60vh,0) rotate(55deg)}35%{opacity:1}100%{opacity:1;transform:translate3d(0,0,0) rotate(0)}}
+.sp-word span{animation-delay:calc(1.55s + var(--i) * .04s)!important}
+.sp-line{animation-delay:2.3s!important}
+@media (prefers-reduced-motion:reduce){.sp-logo-wrap{animation:none}.lg-layer{animation:lgxFade .8s ease forwards!important}}
+@keyframes lgxFade{to{opacity:1}}
 </style>
 </head>
 <body>
 <div id="splash" aria-hidden="true"><div class="sp-inner">
-<svg class="sp-logo" viewBox="0 0 466 650" aria-hidden="true">
-<g class="lg lg-arc"><path d="M23.8 255 A210 210 0 1 1 442.2 255" fill="none" stroke="#F4F2EE" stroke-width="10" stroke-linecap="round"/></g>
-<g class="lg lg-circle"><circle cx="233" cy="237" r="168" fill="none" stroke="#F4F2EE" stroke-width="10"/></g>
-<g class="lg lg-l"><path d="M255.7 287.5 L57.3 615.4 L72.7 624.6 L264.3 292.5 Z" fill="#F4F2EE"/></g>
-<g class="lg lg-r"><path d="M205.7 292.6 L404.3 624.7 L419.7 615.3 L214.3 287.4 Z" fill="#F4F2EE"/></g>
-</svg>
+<div class="sp-logo-wrap" aria-hidden="true"><svg class="lg-layer lgx-arc" viewBox="0 0 466 650" aria-hidden="true" overflow="visible"><path d="M23.8 255 A210 210 0 1 1 442.2 255" fill="none" stroke="#F4F2EE" stroke-width="10" stroke-linecap="round"/></svg><svg class="lg-layer lgx-circle" viewBox="0 0 466 650" aria-hidden="true" overflow="visible"><circle cx="233" cy="237" r="168" fill="none" stroke="#F4F2EE" stroke-width="10"/></svg><svg class="lg-layer lgx-l" viewBox="0 0 466 650" aria-hidden="true" overflow="visible"><path d="M255.7 287.5 L57.3 615.4 L72.7 624.6 L264.3 292.5 Z" fill="#F4F2EE"/></svg><svg class="lg-layer lgx-r" viewBox="0 0 466 650" aria-hidden="true" overflow="visible"><path d="M205.7 292.6 L404.3 624.7 L419.7 615.3 L214.3 287.4 Z" fill="#F4F2EE"/></svg></div>
 <div class="sp-word" aria-label="Tech Assistent"><span style="--i:0;--dx:-60px;--dy:0px">T</span><span style="--i:1;--dx:0px;--dy:-40px">e</span><span style="--i:2;--dx:0px;--dy:40px">c</span><span style="--i:3;--dx:0px;--dy:-40px">h</span><span style="--i:4;--dx:0px;--dy:0px">&nbsp;</span><span style="--i:5;--dx:0px;--dy:40px">A</span><span style="--i:6;--dx:0px;--dy:-40px">s</span><span style="--i:7;--dx:0px;--dy:40px">s</span><span style="--i:8;--dx:0px;--dy:-40px">i</span><span style="--i:9;--dx:0px;--dy:40px">s</span><span style="--i:10;--dx:0px;--dy:-40px">t</span><span style="--i:11;--dx:0px;--dy:40px">e</span><span style="--i:12;--dx:0px;--dy:-40px">n</span><span style="--i:13;--dx:60px;--dy:0px">t</span></div><div class="sp-line"></div></div></div>
 <header class="bar" id="bar"></header>
 <main id="app"></main>
@@ -3636,7 +3648,7 @@ ${String(text).slice(0, 12000)}`, { modelTier: 'default' });
   draw(); document.body.append(ov);
 }
 /* ================= start ================= */
-(() => { const sp = document.getElementById('splash'); if (!sp) return; setTimeout(() => { sp.classList.add('out'); setTimeout(() => sp.remove(), 450); }, 2600); })();
+(() => { const sp = document.getElementById('splash'); if (!sp) return; setTimeout(() => { sp.classList.add('out'); setTimeout(() => sp.remove(), 450); }, 3300); })();
 document.body.append(...Object.keys(STAGES).map((k, i) => h('datalist', { id: 'dl-' + i }, (GEAR[k] || []).map(g => h('option', { value: g })))));
 function currentTheme() { try { const t = localStorage.getItem('drumtech-theme'); return t === 'ice' ? 'ice' : 'glass'; } catch (e) { return 'glass'; } }
 function setTheme(v) { try { localStorage.setItem('drumtech-theme', v); } catch (e) {} document.documentElement.classList.toggle('glass', v === 'glass'); document.documentElement.classList.toggle('ice', v === 'ice'); }
