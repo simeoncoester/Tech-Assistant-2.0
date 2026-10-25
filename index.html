@@ -1320,6 +1320,15 @@ body.wm #wm{display:grid}
 .dm-beats i.now{background:#fff;transform:scale(1.15)}
 .dm-beats i.acc.now{background:#ff2a2a}
 .onb-slide.flash-acc .onb-art{filter:drop-shadow(0 0 18px rgba(255,60,60,.6))}
+
+.bk-ico{width:34px;height:34px;flex:none;border-radius:10px;display:grid;place-items:center;color:var(--accent);background:color-mix(in srgb,var(--accent) 14%,transparent)}
+.bk-ico svg{width:19px;height:19px}
+.bk-t{flex:1;min-width:0;display:flex;flex-direction:column;text-align:left}
+.bk-t b{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bk-t small{color:var(--muted);font-size:.8rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bk-status{flex:none;font-size:.78rem;color:var(--muted)}
+.bk-status.warn{color:#e8a13a}
+.bk-file{margin:10px 0 4px;font-size:.9rem}
 </style>
 </head>
 <body>
@@ -1440,7 +1449,7 @@ function normalize() {
     });
     a.setlists.forEach(s => { s.mode ||= 'live'; s.songs ||= []; s.songs.forEach(x => { x.gt ||= {}; x.bs ||= {}; }); });
     const copy = o => JSON.parse(JSON.stringify(o || null));
-    const seed = p => { if (!p.tunings) p.tunings = copy(a.tunings) || []; if (!p.instruments) p.instruments = copy(a.instruments) || []; if (!p.instChains) p.instChains = copy(a.instChains) || {}; ['guitar', 'bass'].forEach(k => { p.instChains[k] ||= { channels: [], busses: [] }; }); p.setlists ||= []; };
+    const seed = p => { p.backups ||= []; if (!p.tunings) p.tunings = copy(a.tunings) || []; if (!p.instruments) p.instruments = copy(a.instruments) || []; if (!p.instChains) p.instChains = copy(a.instChains) || {}; ['guitar', 'bass'].forEach(k => { p.instChains[k] ||= { channels: [], busses: [] }; }); p.setlists ||= []; };
     a.productions.forEach(seed);
     if (a.setlists.length) {
       a.setlists.forEach(sl => {
@@ -1503,7 +1512,7 @@ function render(keepScroll) {
   const bar = document.getElementById('bar'), app = document.getElementById('app');
   bar.replaceChildren(); app.replaceChildren();
   const views = { artists: viewArtists, mode: viewMode, projects: viewProjects, home: viewHome, kits: viewKits, kit: viewKit, chains: viewChains, chain: viewChain, console: viewConsole, setlists: viewSetlists, setlist: viewSetlist, tuner: viewTuner,
-    inst: viewInst, drumMenu: viewDrumMenu, quick: viewQuick, ghome: viewGHome, tunings: viewTunings, tuning: viewTuning, ginsts: viewGInsts, ginst: viewGInst, gtuner: viewGTuner, click: viewClick };
+    inst: viewInst, drumMenu: viewDrumMenu, quick: viewQuick, ghome: viewGHome, tunings: viewTunings, tuning: viewTuning, ginsts: viewGInsts, ginst: viewGInst, gtuner: viewGTuner, click: viewClick, backups: viewBackups };
   const freeTuner = (route.view === 'tuner' && route.tunerFrom === 'free') || route.view === 'click';
   if (!freeTuner && route.view !== 'artists' && !artist()) route.view = 'artists';
   else if (!freeTuner && !['artists', 'mode', 'projects'].includes(route.view) && !P()) route.view = 'projects';
@@ -1903,6 +1912,78 @@ function viewClick() {
   };
 }
 
+/* ================= backups of digital gear (Kemper, Helix …) — files in IndexedDB on this device ================= */
+const FileStore = {
+  db: null,
+  open() {
+    if (this.db) return Promise.resolve(this.db);
+    return new Promise((res, rej) => {
+      try { const r = indexedDB.open('techassistent-files', 1); r.onupgradeneeded = () => r.result.createObjectStore('files'); r.onsuccess = () => { this.db = r.result; res(this.db); }; r.onerror = () => rej(r.error); } catch (e) { rej(e); }
+    });
+  },
+  async tx(mode, fn) { const db = await this.open(); return new Promise((res, rej) => { const t = db.transaction('files', mode), st = t.objectStore('files'), out = fn(st); t.oncomplete = () => res(out && out.result); t.onerror = () => rej(t.error); }); },
+  put(id, rec) { return this.tx('readwrite', st => st.put(rec, id)); },
+  get(id) { return this.tx('readonly', st => st.get(id)); },
+  del(id) { return this.tx('readwrite', st => st.delete(id)).catch(() => {}); }
+};
+const BACKUP_DEVICES = ['Kemper Profiler', 'Kemper Player', 'Fractal Axe-Fx / FM9 / FM3', 'Line 6 Helix / HX Stomp', 'Neural DSP Quad Cortex', 'Boss GT / ME', 'Headrush', 'Digitaler Preamp / DI', 'Pedalboard / MIDI-Controller', 'Wireless-System', 'Andere'];
+const fmtSize = n => !n ? '' : n < 1024 * 1024 ? `${Math.max(1, Math.round(n / 1024))} KB` : `${(n / 1024 / 1024).toFixed(n < 100 * 1024 * 1024 ? 1 : 0).replace('.', ',')} MB`;
+const backupOpen = new Set();
+async function shareBackupFile(b) {
+  let rec; try { rec = await FileStore.get(b.id); } catch (e) {}
+  if (!rec || !rec.blob) { toast('Die Datei ist auf diesem Gerät nicht vorhanden.'); return; }
+  const file = new File([rec.blob], rec.name || b.fileName || 'backup', { type: rec.type || 'application/octet-stream' });
+  try {
+    if (navigator.canShare && navigator.canShare({ files: [file] })) { await navigator.share({ files: [file], title: b.name || file.name }); return; }
+  } catch (e) { if (e && e.name === 'AbortError') return; }
+  const url = URL.createObjectURL(file), aEl = h('a', { href: url, download: file.name }); document.body.append(aEl); aEl.click(); aEl.remove(); setTimeout(() => URL.revokeObjectURL(url), 5000);
+  toast('Datei wird heruntergeladen');
+}
+async function attachBackupFile(b, file) {
+  try {
+    await FileStore.put(b.id, { blob: file, name: file.name, type: file.type, size: file.size, saved: Date.now() });
+    b.fileName = file.name; b.fileSize = file.size; b.hasFile = true; b.fileDate = new Date().toISOString().slice(0, 10);
+    touch(); render(true); toast('Backup-Datei gespeichert');
+  } catch (e) { toast('Die Datei konnte nicht gespeichert werden. Eventuell ist der Speicher voll.'); }
+}
+function viewBackups() {
+  const p = P(), inst = route.inst; p.backups ||= []; const list = p.backups.filter(b => b.inst === inst);
+  const addBtn = h('button', { class: 'btn solid', type: 'button', onclick: () => {
+    const b = { id: newId(), inst, device: BACKUP_DEVICES[0], name: '', date: new Date().toISOString().slice(0, 10), note: '', hasFile: false };
+    p.backups.unshift(b); backupOpen.add(b.id); touch(); render(true);
+  } }, '+ Backup anlegen');
+  const card = b => {
+    const open = backupOpen.has(b.id);
+    const status = h('span', { class: 'bk-status' }, b.hasFile ? fmtSize(b.fileSize) : 'keine Datei');
+    if (b.hasFile) FileStore.get(b.id).then(r => { if (!r) { status.textContent = 'Datei nicht auf diesem Gerät'; status.classList.add('warn'); } }).catch(() => {});
+    const fileInp = h('input', { type: 'file', style: 'display:none', onchange: e => { const f = e.target.files && e.target.files[0]; if (f) attachBackupFile(b, f); e.target.value = ''; } });
+    return h('div', { class: 'card drum-card' + (open ? ' open' : '') },
+      h('button', { class: 'drum-head drum-toggle', type: 'button', 'aria-expanded': String(open), onclick: () => { open ? backupOpen.delete(b.id) : backupOpen.add(b.id); render(true); } },
+        h('span', { class: 'bk-ico', 'aria-hidden': 'true' }, areaIcon('backups')),
+        h('span', { class: 'bk-t' }, h('b', {}, b.name || b.device), h('small', {}, [b.name ? b.device : '', b.date ? fmtDate(b.date) : ''].filter(Boolean).join(', '))),
+        status, h('i', { class: 'drum-chev', 'aria-hidden': 'true' }, '›')),
+      open && h('div', { class: 'drum-body' },
+        h('div', { class: 'grid' },
+          h('label', { class: 'field' }, h('span', {}, 'Gerät'), h('select', { onchange: e => { b.device = e.target.value; touch(); render(true); } }, BACKUP_DEVICES.map(d => h('option', { value: d, selected: b.device === d }, d)), !BACKUP_DEVICES.includes(b.device) ? h('option', { value: b.device, selected: true }, b.device) : null)),
+          field('Bezeichnung', b.name, v => b.name = v, { placeholder: 'z. B. Rigs Sommertour 25', onchange: () => render(true) }),
+          field('Datum', b.date, v => b.date = v, { type: 'date', onchange: () => render(true) })),
+        field('Notiz', b.note, v => b.note = v, { placeholder: 'z. B. Firmware 11.0, Performance 3, Stick „Gitarre A“' }),
+        h('div', { class: 'bk-file' }, b.hasFile ? h('span', {}, h('b', {}, b.fileName || 'Datei'), ` ${fmtSize(b.fileSize)}`) : h('span', { class: 'muted' }, 'Noch keine Datei angehängt.')),
+        h('div', { class: 'row' },
+          h('label', { class: 'btn' + (b.hasFile ? '' : ' solid'), tabindex: 0, onkeydown: e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); fileInp.click(); } } }, b.hasFile ? 'Datei ersetzen' : 'Backup-Datei wählen', fileInp),
+          b.hasFile ? h('button', { class: 'btn solid', type: 'button', onclick: () => shareBackupFile(b) }, 'Auf Stick / in Dateien sichern') : null),
+        h('div', { class: 'row' }, delBtn('Backup löschen', () => { p.backups = p.backups.filter(x => x !== b); FileStore.del(b.id); backupOpen.delete(b.id); touch(); render(true); }, 'small'))));
+  };
+  return {
+    title: 'Backup', back: () => nav('ghome'),
+    body: [
+      h('div', { class: 'row', style: 'margin-bottom:6px' }, addBtn),
+      list.length ? list.map(card) : h('div', { class: 'empty' }, h('p', {}, 'Noch keine Backups. Lege z. B. das Backup deines Kemper oder Helix für diese Produktion an.')),
+      h('p', { class: 'muted', style: 'font-size:.85rem;margin-top:14px' }, 'Die Dateien liegen nur auf diesem Gerät. Über „Auf Stick / in Dateien sichern“ legst du sie im Teilen-Menü unter „In Dateien sichern“ direkt auf einen eingesteckten USB-Stick. Beim Teilen einer Tour werden nur die Angaben übertragen, nicht die Dateien.')
+    ]
+  };
+}
+
 /* ================= view: mode ================= */
 function viewMode() {
   const a = artist();
@@ -1940,7 +2021,7 @@ function viewHome() {
 }
 
 /* ================= view: kits ================= */
-function newProduction(mode) { return { id: newId(), mode, kind: KINDS[mode][0], name: '', date: '', venue: '', kit: '', notes: '', drums: [], mics: [], chain: { channels: [], busses: [] }, setlists: [], tunings: [], instruments: [], instChains: { guitar: { channels: [], busses: [] }, bass: { channels: [], busses: [] } } }; }
+function newProduction(mode) { return { backups: [], id: newId(), mode, kind: KINDS[mode][0], name: '', date: '', venue: '', kit: '', notes: '', drums: [], mics: [], chain: { channels: [], busses: [] }, setlists: [], tunings: [], instruments: [], instChains: { guitar: { channels: [], busses: [] }, bass: { channels: [], busses: [] } } }; }
 function viewProjects() {
   const a = artist(), studio = route.mode === 'studio', ps = a.productions.filter(p => p.mode === route.mode);
   const inp = h('input', { id: 'newProject', placeholder: studio ? 'z. B. Album 2026' : 'z. B. Sommertour 2026', 'aria-label': studio ? 'Name der Produktion' : 'Name der Tour' });
@@ -3080,6 +3161,7 @@ function viewGHome() {
       atile('tunings', 'Stimmungen und Kapo', plural(tun.length, 'Stimmung', 'Stimmungen'), () => nav('tunings')),
       atile('ginsts', 'Instrumente', plural(ins.length, 'Instrument', 'Instrumente'), () => nav('ginsts')),
       atile('setlists', 'Setlisten', plural(sets, 'Setliste', 'Setlisten'), () => nav('setlists')),
+      atile('backups', 'Backup', '', () => nav('backups')),
       studio && atile('chain', 'Recording Recall', plural(P().instChains[inst].channels.length, 'Kanal', 'Kanäle'), () => nav('chain', { chainOwner: 'inst' })),
       studio && atile('console', 'Mischpult', 'Kanalzüge mit Fadern', () => nav('console', { chainOwner: 'inst' }))),
     after: null
@@ -3382,10 +3464,10 @@ function showTuningSheet(p, { anchorId, songId } = {}) {
 }
 
 /* ================= areas, icons, tab bar ================= */
-const AREA = { console: ['var(--a-chain)', 'Mischpult'], tuner: ['var(--a-tuner)', 'Tuner'], quick: ['var(--a-quick)', 'Quick'], kits: ['var(--a-kits)', 'Kits'], chain: ['var(--a-chain)', 'Recall'], setlists: ['var(--a-sets)', 'Setlisten'], tunings: ['var(--a-tunings)', 'Stimmungen'], ginsts: ['var(--a-kits)', 'Instrumente'] };
+const AREA = { backups: ['var(--a-tunings)', 'Backup'], console: ['var(--a-chain)', 'Mischpult'], tuner: ['var(--a-tuner)', 'Tuner'], quick: ['var(--a-quick)', 'Quick'], kits: ['var(--a-kits)', 'Kits'], chain: ['var(--a-chain)', 'Recall'], setlists: ['var(--a-sets)', 'Setlisten'], tunings: ['var(--a-tunings)', 'Stimmungen'], ginsts: ['var(--a-kits)', 'Instrumente'] };
 const INST_C = { drums: 'var(--i-drums)', bass: 'var(--i-bass)', guitar: 'var(--i-guitar)' };
 const MODE_C = { live: 'var(--m-live)', studio: 'var(--m-studio)' };
-const VIEW_AREA = { console: 'chain', tuner: 'tuner', gtuner: 'tuner', quick: 'quick', kits: 'kits', kit: 'kits', chains: 'chain', chain: 'chain', setlists: 'setlists', setlist: 'setlists', tunings: 'tunings', tuning: 'tunings', ginsts: 'ginsts', ginst: 'ginsts' };
+const VIEW_AREA = { backups: 'backups', console: 'chain', tuner: 'tuner', gtuner: 'tuner', quick: 'quick', kits: 'kits', kit: 'kits', chains: 'chain', chain: 'chain', setlists: 'setlists', setlist: 'setlists', tunings: 'tunings', tuning: 'tunings', ginsts: 'ginsts', ginst: 'ginsts' };
 function areaColor() {
   if (route.mode && artist() && !['artists', 'mode'].includes(route.view)) return MODE_C[route.mode];
   const k = VIEW_AREA[route.view]; if (k) return AREA[k][0];
@@ -3394,6 +3476,7 @@ function areaColor() {
   return 'var(--a-tuner)';
 }
 const ICON_PATHS = {
+  backups: ['M9 3h6v5H9z', 'M7 8h10v11a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2z', 'M10 5h.01', 'M14 5h.01', 'M12 12v5', 'M9.5 14.5 12 17l2.5-2.5'],
   tuner: ['M4 17a8 8 0 0 1 16 0', 'M12 17l4.5-5.5', 'M12 17h.01'],
   quick: ['M13 2 4.5 13.5H11L10 22l8.5-11.5H12z'],
   kits: ['M3.5 8.5c0-1.9 3.8-3.5 8.5-3.5s8.5 1.6 8.5 3.5-3.8 3.5-8.5 3.5-8.5-1.6-8.5-3.5z', 'M3.5 8.5v7c0 1.9 3.8 3.5 8.5 3.5s8.5-1.6 8.5-3.5v-7', 'M7 11.5l2 7M17 11.5l-2 7'],
@@ -3414,7 +3497,7 @@ function tabsList() {
   const studio = route.mode === 'studio';
   return (route.inst === 'drums'
     ? [['quick', 'Quick', () => nav('quick')], ['tuner', 'Tuner', () => nav('tuner', { target: null, tunerFrom: 'home' })], ['kits', 'Kit', () => nav('kit', { prodId: route.prodId })], studio && ['chain', 'Recall', () => nav('chain', { chainOwner: 'prod', prodId: route.prodId, chainFrom: 'home' })], ['setlists', 'Setlisten', () => nav('setlists')]]
-    : [['tuner', 'Stimmgerät', () => nav('gtuner', { gString: null })], ['tunings', 'Stimmungen', () => nav('tunings')], ['ginsts', 'Instrumente', () => nav('ginsts')], studio && ['chain', 'Recall', () => nav('chain', { chainOwner: 'inst' })], ['setlists', 'Setlisten', () => nav('setlists')]]).filter(Boolean);
+    : [['tuner', 'Stimmgerät', () => nav('gtuner', { gString: null })], ['tunings', 'Stimmungen', () => nav('tunings')], ['ginsts', 'Instrumente', () => nav('ginsts')], ['backups', 'Backup', () => nav('backups')], studio && ['chain', 'Recall', () => nav('chain', { chainOwner: 'inst' })], ['setlists', 'Setlisten', () => nav('setlists')]]).filter(Boolean);
 }
 var pendingSlide = 0;
 var currentBack = null;
@@ -3721,7 +3804,7 @@ function prodListWithMenu(ps, onOpen, subtitle) {
   const sync = () => { a.productions = [...ps, ...a.productions.filter(x => !ps.includes(x))]; touch(); render(true); };
   const menu = p => rowMenu({ title: p.name || 'Produktion', onChange: sync, extra: [{ label: 'Gespeicherte Infos teilen', primary: true, onClick: () => shareProductionDialog(p) }],
     rename: { value: p.name, set: v => p.name = v },
-    del: { label: 'Produktion löschen', text: `„${p.name || 'Unbenannte Produktion'}“ wird mit Drumkit, Setlisten, Recording Recall und Kit-Foto gelöscht. Das lässt sich nicht rückgängig machen.`, run: () => { const i = ps.indexOf(p); if (i >= 0) ps.splice(i, 1); a.productions = a.productions.filter(x => x !== p); if (p.hasPhoto) removePhoto(p); } } });
+    del: { label: 'Produktion löschen', text: `„${p.name || 'Unbenannte Produktion'}“ wird mit Drumkit, Setlisten, Recording Recall und Kit-Foto gelöscht. Das lässt sich nicht rückgängig machen.`, run: () => { const i = ps.indexOf(p); if (i >= 0) ps.splice(i, 1); a.productions = a.productions.filter(x => x !== p); if (p.hasPhoto) removePhoto(p); (p.backups || []).forEach(b => FileStore.del(b.id)); } } });
   const list = h('div', { class: 'prod-list' }, ps.map(p => h('div', { class: 'lrow' },
     h('button', { class: 'list-item', type: 'button', onclick: () => { if (!reorderJustEnded()) onOpen(p); } }, h('b', {}, p.name || 'Unbenannte Produktion'), h('span', {}, subtitle(p))),
     moreBtn(p.name || 'Produktion', () => menu(p)))));
@@ -4126,6 +4209,10 @@ const chip = (t, cls = '') => h('span', { class: 'dm-chip ' + cls }, t);
 
 /* ---------- mock builders ---------- */
 const ARTS = {
+  backup: () => h('div', { class: 'dm-wrap' },
+    h('div', { class: 'dm-c dx bk-a' }, h('div', { class: 'dm-ct' }, h('b', {}, 'Kemper Profiler'), h('span', {}, 'Rigs Sommertour 25')), h('span', { class: 'dm-tag dx bk-size' }, '182 MB')),
+    h('div', { class: 'dm-row' }, chip('Firmware 11.0, Stick „Gitarre A“', 'dx bk-note')),
+    h('div', { class: 'dm-row' }, chip('Auf Stick / in Dateien sichern', 'dx pri bk-share'), chip('USB-Stick ✓', 'dx ok bk-stick'))),
   click: () => h('div', { class: 'dm-wrap center' }, h('div', { class: 'dm-hz' }, h('span', { class: 'dm-hzv' }, '120'), h('small', {}, 'BPM')),
     h('div', { class: 'dm-row' }, chip('4/4', 'pri dm-sg1'), chip('6/8', 'dm-sg2'), chip('Achtel', 'dx dm-sub')),
     h('div', { class: 'dm-beats' }, [0, 1, 2, 3, 4, 5].map(i => h('i', { class: (i === 0 ? 'acc' : '') + (i > 3 ? ' hid' : '') }))),
@@ -4184,6 +4271,7 @@ const ARTS = {
 const needle = (root, pct, ok) => { const n = $q(root, '.dm-needle'); if (n) { n.style.left = pct + '%'; n.style.background = ok ? '#36c97e' : '#ff5b4f'; } };
 const setTxt = (root, sel, t) => { const e = $q(root, sel); if (e) e.textContent = t; };
 const DEMOS = {
+  backup: [r => { show(r, '.bk-a'); later(() => show(r, '.bk-size'), 500); }, r => show(r, '.bk-note'), r => { show(r, '.bk-share'); later(() => show(r, '.bk-stick'), 900); }, r => $q(r, '.bk-a').classList.add('hl')],
   click: [
     r => { [104, 112, 96].forEach((v, k) => later(() => setTxt(r, '.dm-hzv', String(v)), k * 350)); },
     r => { $q(r, '.dm-sg1').classList.remove('pri'); $q(r, '.dm-sg2').classList.add('pri'); $qa(r, '.dm-beats i').forEach((e, i) => { e.classList.remove('hid'); e.classList.toggle('acc', i === 0 || i === 3); }); },
@@ -4281,6 +4369,7 @@ const HELP = {
   ginsts: [SL('ginst', 'ginst', 'Instrumente', 'Deine Instrumente mit allen Details.', ['Hersteller und Modell wählen', 'Saiten und Stärke wählen', 'Stimmung, Amp und DI eintragen'])],
   gtuner: [SL('gtuner', 'gtuner', 'Stimmgerät', 'Saiten automatisch oder gezielt stimmen.', ['Stimmung wählen', 'Saite anschlagen', 'Saite wird erkannt', 'Grün heißt: stimmt'])]
 };
+HELP.backups = [SL('backup', 'backup', 'Backup', 'Backups von Kemper, Helix und anderen digitalen Geräten pro Produktion.', ['Gerät wählen, Datei anhängen', 'Bezeichnung, Datum und Firmware notieren', 'Teilen: In Dateien sichern, USB-Stick wählen', 'Dateien bleiben auf diesem Gerät'])];
 HELP.click = [SL('click', 'click', 'Clicktrack', 'Tempo, Taktart und Unterteilung, hörbar oder als Lichtblitz.', ['Tempo einstellen oder antippen', 'Taktart und Betonung wählen', 'Unterteilung wählen', 'Akustisch, optisch oder beides'])];
 HELP.tuning = HELP.tunings; HELP.ginst = HELP.ginsts; HELP.kits = HELP.kit; HELP.chains = HELP.chain;
 function onbArt(art) {
