@@ -84,7 +84,7 @@ h2 small{font:500 .95rem Barlow,sans-serif;color:var(--muted);margin-left:6px}
 .list-item span{color:var(--muted);font-size:.92rem}
 .empty{border:1px dashed var(--line-strong);border-radius:12px;padding:18px;color:var(--muted);text-align:center;margin-bottom:12px}
 
-.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px 12px}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px 12px}
 .field{display:flex;flex-direction:column;gap:4px;min-width:0}
 .field.wide{grid-column:1/-1}
 .field>span{font-size:.8rem;color:var(--muted);font-weight:500}
@@ -1772,6 +1772,28 @@ body.wm #wm{display:grid}
 .ice .srow .bdg.key{color:#1f4fae!important;border-color:rgba(31,79,174,.3)!important}
 .ice .srow .bdg.ai{color:#1d7a46!important;border-color:rgba(29,122,70,.3)!important}
 .ice .srow .bdg.note{color:#8a5a00!important;border-color:rgba(138,90,0,.3)!important}
+
+/* layout safety: inputs (esp. iOS date fields) never overflow their grid cell */
+.grid > *,.row > *,.field{min-width:0}
+.field input,.field select,.field textarea,.grid input,.grid select{width:100%;max-width:100%;min-width:0;box-sizing:border-box}
+input[type=date],input[type=time],input[type=datetime-local]{-webkit-appearance:none;appearance:none;display:block;width:100%;max-width:100%;min-width:0;box-sizing:border-box;min-height:44px;text-align:left}
+input[type=date]::-webkit-date-and-time-value{text-align:left;margin:0;min-width:0}
+input[type=date]::-webkit-calendar-picker-indicator{margin-left:4px}
+img,svg,canvas,video{max-width:100%}
+
+.tgrid{grid-template-columns:repeat(2,minmax(0,1fr))}
+@media (min-width:700px){.tgrid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media (max-width:420px){.grid{grid-template-columns:minmax(0,1fr)}}
+.s-ed-row > *{min-width:0}
+.s-ed-row input,.s-ed-row select{min-width:0}
+
+/* wide screens (laptop/iPad landscape): header and bottom bar align with the 760px content column */
+@media (min-width:800px){
+  .bar{padding-left:calc((100% - 760px) / 2 + 14px)!important;padding-right:calc((100% - 760px) / 2 + 14px)!important}
+  #tabbar{left:calc(50% - 366px)!important;right:calc(50% - 366px)!important}
+  .stage > *,.stage-song > *{max-width:760px;margin-left:auto!important;margin-right:auto!important}
+  #onb .onb-stage,#onb .onb-nav,#onb .onb-bars,#onb .onb-skip{max-width:640px;width:100%;margin-left:auto;margin-right:auto}
+}
 </style>
 </head>
 <body>
