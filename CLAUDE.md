@@ -71,6 +71,7 @@ song        → { id, title, key, bpm, sig, note, gt{tuning,capo}, bs{…}, shee
 
 - Dunkles Design als Standard, helles Design über Klasse `ice`. Farben als CSS-Variablen.
 - Glas-Optik: halbtransparente Flächen, feiner heller Rand, leichter Glanz oben; Pillen (`border-radius: 999px`) für Chips und kleine Knöpfe.
+- Hauptknöpfe (`.btn.solid`, aktive Chips/Segmente, `.btn.solid.accent`): kräftiger farbiger Rand (1,5 px), innen nur zarte Tönung, helle Schrift (hell: dunkelblaue Schrift). Keine vollflächig gefüllten Knöpfe. Regeln im Block „refined primary buttons“ am Ende des CSS.
 - Live = Rot, Studio = Blau. Kacheln ohne Erklärungstext (Erklärungen gehören in die Hilfe).
 - Längliche Karten: ≡-Menü rechts (Umbenennen/Löschen mit Bestätigung), gedrückt halten = sortieren.
 - Typografische Anführungszeichen im deutschen Text („…“), Apostroph ’.
