@@ -1943,6 +1943,30 @@ html.ice .btn.solid:hover{border-color:#2b58a6;color:#183f82}
 html.ice .btn.solid:active{background:rgba(61,111,208,.14)}
 html.ice .chip[aria-pressed="true"],html.ice .seg button[aria-pressed="true"]{color:#1f4f9f;background:rgba(61,111,208,.1);border-color:#3d6fd0;box-shadow:inset 0 0 0 .5px #3d6fd0,inset 0 1px 0 rgba(255,255,255,.7)}
 html.ice .btn.solid.accent,html.ice .btn.solid.accent:hover{color:color-mix(in srgb,var(--accent) 70%,#0b1220);background:linear-gradient(180deg,rgba(255,255,255,.92),color-mix(in srgb,var(--accent) 10%,transparent));border:1.5px solid var(--accent);box-shadow:inset 0 1px 0 #fff,0 4px 12px rgba(30,60,100,.12)}
+/* ===== button roles: forward = blue edge, delete/stop = dark red edge ===== */
+html .btn.nav,html.glass .btn.nav,html .stage-show,html.glass .stage-show{border:1.5px solid #6c9bef!important;color:#eef4ff!important;background:rgba(92,142,235,.06)!important}
+html .btn.nav:hover,html.glass .btn.nav:hover{border-color:#8fb4ff!important;background:rgba(92,142,235,.12)!important}
+html .btn.danger:not(.armed),html.glass .btn.danger:not(.armed),html .btn.del,html.glass .btn.del{border:1.5px solid #8e3a33;color:#e6b3ab;background:rgba(150,50,42,.06)}
+html .btn.danger:not(.armed):hover,html.glass .btn.danger:not(.armed):hover,html .btn.del:hover,html.glass .btn.del:hover{border-color:#b04a40;color:#f2c4bc}
+html .btn.danger.armed,html.glass .btn.danger.armed{border:1.5px solid #c9574b;color:#fff;background:rgba(190,60,48,.28)}
+html .btn.solid.stop,html.glass .btn.solid.stop,html .ck-start.on,html.glass .ck-start.on{border:1.5px solid #a8453b!important;color:#f6d2cc!important;background:linear-gradient(180deg,rgba(170,60,50,.22),rgba(170,60,50,.08))!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.06),0 4px 14px rgba(0,0,0,.32)!important}
+html.ice .btn.nav,html.ice .stage-show{border-color:#3d6fd0!important;color:#1f4f9f!important;background:rgba(255,255,255,.75)!important}
+html.ice .btn.danger:not(.armed),html.ice .btn.del{border:1.5px solid #b5574c;color:#8f2f25;background:rgba(255,255,255,.75)}
+html.ice .btn.danger.armed{border-color:#a9372b;color:#fff;background:linear-gradient(180deg,#c9594c,#a63a2e)}
+html.ice .btn.solid.stop,html.ice .ck-start.on{border-color:#a9372b!important;color:#8f2f25!important;background:linear-gradient(180deg,rgba(255,255,255,.92),rgba(190,60,48,.08))!important}
+/* ===== calmer corner radii: rounded, but no pills ===== */
+html .btn,html.glass .btn,html.ice .btn,html .stage-show{border-radius:12px!important}
+html .btn.small,html.glass .btn.small,html.ice .btn.small{border-radius:10px!important}
+html :is(.chip,.dm-chip,.onb-chip,.ss-chip,.ss-key,.ss-restore,.in-note,.si-note,.se-b,.in-note.add,.bdg,.sl-p,.sl-ic){border-radius:8px!important}
+html :is(.card,.readout,details.chain,.console,.song .ai,.mic-card,.ss-tile,.ss-inote,.install-hint,.tile){border-radius:12px!important}
+html :is(.sq,.mode,.mode.rowcard,.atile){border-radius:14px!important}
+html :is(.list-item,.in-card,.si-tile,.pick-btn,.pick-opt,.seg,.stage ol.stage-list li){border-radius:10px!important}
+html :is(.tabs){border-radius:12px!important}
+html :is(.tabs button){border-radius:9px!important}
+html .pop{border-radius:14px!important}
+html :is(.sheet){border-radius:20px 20px 0 0!important}
+html #tabbar,html.glass #tabbar,html.ice #tabbar{border-radius:18px!important}
+html #tabbar button,html.glass #tabbar button,html.ice #tabbar button{border-radius:12px!important}
 </style>
 </head>
 <body>
@@ -2550,15 +2574,15 @@ function brandingFields(o) {
     h('div', { class: 'brand-row' },
       h('span', { class: 'brand-l' }, 'Logo'),
       o.logo ? h('span', { class: 'brand-logo' }, h('img', { src: o.logo, alt: 'Logo' })) : h('span', { class: 'brand-ph' }, 'optional'),
-      h('span', { class: 'brand-btns' }, fileBtn(o.logo ? 'Ändern' : 'Hochladen', 'image/png,image/jpeg,image/webp,image/svg+xml,.svg', onLogoFile), o.logo ? h('button', { class: 'btn ghost small', type: 'button', onclick: o.onClearLogo }, 'Entfernen') : null)),
+      h('span', { class: 'brand-btns' }, fileBtn(o.logo ? 'Ändern' : 'Hochladen', 'image/png,image/jpeg,image/webp,image/svg+xml,.svg', onLogoFile), o.logo ? h('button', { class: 'btn ghost small del', type: 'button', onclick: o.onClearLogo }, 'Entfernen') : null)),
     h('div', { class: 'brand-row' },
       h('span', { class: 'brand-l' }, 'Schriftzug'),
       o.fontFamily || o.fontName ? h('span', { class: 'brand-font', id: 'fontPreview', style: o.fontFamily ? `font-family:${o.fontFamily},sans-serif` : null }, o.name || 'Schriftzug-Vorschau') : h('span', { class: 'brand-ph' }, 'optional, eigene Schriftart (TTF, OTF, WOFF)'),
-      h('span', { class: 'brand-btns' }, fileBtn(o.fontName ? 'Ändern' : 'Hochladen', '.ttf,.otf,.woff,.woff2,font/ttf,font/otf,font/woff,font/woff2', onFontFile), o.fontName ? h('button', { class: 'btn ghost small', type: 'button', onclick: o.onClearFont }, 'Entfernen') : null)),
+      h('span', { class: 'brand-btns' }, fileBtn(o.fontName ? 'Ändern' : 'Hochladen', '.ttf,.otf,.woff,.woff2,font/ttf,font/otf,font/woff,font/woff2', onFontFile), o.fontName ? h('button', { class: 'btn ghost small del', type: 'button', onclick: o.onClearFont }, 'Entfernen') : null)),
     h('div', { class: 'brand-row' },
       h('span', { class: 'brand-l' }, 'Schriftzug aus Bild'),
       o.wordmark ? h('span', { class: 'wordmark brand-wm', style: wmStyle(o.wordmark, o.wordmarkRatio, 40) }) : h('span', { class: 'brand-ph' }, 'optional, Schriftzug aus einem Foto oder Logo übernehmen'),
-      h('span', { class: 'brand-btns' }, fileBtn(o.wordmark ? 'Ändern' : 'Bild wählen', 'image/png,image/jpeg,image/webp,image/svg+xml,.svg', onWordFile), o.wordmark ? h('button', { class: 'btn ghost small', type: 'button', onclick: o.onClearWordmark }, 'Entfernen') : null)));
+      h('span', { class: 'brand-btns' }, fileBtn(o.wordmark ? 'Ändern' : 'Bild wählen', 'image/png,image/jpeg,image/webp,image/svg+xml,.svg', onWordFile), o.wordmark ? h('button', { class: 'btn ghost small del', type: 'button', onclick: o.onClearWordmark }, 'Entfernen') : null)));
 }
 
 /* ================= click track (metronome) ================= */
@@ -3378,7 +3402,7 @@ const micUses = t => t === 'Bassdrum' ? ['bd'] : t === 'Snare' ? ['sn'] : t === 
 function viewKit() {
   const a = artist(); const p = a.productions.find(x => x.id === route.prodId);
   if (!p) { route.view = 'kits'; return viewKits(); }
-  const tuneBtn = (d, side) => h('button', { class: 'btn small', type: 'button', title: 'Mit dem Tuner stimmen', onclick: () => nav('tuner', { target: `${p.id}|${d.id}`, side, tunerFrom: 'kit' }) }, 'Stimmen');
+  const tuneBtn = (d, side) => h('button', { class: 'btn small nav', type: 'button', title: 'Mit dem Tuner stimmen', onclick: () => nav('tuner', { target: `${p.id}|${d.id}`, side, tunerFrom: 'kit' }) }, 'Stimmen');
   const drumCard = (d, i) => h('div', { class: 'card drum-card' + (drumOpen.has(d.id) ? ' open' : '') },
     h('button', { class: 'drum-head drum-toggle', type: 'button', 'aria-expanded': String(drumOpen.has(d.id)), onclick: () => { drumOpen.has(d.id) ? drumOpen.delete(d.id) : drumOpen.add(d.id); render(true); } },
       h('span', { class: 'tape sm' + (i % 2 ? ' tilt' : '') }, d.name || `Trommel ${i + 1}`),
@@ -3657,7 +3681,7 @@ function viewSetlist() {
   };
   const keyRow = song => h('div', { class: 'keyrow' },
     h('select', { 'aria-label': 'Tonart', value: song.key || '', onchange: e => { song.key = e.target.value; touch(); } }, h('option', { value: '' }, 'Tonart / Key …'), KEYS.map(k => h('option', { value: k.v }, k.l))),
-    route.inst === 'drums' ? h('button', { class: 'btn small', type: 'button', onclick: () => {
+    route.inst === 'drums' ? h('button', { class: 'btn small nav', type: 'button', onclick: () => {
       const pp = P();
       if (!pp) { toast('Ordne der Setliste oben zuerst ein Drumkit zu.'); return; }
       showTuningSheet(pp, { songId: song.id });
@@ -3720,10 +3744,10 @@ function viewSetlist() {
         lyMsg ? h('p', { class: 'muted', style: 'font-size:.85rem;margin:6px 0 0' }, lyMsg) : null,
         editing ? h('textarea', { class: 'ly-edit', rows: 10, 'aria-label': 'Songtext bearbeiten', oninput: e => { song.lyrics.text = e.target.value; touch(); } }, ly.text) : null,
         h('div', { class: 'row' }, pick,
-          ly ? h('button', { class: 'btn small', type: 'button', onclick: () => openLyricsViewer(song) }, 'Ansehen') : null,
+          ly ? h('button', { class: 'btn small nav', type: 'button', onclick: () => openLyricsViewer(song) }, 'Ansehen') : null,
           ly ? h('button', { class: 'btn small', type: 'button', onclick: () => { editing ? lyEdit.delete(song.id) : lyEdit.add(song.id); render(true); } }, editing ? 'Fertig' : 'Bearbeiten') : null,
           ly ? h('button', { class: 'btn small', type: 'button', onclick: () => exportLyricsPdf(song) }, 'Als PDF sichern') : null,
-          ly ? h('button', { class: 'btn ghost small', type: 'button', onclick: () => { delete song.lyrics; lyEdit.delete(song.id); lyMsg = ''; lyMsgs.delete(song.id); touch(); render(true); } }, 'Entfernen') : null));
+          ly ? h('button', { class: 'btn ghost small del', type: 'button', onclick: () => { delete song.lyrics; lyEdit.delete(song.id); lyMsg = ''; lyMsgs.delete(song.id); touch(); render(true); } }, 'Entfernen') : null));
     }
     function sheetBlock() {
       const sh = song.sheet;
@@ -3743,11 +3767,11 @@ function viewSetlist() {
         sheetMsg ? h('p', { class: 'muted', style: 'font-size:.85rem;margin:6px 0 0' }, sheetMsg) : null,
         sh && sh.kind === 'text' && sheetEdit.has(song.id) ? h('textarea', { class: 'ly-edit sheet-edit', rows: 12, spellcheck: 'false', 'aria-label': 'Chordsheet bearbeiten', oninput: e => { sh.text = e.target.value; const pr = parseChordSheet(sh.text); sh.sections = pr.sections; sh.key = pr.key; sh.bpm = pr.bpm; touch(); } }, sh.text) : null,
         h('div', { class: 'row' }, pick,
-          sh ? h('button', { class: 'btn small', type: 'button', onclick: () => openSheetViewer(song) }, 'Ansehen') : null,
+          sh ? h('button', { class: 'btn small nav', type: 'button', onclick: () => openSheetViewer(song) }, 'Ansehen') : null,
           sh && sh.kind === 'text' ? h('button', { class: 'btn small', type: 'button', onclick: () => { sheetEdit.has(song.id) ? sheetEdit.delete(song.id) : sheetEdit.add(song.id); render(true); } }, sheetEdit.has(song.id) ? 'Fertig' : 'Bearbeiten') : null,
           sh && sh.kind === 'text' && sh.text ? h('button', { class: 'btn small', type: 'button', onclick: () => exportSheetPdf(song) }, 'Als PDF sichern') : null,
           (canKey || canBpm) ? h('button', { class: 'btn small', type: 'button', onclick: () => { if (canKey) song.key = sh.key; if (canBpm) song.bpm = sh.bpm; touch(); render(true); } }, 'Tonart und BPM übernehmen') : null,
-          sh ? h('button', { class: 'btn ghost small', type: 'button', onclick: () => { FileStore.del('sheet-' + song.id); delete song.sheet; sheetMsg = ''; touch(); render(true); } }, 'Entfernen') : null));
+          sh ? h('button', { class: 'btn ghost small del', type: 'button', onclick: () => { FileStore.del('sheet-' + song.id); delete song.sheet; sheetMsg = ''; touch(); render(true); } }, 'Entfernen') : null));
     }
     draw(); return box;
   };
@@ -3804,7 +3828,7 @@ function viewSetlist() {
       songs.length ? [songList, null] : h('div', { class: 'empty' }, 'Füge unten den ersten Song hinzu oder importiere eine Datei.'),
       h('div', { class: 'add-row' }, songInp, h('button', { class: 'btn solid', type: 'button', onclick: addSong }, 'Hinzufügen')),
       h('div', { class: 'row', style: 'margin-top:32px' },
-        h('button', { class: 'btn', type: 'button', disabled: !s.songs.length, onclick: () => showStage(s) }, 'Großansicht'),
+        h('button', { class: 'btn nav', type: 'button', disabled: !s.songs.length, onclick: () => showStage(s) }, 'Großansicht'),
         delBtn('Liste löschen', () => { P().setlists = P().setlists.filter(x => x !== s); touch(); nav('setlists'); }))
     ]
   };
@@ -4109,7 +4133,7 @@ function viewTuner() {
   const hzEl = h('div', { class: 'hz stale' }, '–', h('small', {}, 'Hz'));
   const noteEl = h('div', { class: 'notename' }, 'Mikrofon starten und Trommel anschlagen');
   const errEl = h('div', { class: 'err' });
-  const micBtn = h('button', { class: 'btn solid mic-btn', type: 'button' }, Tuner.running ? 'Mikrofon stoppen' : 'Mikrofon starten');
+  const micBtn = h('button', { class: 'btn solid mic-btn' + (Tuner.running ? ' stop' : ''), type: 'button' }, Tuner.running ? 'Mikrofon stoppen' : 'Mikrofon starten');
 
   // --- pitch pane
   const needle = h('div', { class: 'needle' });
@@ -4240,8 +4264,8 @@ function viewTuner() {
 
   micBtn.addEventListener('click', async () => {
     errEl.textContent = '';
-    if (Tuner.running) { Tuner.stop(); micBtn.textContent = 'Mikrofon starten'; return; }
-    try { await Tuner.start(); micBtn.textContent = 'Mikrofon stoppen'; noteEl.textContent = 'Trommel anschlagen …'; }
+    if (Tuner.running) { Tuner.stop(); micBtn.textContent = 'Mikrofon starten'; micBtn.classList.remove('stop'); return; }
+    try { await Tuner.start(); micBtn.textContent = 'Mikrofon stoppen'; micBtn.classList.add('stop'); noteEl.textContent = 'Trommel anschlagen …'; }
     catch (e) {
       Tuner.stop();
       errEl.textContent = e && e.name === 'NotAllowedError'
@@ -4309,11 +4333,11 @@ const micErr = e => e && e.name === 'NotAllowedError'
   ? 'Kein Zugriff auf das Mikrofon. Erlaube den Mikrofonzugriff für diese Seite und versuch es noch einmal.'
   : 'Das Mikrofon konnte nicht gestartet werden. Öffne die App im Browser deines Handys (Safari oder Chrome) und erlaube den Mikrofonzugriff.';
 function micButton(errEl, startText = 'Messung starten') {
-  const b = h('button', { class: 'btn solid mic-btn', type: 'button' }, Tuner.running ? 'Messung stoppen' : startText);
+  const b = h('button', { class: 'btn solid mic-btn' + (Tuner.running ? ' stop' : ''), type: 'button' }, Tuner.running ? 'Messung stoppen' : startText);
   b.addEventListener('click', async () => {
     errEl.textContent = '';
-    if (Tuner.running) { Tuner.stop(); b.textContent = startText; return; }
-    try { await Tuner.start(); b.textContent = 'Messung stoppen'; } catch (e) { Tuner.stop(); errEl.textContent = micErr(e); }
+    if (Tuner.running) { Tuner.stop(); b.textContent = startText; b.classList.remove('stop'); return; }
+    try { await Tuner.start(); b.textContent = 'Messung stoppen'; b.classList.add('stop'); } catch (e) { Tuner.stop(); errEl.textContent = micErr(e); }
   });
   return b;
 }
@@ -5102,7 +5126,7 @@ function viewConsole() {
       h('p', { class: 'muted', style: 'margin:0 0 6px;font-size:.9rem' }, name),
       all.length ? wrap : h('div', { class: 'empty' }, 'Noch keine Kanäle. Leg sie in der Recording Recall an, dann erscheinen sie hier als Kanalzüge.'),
       h('div', { class: 'row' },
-        h('button', { class: 'btn', type: 'button', onclick: () => nav('chain') }, 'Zur Recording Recall'),
+        h('button', { class: 'btn nav', type: 'button', onclick: () => nav('chain') }, 'Zur Recording Recall'),
         all.length ? h('button', { class: 'btn ghost', type: 'button', onclick: () => { all.forEach(c => Object.assign(c.mix, { fader: 0, pan: 0, mute: false, solo: false })); C.master.fader = 0; touch(); draw(); } }, 'Alles auf 0 dB') : null),
       null
     ]
@@ -5347,8 +5371,8 @@ function kitPhotoSection(p) {
     KP.edit && selD ? h('div', { class: 'card kp-assign' },
       h('div', {}, `${selD.name} ist markiert.`),
       h('div', { class: 'row' },
-        h('button', { class: 'btn small', type: 'button', onclick: () => nav('tuner', { target: `${p.id}|${selD.id}`, side: 'top', tunerFrom: 'kit' }) }, 'Stimmen'),
-        h('button', { class: 'btn ghost small', type: 'button', onclick: () => { delete selD.photoPos; KP.sel = null; touch(); render(true); } }, 'Markierung entfernen'))) : null,
+        h('button', { class: 'btn small nav', type: 'button', onclick: () => nav('tuner', { target: `${p.id}|${selD.id}`, side: 'top', tunerFrom: 'kit' }) }, 'Stimmen'),
+        h('button', { class: 'btn ghost small del', type: 'button', onclick: () => { delete selD.photoPos; KP.sel = null; touch(); render(true); } }, 'Markierung entfernen'))) : null,
     h('div', { class: 'row', style: 'justify-content:center' },
       h('button', { class: 'btn small' + (KP.edit ? ' solid' : ''), type: 'button', onclick: () => { KP.edit = !KP.edit; KP.place = null; KP.sel = null; render(true); } }, KP.edit ? 'Fertig' : `Trommeln zuordnen (${marked}/${p.drums.length})`),
       fileBtn('Neues Foto', true), fileBtn('Aus Galerie', false),
@@ -6213,7 +6237,7 @@ function pageHelpSlides() {
 /* ================= home-screen app (PWA) ================= */
 const isStandalone = () => window.matchMedia?.('(display-mode: standalone)').matches || window.navigator.standalone === true;
 const isIOS = () => /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-const APP_VERSION = '02.11.2026 (6)';
+const APP_VERSION = '02.11.2026 (7)';
 function registerSW() {
   if (!('serviceWorker' in navigator) || (location.protocol !== 'https:' && location.hostname !== 'localhost') || IN_CLAUDE_HOST()) return;
   navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).then(reg => {
