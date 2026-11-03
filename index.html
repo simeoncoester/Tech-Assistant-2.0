@@ -2445,6 +2445,8 @@ function render(keepScroll) {
   if (route.mode === 'studio' && !['artists', 'mode'].includes(route.view) && !freeTuner && studioLocked()) route.view = artist() ? 'mode' : 'artists';
   if (!freeTuner && route.view !== 'artists' && !artist()) route.view = 'artists';
   else if (!freeTuner && !['artists', 'mode', 'projects'].includes(route.view) && !P()) route.view = 'projects';
+  // pages that no longer exist (e.g. a saved route from an older version) fall back to the overview
+  if (!views[route.view]) route.view = route.view === 'drumMenu' && P() ? 'home' : 'artists';
   const v = views[route.view]();
   currentBack = v.back || null;
   if (v.back) bar.append(h('button', { class: 'back', type: 'button', onclick: v.back, 'aria-label': 'Zurück' }, svg('svg', { viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', 'stroke-width': 2.6, 'stroke-linecap': 'round', 'stroke-linejoin': 'round', 'aria-hidden': 'true' }, svg('path', { d: 'M15 4.5 7.5 12l7.5 7.5' }))));
