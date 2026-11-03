@@ -2235,6 +2235,7 @@ html .stage > .st-pov{max-width:none!important;margin:0!important}
 main#app{display:flex;flex-direction:column;min-height:calc(100dvh - 60px)}
 main#app > .app-in{margin-block:auto;width:100%}
 @media (min-width:1024px){main#app{min-height:calc(100dvh - 80px)}}
+.stage-bar-x{display:flex;align-items:center;gap:8px;flex:none}
 </style>
 </head>
 <body>
@@ -4322,10 +4323,11 @@ function showStage(s) {
       h('div', { class: 'stage-bar-r' },
         h('button', { class: 'stage-view', type: 'button', 'aria-label': 'Ansicht anpassen', onclick: () => stagePanel(L, temp, (nl, nt) => { L = nl; temp = nt; stSave(L); draw(); }, ov, stExtras(s.songs)) }, viewIcon, h('span', {}, 'Ansicht')),
         h('button', { class: 'stage-show', type: 'button', disabled: !s.songs.length, onclick: () => showStageSong(s, 0) }, '▶ Showmodus'),
-        h('button', { class: 'stage-help', type: 'button', 'aria-label': 'Hilfe zur Großansicht', title: 'Hilfe zur Großansicht', onclick: () => showHelp(HELP.stage) }, '?'),
         h('button', { class: 'stage-edit', type: 'button', 'aria-pressed': 'false', onclick: e => { editing = !editing; ov.classList.toggle('editing', editing); const b = e.currentTarget; b.setAttribute('aria-pressed', String(editing)); b.lastChild.textContent = trText(editing ? 'Fertig' : 'Bearbeiten'); if (editing) toast('Tippe auf einen Wert, um ihn zu ändern.'); } },
           svg('svg', { viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', 'stroke-width': 2, 'stroke-linecap': 'round', 'stroke-linejoin': 'round', 'aria-hidden': 'true' }, svg('path', { d: 'M12 20h9' }), svg('path', { d: 'M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z' })), h('span', {}, 'Bearbeiten'))),
-      h('button', { class: 'close stage-x', type: 'button', 'aria-label': 'Großansicht schließen', onclick: () => { stLiveCfg = null; ov.remove(); } }, '×')),
+      h('div', { class: 'stage-bar-x' },
+        h('button', { class: 'stage-help', type: 'button', 'aria-label': 'Hilfe zur Großansicht', title: 'Hilfe zur Großansicht', onclick: () => showHelp(HELP.stage) }, '?'),
+        h('button', { class: 'close stage-x', type: 'button', 'aria-label': 'Großansicht schließen', onclick: () => { stLiveCfg = null; ov.remove(); } }, '×'))),
     (s.name || s.date || s.venue || (s.info || []).length) ? h('div', { class: 'stage-head', onclick: e => {
         if (!editing) return; const done = () => { touch(); ov.querySelector('.stage-head').replaceChildren(...headKids()); if (document.getElementById('app')) render(true); };
         if (e.target.closest('.sh-name')) editPop('Name der Setliste', { type: 'text', value: s.name, required: true }, v => { s.name = v; done(); });
@@ -7105,7 +7107,7 @@ function pageHelpSlides() {
 /* ================= home-screen app (PWA) ================= */
 const isStandalone = () => window.matchMedia?.('(display-mode: standalone)').matches || window.navigator.standalone === true;
 const isIOS = () => /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-const APP_VERSION = '03.11.2026 (7)';
+const APP_VERSION = '03.11.2026 (8)';
 function registerSW() {
   if (!('serviceWorker' in navigator) || (location.protocol !== 'https:' && location.hostname !== 'localhost') || IN_CLAUDE_HOST()) return;
   navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).then(reg => {
