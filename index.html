@@ -6626,13 +6626,13 @@ const StartSound = {
 
     // 1) the buzz: warm, slightly detuned low tones that power up while the logo flies in
     { const lp = o.createBiquadFilter(), am = o.createGain(), lfo = o.createOscillator(), lfoG = o.createGain(), env = o.createGain();
-      lp.type = 'lowpass'; lp.Q.value = 5;
-      lp.frequency.setValueAtTime(130, 0); lp.frequency.exponentialRampToValueAtTime(1150, T); lp.frequency.exponentialRampToValueAtTime(520, T + 1.1); lp.frequency.exponentialRampToValueAtTime(260, END);
-      lfo.frequency.value = 29; lfoG.gain.value = .08; am.gain.value = .92; lfo.connect(lfoG); lfoG.connect(am.gain);
-      env.gain.setValueAtTime(.0001, 0); env.gain.exponentialRampToValueAtTime(.05, .7); env.gain.exponentialRampToValueAtTime(.2, T);
-      env.gain.setValueAtTime(.2, T + .25); env.gain.exponentialRampToValueAtTime(.12, T + .75); env.gain.exponentialRampToValueAtTime(.0001, END);
+      lp.type = 'lowpass'; lp.Q.value = 1.6;
+      lp.frequency.setValueAtTime(120, 0); lp.frequency.exponentialRampToValueAtTime(760, T - .1); lp.frequency.exponentialRampToValueAtTime(1250, T + .35); lp.frequency.exponentialRampToValueAtTime(480, T + 1.3); lp.frequency.exponentialRampToValueAtTime(240, END);
+      lfo.frequency.value = 29; lfoG.gain.value = .035; am.gain.value = .96; lfo.connect(lfoG); lfoG.connect(am.gain);
+      env.gain.setValueAtTime(.0001, 0); env.gain.exponentialRampToValueAtTime(.045, .8); env.gain.exponentialRampToValueAtTime(.17, T); env.gain.linearRampToValueAtTime(.2, T + .35);
+      env.gain.exponentialRampToValueAtTime(.12, T + .95); env.gain.exponentialRampToValueAtTime(.0001, END);
       const voices = [[54.6, .5, -.25], [55.3, .5, .25], [82.4, .22, 0], [110.2, .12, 0]];
-      voices.forEach(([f, v, p]) => { const os = o.createOscillator(), g = o.createGain(), pn = o.createStereoPanner(); os.type = 'sawtooth';
+      voices.forEach(([f, v, p], vi) => { const os = o.createOscillator(), g = o.createGain(), pn = o.createStereoPanner(); os.type = vi < 2 ? 'sawtooth' : 'triangle'; if (vi < 2) v *= .7;
         os.frequency.setValueAtTime(f * .94, 0); os.frequency.exponentialRampToValueAtTime(f, T); g.gain.value = v; pn.pan.value = p;
         os.connect(g); g.connect(pn); pn.connect(lp); os.start(0); os.stop(END + .1); });
       lp.connect(am); am.connect(env); env.connect(dry); lfo.start(0); lfo.stop(END + .1); }
@@ -6641,22 +6641,19 @@ const StartSound = {
       g.gain.setValueAtTime(.0001, 0); g.gain.exponentialRampToValueAtTime(.22, T); g.gain.setValueAtTime(.22, T + .2); g.gain.exponentialRampToValueAtTime(.12, T + .75); g.gain.exponentialRampToValueAtTime(.0001, END - .3);
       sub.connect(g); g.connect(dry); sub.start(0); sub.stop(END); }
 
-    // 2) soft lock-in when the logo lands
-    { const k = o.createOscillator(), g = o.createGain(); k.type = 'sine'; k.frequency.setValueAtTime(96, T); k.frequency.exponentialRampToValueAtTime(48, T + .35);
-      g.gain.setValueAtTime(.0001, T); g.gain.exponentialRampToValueAtTime(.32, T + .012); g.gain.exponentialRampToValueAtTime(.0001, T + .6);
-      k.connect(g); g.connect(dry); k.start(T); k.stop(T + .65); }
-    { const s = o.createBufferSource(), bp = o.createBiquadFilter(), g = o.createGain(); s.buffer = white; bp.type = 'bandpass'; bp.frequency.value = 2600; bp.Q.value = 1.4;
-      g.gain.setValueAtTime(.0001, T); g.gain.exponentialRampToValueAtTime(.05, T + .004); g.gain.exponentialRampToValueAtTime(.0001, T + .08);
-      s.connect(bp); bp.connect(g); g.connect(dry); s.start(T, 1, .1); }
-
+    // 2) no hits: when the logo lands the sound gently blooms – a soft, airy overtone swells in and settles
+    { const t1 = T - .3, sn = o.createOscillator(), sn2 = o.createOscillator(), g = o.createGain(), lp2 = o.createBiquadFilter();
+      sn.type = 'sine'; sn2.type = 'sine'; sn.frequency.value = 220; sn2.frequency.value = 220.8; lp2.type = 'lowpass'; lp2.frequency.value = 1800;
+      g.gain.setValueAtTime(.0001, t1); g.gain.exponentialRampToValueAtTime(.05, T + .3); g.gain.exponentialRampToValueAtTime(.0001, END - .4);
+      sn.connect(g); sn2.connect(g); g.connect(lp2); lp2.connect(pan(-.15, .15, t1, 1.5)); [sn, sn2].forEach(x => { x.start(t1); x.stop(END); }); }
     // 3) very quiet air: logo parts, line and exit only as a shimmer in the background
     const air = (t, d, f0, f1, p0, p1, peak) => { const s = o.createBufferSource(), bp = o.createBiquadFilter(), g = o.createGain(); s.buffer = white;
-      bp.type = 'bandpass'; bp.Q.value = 1.6; bp.frequency.setValueAtTime(f0, t); bp.frequency.exponentialRampToValueAtTime(f1, t + d);
+      bp.type = 'bandpass'; bp.Q.value = .9; bp.frequency.setValueAtTime(f0, t); bp.frequency.exponentialRampToValueAtTime(f1, t + d);
       g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(peak, t + d * .6); g.gain.exponentialRampToValueAtTime(.0001, t + d);
       s.connect(bp); bp.connect(g); g.connect(pan(p0, p1, t, d)); s.start(t, t % 2, d + .05); };
-    air(.15, 1.1, 3800, 1600, 0, 0, .035); air(.4, 1.0, 1500, 3200, -.8, 0, .03); air(.7, .95, 1400, 3000, .8, 0, .03);
-    air(2.3, .8, 1800, 6000, .6, -.6, .025);
-    air(4.08, .55, 2600, 700, .2, -.9, .035);
+    air(.15, 1.1, 3800, 1600, 0, 0, .012); air(.4, 1.0, 1500, 3200, -.8, 0, .01); air(.7, .95, 1400, 3000, .8, 0, .01);
+    air(2.3, .9, 1800, 5200, .6, -.6, .01);
+    air(3.95, .75, 1900, 700, .1, -.6, .012);
     return o.startRendering();
   },
   // starts in sync with the animation. If sound is allowed right away, the animation waits (max. 0.7 s) until the sound is
@@ -7252,7 +7249,7 @@ function pageHelpSlides() {
 /* ================= home-screen app (PWA) ================= */
 const isStandalone = () => window.matchMedia?.('(display-mode: standalone)').matches || window.navigator.standalone === true;
 const isIOS = () => /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-const APP_VERSION = '03.11.2026 (14)';
+const APP_VERSION = '03.11.2026 (15)';
 function registerSW() {
   if (!('serviceWorker' in navigator) || (location.protocol !== 'https:' && location.hostname !== 'localhost') || IN_CLAUDE_HOST()) return;
   navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).then(reg => {
