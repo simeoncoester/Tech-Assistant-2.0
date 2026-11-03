@@ -2236,6 +2236,9 @@ main#app{display:flex;flex-direction:column;min-height:calc(100dvh - 60px)}
 main#app > .app-in{margin-block:auto;width:100%}
 @media (min-width:1024px){main#app{min-height:calc(100dvh - 80px)}}
 .stage-bar-x{display:flex;align-items:center;gap:8px;flex:none}
+html .stage-song .ss-close{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;font:400 1.9rem/1 Barlow,sans-serif;color:#ff4a3d;background:rgba(40,12,12,.85);border:1.5px solid #e5352b;box-shadow:inset 0 1px 0 rgba(255,255,255,.12)}
+html .stage-song .ss-close:focus-visible{outline:2px solid #ff4a3d;outline-offset:2px}
+html .stage-song > .ss-top{max-width:none!important;width:100%;margin-left:0!important;margin-right:0!important;align-self:stretch}
 </style>
 </head>
 <body>
@@ -4517,8 +4520,8 @@ function showStageSong(s, start) {
     const strip = h('div', { class: 'ss-wheel' + (dir > 0 ? ' in-r' : dir < 0 ? ' in-l' : ''), role: 'group', 'aria-label': 'Songs der Setliste' }, slot(i - 1, 'prev'), slot(i, 'cur'), slot(i + 1, 'next'));
     ov.replaceChildren(
       h('div', { class: 'ss-top' },
-        h('button', { class: 'ss-close', type: 'button', 'aria-label': 'Zurück zur Liste', onclick: close }, '×'),
-        h('span', { class: 'ss-count' }, `${i + 1} / ${s.songs.length}`)),
+        h('span', { class: 'ss-count' }, `${i + 1} / ${s.songs.length}`),
+        h('button', { class: 'ss-close', type: 'button', 'aria-label': 'Zurück zur Liste', onclick: close }, '×')),
       h('div', { class: 'ss-body' + (dir > 0 ? ' in-r' : dir < 0 ? ' in-l' : '') },
         h('div', { class: 'ss-head v2' }, h('div', { class: 'ss-hrow' }, h('span', sc('no', 'ss-num'), String(i + 1)), h('h2', sc('title', 'ss-title'), x.title || '–'), h('span', { class: 'ss-hside' }, playOnly ? cc : null)), meta.length ? h('div', { class: 'ss-meta v2' }, meta) : null),
         h('div', { class: 'ss-mid' },
@@ -7107,7 +7110,7 @@ function pageHelpSlides() {
 /* ================= home-screen app (PWA) ================= */
 const isStandalone = () => window.matchMedia?.('(display-mode: standalone)').matches || window.navigator.standalone === true;
 const isIOS = () => /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-const APP_VERSION = '03.11.2026 (8)';
+const APP_VERSION = '03.11.2026 (9)';
 function registerSW() {
   if (!('serviceWorker' in navigator) || (location.protocol !== 'https:' && location.hostname !== 'localhost') || IN_CLAUDE_HOST()) return;
   navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).then(reg => {
