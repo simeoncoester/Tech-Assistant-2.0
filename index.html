@@ -4392,7 +4392,7 @@ function showStage(s) {
     return [s.name ? h('div', { class: 'sh-name' }, s.name) : null, (s.date || s.venue) ? h('div', { class: 'sh-meta' }, [fmtDate(s.date), s.venue].filter(Boolean).join(', ')) : null,
       (s.info || []).filter(it => it.k && it.v).length ? h('div', { class: 'sh-info no-i18n' }, s.info.filter(it => it.k && it.v).map((it, k) => h('span', { 'data-i': k }, h('b', {}, it.k), it.v))) : null].filter(Boolean); }
   draw();
-  document.body.append(ov); ov.querySelector('.close').focus();
+  document.body.append(ov); darkWhile(ov); ov.querySelector('.close').focus();
 }
 // edit a single value of a song from the large view
 function stEditField(s, x, k, done) {
@@ -4613,7 +4613,7 @@ function showStageSong(s, start) {
   }, { passive: true });
   const onKey = e => { if (!document.body.contains(ov)) { document.removeEventListener('keydown', onKey); return; } if (e.key === 'ArrowRight') go(i + 1, 1); else if (e.key === 'ArrowLeft') go(i - 1, -1); else if (e.key === 'Escape') close(); };
   document.addEventListener('keydown', onKey);
-  draw(); document.body.append(ov); ov.querySelector('.ss-close').focus();
+  draw(); document.body.append(ov); darkWhile(ov); ov.querySelector('.ss-close').focus();
 }
 
 /* ================= tuner engine ================= */
@@ -6699,6 +6699,15 @@ const StartSound = {
 (() => { const sp = document.getElementById('splash'); if (!sp) return; try { if (sessionStorage.getItem('drumtech-nosplash')) { sessionStorage.removeItem('drumtech-nosplash'); sp.remove(); return; } } catch (e) {} let shift = 0; StartSound.start(sp, performance.now(), ms => { shift = ms; }); const out = () => { sp.classList.add('out'); setTimeout(() => sp.remove(), 450); }; setTimeout(() => { if (shift) setTimeout(out, shift); else out(); }, 4100); })();
 document.body.append(...Object.keys(STAGES).map((k, i) => h('datalist', { id: 'dl-' + i }, (GEAR[k] || []).map(g => h('option', { value: g })))));
 function currentTheme() { try { const t = localStorage.getItem('drumtech-theme'); return t === 'ice' ? 'ice' : 'glass'; } catch (e) { return 'glass'; } }
+// large view and show mode are always dark: while one is open the light theme is switched off, afterwards it comes back
+let darkHolds = 0;
+function darkWhile(el) {
+  const root = document.documentElement;
+  if (darkHolds++ === 0 && root.classList.contains('ice')) { root.classList.remove('ice'); root.classList.add('glass'); root.dataset.forcedDark = '1'; }
+  const mo = new MutationObserver(() => { if (document.body.contains(el)) return; mo.disconnect();
+    if (--darkHolds === 0 && root.dataset.forcedDark) { delete root.dataset.forcedDark; if (currentTheme() === 'ice') { root.classList.remove('glass'); root.classList.add('ice'); } } });
+  mo.observe(document.body, { childList: true });
+}
 function setTheme(v) { try { localStorage.setItem('drumtech-theme', v); } catch (e) {} document.documentElement.classList.toggle('glass', v === 'glass'); document.documentElement.classList.toggle('ice', v === 'ice'); }
 document.body.prepend(h('div', { id: 'bgfx', 'aria-hidden': 'true' }), h('div', { id: 'wm', 'aria-hidden': 'true' }, logoSvg('', 6)));
 setTheme(currentTheme());
@@ -7249,7 +7258,7 @@ function pageHelpSlides() {
 /* ================= home-screen app (PWA) ================= */
 const isStandalone = () => window.matchMedia?.('(display-mode: standalone)').matches || window.navigator.standalone === true;
 const isIOS = () => /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-const APP_VERSION = '03.11.2026 (15)';
+const APP_VERSION = '03.11.2026 (16)';
 function registerSW() {
   if (!('serviceWorker' in navigator) || (location.protocol !== 'https:' && location.hostname !== 'localhost') || IN_CLAUDE_HOST()) return;
   navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).then(reg => {
