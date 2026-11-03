@@ -2240,6 +2240,17 @@ html .stage-song .ss-close{width:44px;height:44px;border-radius:50%;display:grid
 html .stage-song .ss-close:focus-visible{outline:2px solid #ff4a3d;outline-offset:2px}
 html .stage-song > .ss-top{max-width:none!important;width:100%;margin-left:0!important;margin-right:0!important;align-self:stretch}
 #splash.hold,#splash.hold *{animation-play-state:paused!important}
+/* ===== visual click: hard on, hard off (no fading) ===== */
+@keyframes hardOn{0%,100%{opacity:1}}
+html .ck-bulb.f-beat::after,html .ck-bulb.f-sub::after,html .ck-bulb.f-acc::after{animation:hardOn var(--flash,90ms) linear!important}
+@keyframes clkAccH{0%,100%{background:#ff2a2a;box-shadow:0 0 26px 6px rgba(255,40,40,.6)}}
+@keyframes clkBeatH{0%,100%{background:#e8ecf5;box-shadow:0 0 22px 5px rgba(255,255,255,.4)}}
+@keyframes clkSubH{0%,100%{background:#59606d}}
+@keyframes clkTxtH{0%,100%{color:#111}}
+html .ss-click.b-acc{animation:clkAccH var(--flash,90ms) linear!important}
+html .ss-click.b-beat{animation:clkBeatH var(--flash,90ms) linear!important}
+html .ss-click.b-sub{animation:clkSubH var(--flash,90ms) linear!important}
+html .ss-click.b-beat .ss-bpm{animation:clkTxtH var(--flash,90ms) linear!important}
 </style>
 </head>
 <body>
@@ -2986,17 +2997,20 @@ const Click = {
     const t = performance.now(); this.taps = this.taps.filter(x => t - x < 2500); this.taps.push(t);
     if (this.taps.length >= 2) { const d = []; for (let i = 1; i < this.taps.length; i++) d.push(this.taps[i] - this.taps[i - 1]); const avg = d.reduce((a, b) => a + b, 0) / d.length; this.setBpm(Math.round(60000 / avg)); }
   },
+  // length of a visual pulse: hard on, hard off; about a third of the gap to the next pulse (40–110 ms)
+  flashMs(kind) { const gap = 60000 / this.bpm / (kind === 'sub' || this.sub > 1 ? this.sub : 1); return Math.round(Math.max(40, Math.min(110, gap * .35))); },
   setBpm(v) { this.bpm = Math.max(30, Math.min(300, Math.round(v))); this.save(); }
 };
 Click.load();
+let clickFlashT = 0;
 function clickFlash(kind) {
   let el = document.getElementById('clickflash');
   if (!el) { el = h('div', { id: 'clickflash', 'aria-hidden': 'true' }); document.body.append(el); }
+  clearTimeout(clickFlashT);
   el.style.transition = 'none';
   el.style.background = kind === 'acc' ? '#ff2a2a' : '#ffffff';
-  el.style.opacity = kind === 'sub' ? '.18' : kind === 'acc' ? '.95' : '.85';
-  void el.offsetWidth;
-  el.style.transition = 'opacity .14s ease-out'; el.style.opacity = '0';
+  el.style.opacity = kind === 'sub' ? '.35' : kind === 'acc' ? '.95' : '.85';
+  clickFlashT = setTimeout(() => { el.style.opacity = '0'; }, Click.flashMs(kind));
 }
 const metronomeIcon = () => svg('svg', { viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', 'stroke-width': 1.8, 'stroke-linecap': 'round', 'stroke-linejoin': 'round', 'aria-hidden': 'true' },
   svg('path', { d: 'M9 3h6l4 18H5L9 3z' }), svg('path', { d: 'M7.2 15h9.6' }), svg('path', { d: 'M12 15l5-9' }));
@@ -3022,7 +3036,7 @@ function viewClick() {
   C.onBeat = ev => {
     if (ev.kind !== 'sub') { const bs = beatsEl.querySelectorAll('.ck-beat'); bs.forEach((b, i) => b.classList.toggle('now', i === ev.beat)); }
     if (C.out !== 'audio' && (ev.kind !== 'sub' || C.sub > 1)) {
-      bulb.classList.remove('f-acc', 'f-beat', 'f-sub'); void bulb.offsetWidth;
+      bulb.classList.remove('f-acc', 'f-beat', 'f-sub'); void bulb.offsetWidth; bulb.style.setProperty('--flash', C.flashMs(ev.kind) + 'ms');
       bulb.classList.add(ev.kind === 'acc' ? 'f-acc' : ev.kind === 'beat' ? 'f-beat' : 'f-sub');
     }
   };
@@ -4497,7 +4511,7 @@ function showStageSong(s, start) {
     if (Click.running) Click.stop();
     clickSong = song.id;
     Click.onState = () => { const box = ov.querySelector('.ss-click'); if (!box) return; const on = Click.running && clickSong === s.songs[i].id; box.classList.toggle('on', on); const pb = box.querySelector('.ss-play'); if (pb) { pb.textContent = on ? '■' : '▶'; pb.setAttribute('aria-label', on ? 'Click stoppen' : 'Click starten'); } };
-    Click.onBeat = ev => { const box = ov.querySelector('.ss-click.on'); if (!box || (ev.kind === 'sub' && Click.sub === 1)) return; box.classList.remove('b-acc', 'b-beat', 'b-sub'); void box.offsetWidth; box.classList.add(ev.kind === 'acc' ? 'b-acc' : ev.kind === 'beat' ? 'b-beat' : 'b-sub'); };
+    Click.onBeat = ev => { const box = ov.querySelector('.ss-click.on'); if (!box || (ev.kind === 'sub' && Click.sub === 1)) return; box.classList.remove('b-acc', 'b-beat', 'b-sub'); void box.offsetWidth; box.style.setProperty('--flash', Click.flashMs(ev.kind) + 'ms'); box.classList.add(ev.kind === 'acc' ? 'b-acc' : ev.kind === 'beat' ? 'b-beat' : 'b-sub'); };
     Click.start();
   };
   const openPanel = song => { touched.add(song.id); if (!unlocked.has(song.id)) unlocked.set(song.id, songVals(song));
@@ -7270,7 +7284,7 @@ function pageHelpSlides() {
 /* ================= home-screen app (PWA) ================= */
 const isStandalone = () => window.matchMedia?.('(display-mode: standalone)').matches || window.navigator.standalone === true;
 const isIOS = () => /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-const APP_VERSION = '03.11.2026 (12)';
+const APP_VERSION = '03.11.2026 (13)';
 function registerSW() {
   if (!('serviceWorker' in navigator) || (location.protocol !== 'https:' && location.hostname !== 'localhost') || IN_CLAUDE_HOST()) return;
   navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).then(reg => {
