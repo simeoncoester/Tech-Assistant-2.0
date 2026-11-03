@@ -60,6 +60,7 @@ song        → { id, title, key, bpm, sig, note, gt{tuning,capo}, bs{…}, shee
 - **Backups** (`viewBackups`): pro Produktion und Instrument, Gerätelisten `BACKUP_DEVICES` (Bass/Gitarre) und `BACKUP_DEVICES_DRUMS`.
 - **Teilen** (`shareArtistDialog`, `shareProductionDialog`, `receivePayload`, `applyArtistPayload`, `applyPayload`): ganzer Künstler oder einzelne Tour, Künstlerprofil (Logo, Schrift, Schriftzug) reist immer mit. Link (`#import=` gzip) oder Datei (`.techassistent.json`).
 - **Hilfe**: `START_SLIDES` (Startseite, 4 Folien), `HELP[view]` (Kontexthilfe), Grafiken in `ARTS`, Animationen in `DEMOS`, Folien über `SL(art, demo, title, text, steps, extra)`. Stichpunkte sind an Demo-Schritte gekoppelt; ohne Stichpunkte läuft die Demo automatisch.
+- **Startsound** (`StartSound`): abstraktes Logo-Sounddesign (Grollen wie näherkommender Lastwagen, Whooshes pro Logo-Teil mit Stereo-Richtung, Einschlag bei 1,78 s, Partikel, Linien-Sweep, Abgangs-Whoosh), per `OfflineAudioContext` einmal gerendert und synchron zur Splash-Animation abgespielt. Ist Ton sofort erlaubt, wartet die Animation (Klasse `hold`, max. 0,7 s) und beide starten gemeinsam; sonst startet der Ton beim ersten Antippen an der Position der laufenden Animation. `audioSession.type = 'ambient'` (respektiert den Lautlos-Schalter). Schalter „Startsound An/Aus“ auf der Startseite (`drumtech-startsound`).
 - **PWA**: `registerSW` (nicht in claude.ai), Installationshinweis auf der Startseite (nur im Browser).
 
 ## Mehrsprachigkeit (Pflicht bei jeder Textänderung)
@@ -76,7 +77,7 @@ song        → { id, title, key, bpm, sig, note, gt{tuning,capo}, bs{…}, shee
 - Glas-Optik: halbtransparente Flächen, feiner heller Rand, leichter Glanz oben. Rundungen moderat, keine Pillen: Knöpfe 12 px (klein 10 px), Chips/Plaketten 8 px, Karten 12 px, Kacheln 14 px (Block „calmer corner radii“ am CSS-Ende).
 - Knopf-Rollen: weiterführend (`.btn.nav`, z. B. Großansicht, Ansehen, Stimmen) = blauer Rand; löschen/entfernen (`.btn.danger`, `.btn.del`) und laufendes Beenden (`.stop`, Clicktrack „Stopp“) = dunkelroter Rand.
 - Hauptknöpfe (`.btn.solid`, aktive Chips/Segmente, `.btn.solid.accent`): kräftiger farbiger Rand (1,5 px), innen nur zarte Tönung, helle Schrift (hell: dunkelblaue Schrift). Keine vollflächig gefüllten Knöpfe. Regeln im Block „refined primary buttons“ am Ende des CSS.
-- Kopfzeile: Band-Identität über `hdrIdent` (Schriftzug, sonst Logo, sonst Name) in konstanter Größe, mit oder ohne Tour; ab 1024 px Breite größere Kopfzeile. Zurück-Knopf als Pfeil-Symbol. Seiteninhalt steckt in `#app > .app-in` und wird bei kurzen Seiten vertikal zentriert (lange Seiten beginnen oben).
+- Kopfzeile: Band-Identität über `hdrIdent` (Schriftzug, sonst Name; Logos bleiben in den Kacheln) in konstanter Größe, mit oder ohne Tour; ab 1024 px Breite größere Kopfzeile. Zurück-Knopf als Pfeil-Symbol. Seiteninhalt steckt in `#app > .app-in` und wird bei kurzen Seiten vertikal zentriert (lange Seiten beginnen oben).
 - Live = Rot, Studio = Blau. Kacheln ohne Erklärungstext (Erklärungen gehören in die Hilfe).
 - Längliche Karten: ≡-Menü rechts (Umbenennen/Löschen mit Bestätigung), gedrückt halten = sortieren.
 - Typografische Anführungszeichen im deutschen Text („…“), Apostroph ’.
