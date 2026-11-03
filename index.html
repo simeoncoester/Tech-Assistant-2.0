@@ -2209,6 +2209,32 @@ html .stage > .st-pov{max-width:none!important;margin:0!important}
 .start-btns{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px}
 .start-btns .btn{min-height:52px;font-size:1.05rem}
 .ice .pop-start h3{color:var(--ink)}
+/* ===== header: constant band identity, bigger back arrow, bigger header on laptops ===== */
+.bar .back{display:grid;place-items:center;width:40px;height:40px;padding:0;margin-left:-8px;flex:none}
+.bar .back svg{width:26px;height:26px}
+.bar h1 .hdr-combo{font-size:1em;gap:10px}
+.bar h1 .hdr-combo.solo{display:inline-flex}
+.bar h1 .hdr-artist{font-size:1em;max-width:58%}
+.bar h1 .hdr-combo.solo .hdr-artist{max-width:100%}
+.bar h1 .hdr-prod{font-size:.82em}
+.bar h1 .hdr-id{display:inline-flex;align-items:center;flex:none}
+.bar h1 .hdr-logo{height:28px;max-width:110px}
+@media (min-width:1024px){
+  .bar{min-height:78px;padding-top:14px;padding-bottom:14px;gap:10px}
+  .bar h1{font-size:1.8rem}
+  .bar .back{width:48px;height:48px}
+  .bar .back svg{width:32px;height:32px}
+  .bar h1 .hdr-sep{height:26px}
+  .bar h1 .hdr-logo{height:38px;max-width:150px}
+  .bar .qhelp{width:46px;height:46px}
+  .bar .qhelp .help-q{font-size:1.25rem}
+  .bar .home-btn{width:52px;height:52px}
+  .bar .home-btn svg{width:36px;height:36px}
+}
+/* ===== content: short pages sit in the middle between header and tab bar ===== */
+main#app{display:flex;flex-direction:column;min-height:calc(100dvh - 60px)}
+main#app > .app-in{margin-block:auto;width:100%}
+@media (min-width:1024px){main#app{min-height:calc(100dvh - 80px)}}
 </style>
 </head>
 <body>
@@ -2553,6 +2579,15 @@ function nav(view, params = {}) {
   if (['home', 'ghome', 'inst', 'projects', 'mode', 'artists'].includes(view)) route.setFrom = null;
   render();
 }
+// band identity in the header: wordmark, else logo, else name; always the same size, with or without tour
+const hdrBig = () => window.matchMedia('(min-width: 1024px)').matches;
+function hdrIdent(ar) {
+  if (ar.wordmarkV) return h('span', { class: 'hdr-id' }, artistNameNode(ar, hdrBig() ? 34 : 24, hdrBig() ? 280 : 190));
+  const logo = ar.logoV ? getAsset('logo-' + ar.id, () => render(true)) : null;
+  if (logo) return h('img', { class: 'hdr-logo', src: logo, alt: ar.name });
+  return h('span', { class: 'hdr-artist', style: artistFontStyle(ar) }, ar.name);
+}
+window.matchMedia && window.matchMedia('(min-width: 1024px)').addEventListener?.('change', () => { try { render(true); } catch (e) {} });
 function render(keepScroll) {
   const y = window.scrollY;
   const bar = document.getElementById('bar'), app = document.getElementById('app');
@@ -2565,7 +2600,7 @@ function render(keepScroll) {
   else if (!freeTuner && !['artists', 'mode', 'projects'].includes(route.view) && !P()) route.view = 'projects';
   const v = views[route.view]();
   currentBack = v.back || null;
-  if (v.back) bar.append(h('button', { class: 'back', type: 'button', onclick: v.back, 'aria-label': 'Zurück' }, '‹'));
+  if (v.back) bar.append(h('button', { class: 'back', type: 'button', onclick: v.back, 'aria-label': 'Zurück' }, svg('svg', { viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', 'stroke-width': 2.6, 'stroke-linecap': 'round', 'stroke-linejoin': 'round', 'aria-hidden': 'true' }, svg('path', { d: 'M15 4.5 7.5 12l7.5 7.5' }))));
   document.documentElement.style.setProperty('--accent', areaColor());
   // header: only the artist lettering/name or the production name, plus help and home
   const ar = artist(), pr = P();
@@ -2580,13 +2615,9 @@ function render(keepScroll) {
   else if (route.view === 'click') hTitle = 'Clicktrack';
   else if (pr && !['mode', 'projects'].includes(route.view)) {
     hTitle = `${ar.name}, ${pr.name || 'Ohne Namen'}`;
-    const logo = !ar.wordmarkV && ar.logoV ? getAsset('logo-' + ar.id, () => render(true)) : null;
-    const ident = ar.wordmarkV ? artistNameNode(ar, 17, 120)
-      : logo ? h('img', { class: 'hdr-logo', src: logo, alt: ar.name })
-      : h('span', { class: 'hdr-artist', style: artistFontStyle(ar) }, ar.name);
-    hNode = h('span', { class: 'hdr-combo' }, ident, h('span', { class: 'hdr-sep', 'aria-hidden': 'true' }), h('span', { class: 'hdr-prod' }, pr.name || 'Ohne Namen'));
+    hNode = h('span', { class: 'hdr-combo' }, hdrIdent(ar), h('span', { class: 'hdr-sep', 'aria-hidden': 'true' }), h('span', { class: 'hdr-prod' }, pr.name || 'Ohne Namen'));
   }
-  else if (ar) { hTitle = ar.name; hNode = ar.wordmarkV ? artistNameNode(ar, 24, 200) : null; hStyle = artistFontStyle(ar); }
+  else if (ar) { hTitle = ar.name; hNode = h('span', { class: 'hdr-combo solo' }, hdrIdent(ar)); }
   else hTitle = v.title;
   bar.append(h('div', { class: 't' }, h('h1', { style: hStyle }, hNode || hTitle)));
   document.title = hTitle === 'Tech Assistent' ? 'Tech Assistent' : `${hTitle} – Tech Assistent`;
@@ -2600,7 +2631,7 @@ function render(keepScroll) {
   document.body.classList.add('wm');
   saveRoute();
   renderTabs();
-  app.append(...[v.body, v.after].flat(Infinity).filter(x => x != null && x !== false));
+  app.append(h('div', { class: 'app-in' }, ...[v.body, v.after].flat(Infinity).filter(x => x != null && x !== false)));
   if (pendingSlide) { app.classList.remove('slide-l', 'slide-r'); void app.offsetWidth; app.classList.add(pendingSlide > 0 ? 'slide-l' : 'slide-r'); pendingSlide = 0; }
   window.scrollTo(0, keepScroll ? y : 0);
 }
@@ -7074,7 +7105,7 @@ function pageHelpSlides() {
 /* ================= home-screen app (PWA) ================= */
 const isStandalone = () => window.matchMedia?.('(display-mode: standalone)').matches || window.navigator.standalone === true;
 const isIOS = () => /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-const APP_VERSION = '03.11.2026 (6)';
+const APP_VERSION = '03.11.2026 (7)';
 function registerSW() {
   if (!('serviceWorker' in navigator) || (location.protocol !== 'https:' && location.hostname !== 'localhost') || IN_CLAUDE_HOST()) return;
   navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).then(reg => {

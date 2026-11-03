@@ -76,6 +76,7 @@ song        → { id, title, key, bpm, sig, note, gt{tuning,capo}, bs{…}, shee
 - Glas-Optik: halbtransparente Flächen, feiner heller Rand, leichter Glanz oben. Rundungen moderat, keine Pillen: Knöpfe 12 px (klein 10 px), Chips/Plaketten 8 px, Karten 12 px, Kacheln 14 px (Block „calmer corner radii“ am CSS-Ende).
 - Knopf-Rollen: weiterführend (`.btn.nav`, z. B. Großansicht, Ansehen, Stimmen) = blauer Rand; löschen/entfernen (`.btn.danger`, `.btn.del`) und laufendes Beenden (`.stop`, Clicktrack „Stopp“) = dunkelroter Rand.
 - Hauptknöpfe (`.btn.solid`, aktive Chips/Segmente, `.btn.solid.accent`): kräftiger farbiger Rand (1,5 px), innen nur zarte Tönung, helle Schrift (hell: dunkelblaue Schrift). Keine vollflächig gefüllten Knöpfe. Regeln im Block „refined primary buttons“ am Ende des CSS.
+- Kopfzeile: Band-Identität über `hdrIdent` (Schriftzug, sonst Logo, sonst Name) in konstanter Größe, mit oder ohne Tour; ab 1024 px Breite größere Kopfzeile. Zurück-Knopf als Pfeil-Symbol. Seiteninhalt steckt in `#app > .app-in` und wird bei kurzen Seiten vertikal zentriert (lange Seiten beginnen oben).
 - Live = Rot, Studio = Blau. Kacheln ohne Erklärungstext (Erklärungen gehören in die Hilfe).
 - Längliche Karten: ≡-Menü rechts (Umbenennen/Löschen mit Bestätigung), gedrückt halten = sortieren.
 - Typografische Anführungszeichen im deutschen Text („…“), Apostroph ’.
