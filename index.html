@@ -2877,14 +2877,14 @@ function brandingFields(o) {
 const CLICK_KEY = 'drumtech-click';
 const Click = {
   ctx: null, running: false, bpm: 120, num: 4, den: 4, sub: 1, accents: null, out: 'audio', sound: 'beep', noise: null,
-  nextTime: 0, step: 0, timer: null, queue: [], raf: 0, wake: null, onBeat: null, onState: null, taps: [],
+  nextTime: 0, step: 0, timer: null, queue: [], pending: [], cur: null, raf: 0, wake: null, onBeat: null, onState: null, taps: [],
   load() { try { Object.assign(this, JSON.parse(localStorage.getItem(CLICK_KEY) || '{}')); } catch (e) {} this.fixAccents(); },
   save() { try { localStorage.setItem(CLICK_KEY, JSON.stringify({ bpm: this.bpm, num: this.num, den: this.den, sub: this.sub, accents: this.accents, out: this.out, sound: this.sound })); } catch (e) {} },
   defaultAccents() { const n = this.num; if (this.den === 8 && n % 3 === 0 && n > 3) return Array.from({ length: n }, (_, i) => i % 3 === 0); return Array.from({ length: n }, (_, i) => i === 0); },
   fixAccents(reset) { if (reset || !Array.isArray(this.accents) || this.accents.length !== this.num) this.accents = this.defaultAccents(); },
   start() {
     this.ensureCtx();
-    this.running = true; this.step = 0; this.queue = []; this.nextTime = this.ctx.currentTime + .1;
+    this.running = true; this.step = 0; this.queue = []; this.pending = []; this.nextTime = this.ctx.currentTime + .1;
     clearInterval(this.timer); this.timer = setInterval(() => this.schedule(), 25); this.schedule();
     cancelAnimationFrame(this.raf); this.loop();
     if (navigator.wakeLock) navigator.wakeLock.request('screen').then(w => { this.wake = w; }).catch(() => {});
@@ -2893,6 +2893,7 @@ const Click = {
   stop() {
     if (!this.running) return;
     this.running = false; clearInterval(this.timer); cancelAnimationFrame(this.raf); this.queue = [];
+    if (this.ctx) { const now = this.ctx.currentTime; this.pending.forEach(p => { if (p.t > now) p.nodes.forEach(n => { try { n.stop(0); } catch (e) {} }); }); } this.pending = [];
     try { this.wake && this.wake.release(); } catch (e) {} this.wake = null;
     this.onState && this.onState();
   },
@@ -2901,7 +2902,7 @@ const Click = {
     while (this.nextTime < this.ctx.currentTime + .12) {
       const per = this.num * this.sub, s = this.step % per, beat = Math.floor(s / this.sub), isBeat = s % this.sub === 0;
       const kind = isBeat ? (this.accents[beat] ? 'acc' : 'beat') : 'sub';
-      if (this.out !== 'visual') this.blip(this.nextTime, kind);
+      if (this.out !== 'visual') this.hit(this.nextTime, kind);
       this.queue.push({ t: this.nextTime, beat, kind });
       this.nextTime += 60 / this.bpm / this.sub; this.step++;
     }
@@ -2916,12 +2917,24 @@ const Click = {
   tone(t, type, freq, peak, attack, decay, dest, freqEnd) {
     const c = this.ctx, o = c.createOscillator(), g = c.createGain();
     o.type = type; o.frequency.setValueAtTime(freq, t); if (freqEnd) o.frequency.exponentialRampToValueAtTime(freqEnd, t + decay);
-    this.env(g, t, peak, attack, decay); o.connect(g); g.connect(dest || c.destination); o.start(t); o.stop(t + attack + decay + .02);
+    this.env(g, t, peak, attack, decay); o.connect(g); g.connect(dest || c.destination); o.start(t); o.stop(t + attack + decay + .02); if (this.cur) this.cur.push(o);
   },
   noiseHit(t, filterType, freq, q, peak, attack, decay) {
     const c = this.ctx, src = c.createBufferSource(), f = c.createBiquadFilter(), g = c.createGain();
     src.buffer = this.noise; f.type = filterType; f.frequency.value = freq; f.Q.value = q;
-    this.env(g, t, peak, attack, decay); src.connect(f); f.connect(g); g.connect(c.destination); src.start(t); src.stop(t + attack + decay + .02);
+    this.env(g, t, peak, attack, decay); src.connect(f); f.connect(g); g.connect(c.destination); src.start(t); src.stop(t + attack + decay + .02); if (this.cur) this.cur.push(src);
+  },
+  // a scheduled click: remembers its sound sources so it can be replaced before it plays
+  hit(t, kind) {
+    this.cur = []; this.blip(t, kind); this.pending.push({ t, kind, nodes: this.cur }); this.cur = null;
+    const now = this.ctx.currentTime; this.pending = this.pending.filter(p => p.t > now - .5);
+  },
+  // switch the sound while running: hits that are already scheduled but not yet audible are rebuilt in the new sound
+  setSound(snd) {
+    this.sound = snd; this.save();
+    if (!this.running || !this.ctx || this.out === 'visual') return;
+    const now = this.ctx.currentTime + .004;
+    this.pending.filter(p => p.t > now).forEach(p => { p.nodes.forEach(n => { try { n.stop(0); } catch (e) {} }); this.cur = []; this.blip(p.t, p.kind); p.nodes = this.cur; this.cur = null; });
   },
   blip(t, kind) {
     const A = kind === 'acc', S = kind === 'sub', vol = S ? .3 : A ? 1 : .7;
@@ -2942,7 +2955,7 @@ const Click = {
         this.tone(t, 'sine', A ? 1760 : kind === 'beat' ? 1175 : 880, S ? .22 : A ? .9 : .6, .002, .053);
     }
   },
-  preview(snd) { this.sound = snd; this.save(); this.ensureCtx(); const t = this.ctx.currentTime + .03; this.blip(t, 'acc'); this.blip(t + .32, 'beat'); this.blip(t + .64, 'beat'); },
+  preview(snd) { if (this.running) { this.setSound(snd); return; } this.sound = snd; this.save(); this.ensureCtx(); const t = this.ctx.currentTime + .03; this.blip(t, 'acc'); this.blip(t + .32, 'beat'); this.blip(t + .64, 'beat'); },
   loop() {
     const now = this.ctx.currentTime;
     while (this.queue.length && this.queue[0].t <= now) { const ev = this.queue.shift(); this.onBeat && this.onBeat(ev); }
@@ -7110,7 +7123,7 @@ function pageHelpSlides() {
 /* ================= home-screen app (PWA) ================= */
 const isStandalone = () => window.matchMedia?.('(display-mode: standalone)').matches || window.navigator.standalone === true;
 const isIOS = () => /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-const APP_VERSION = '03.11.2026 (9)';
+const APP_VERSION = '03.11.2026 (10)';
 function registerSW() {
   if (!('serviceWorker' in navigator) || (location.protocol !== 'https:' && location.hostname !== 'localhost') || IN_CLAUDE_HOST()) return;
   navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).then(reg => {
