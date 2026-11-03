@@ -6605,7 +6605,7 @@ ${String(text).slice(0, 12000)}`, { modelTier: 'default' });
   draw(); document.body.append(ov);
 }
 /* ================= start ================= */
-/* ================= start sound: abstract logo sound design, synthesized and synced to the splash animation ================= */
+/* ================= start sound: subtle power-up buzz (logo sound design), synthesized and synced to the splash animation ================= */
 const StartSound = {
   KEY: 'drumtech-startsound',
   on() { try { return localStorage.getItem(this.KEY) !== 'off'; } catch (e) { return true; } },
@@ -6613,82 +6613,50 @@ const StartSound = {
   // renders the whole sound once (stereo, about 4.8 s) – timeline matches the CSS animation of #splash
   async render(sr) {
     const D = 4.8, o = new OfflineAudioContext(2, Math.ceil(sr * D), sr);
-    const comp = o.createDynamicsCompressor(); comp.threshold.value = -16; comp.knee.value = 10; comp.ratio.value = 4; comp.attack.value = .004; comp.release.value = .25;
-    const master = o.createGain(); master.gain.value = .85; comp.connect(master); master.connect(o.destination);
-    // noise sources: white and brown (deep rumble)
-    let seed = 7; const rnd = () => { seed = (seed * 16807) % 2147483647; return seed / 2147483647 * 2 - 1; };
-    const white = o.createBuffer(2, sr * D, sr), brown = o.createBuffer(2, sr * D, sr);
-    for (let ch = 0; ch < 2; ch++) { const w = white.getChannelData(ch), b = brown.getChannelData(ch); let last = 0; for (let i = 0; i < w.length; i++) { const x = rnd(); w[i] = x; last = (last + .02 * x) / 1.02; b[i] = last * 3.5; } }
-    // room: generated decaying impulse
-    const irLen = Math.floor(sr * 2.6), ir = o.createBuffer(2, irLen, sr);
-    for (let ch = 0; ch < 2; ch++) { const d = ir.getChannelData(ch); for (let i = 0; i < irLen; i++) d[i] = rnd() * Math.pow(1 - i / irLen, 3.2); }
-    const rev = o.createConvolver(); rev.buffer = ir; const wet = o.createGain(); wet.gain.value = .32; rev.connect(wet); wet.connect(comp);
+    const comp = o.createDynamicsCompressor(); comp.threshold.value = -20; comp.knee.value = 12; comp.ratio.value = 3; comp.attack.value = .01; comp.release.value = .3;
+    const master = o.createGain(); master.gain.value = .55; comp.connect(master); master.connect(o.destination);
+    let seed = 11; const rnd = () => { seed = (seed * 16807) % 2147483647; return seed / 2147483647 * 2 - 1; };
+    const white = o.createBuffer(2, sr * D, sr); for (let ch = 0; ch < 2; ch++) { const w = white.getChannelData(ch); for (let i = 0; i < w.length; i++) w[i] = rnd(); }
+    const irLen = Math.floor(sr * 2.2), ir = o.createBuffer(2, irLen, sr);
+    for (let ch = 0; ch < 2; ch++) { const d = ir.getChannelData(ch); for (let i = 0; i < irLen; i++) d[i] = rnd() * Math.pow(1 - i / irLen, 3.5); }
+    const rev = o.createConvolver(); rev.buffer = ir; const wet = o.createGain(); wet.gain.value = .22; rev.connect(wet); wet.connect(comp);
     const dry = o.createGain(); dry.connect(comp); dry.connect(rev);
-    const src = (buf, t, dur) => { const s = o.createBufferSource(); s.buffer = buf; s.start(t, t % 2, dur); return s; };
     const pan = (p0, p1, t, d) => { const p = o.createStereoPanner(); p.pan.setValueAtTime(p0, t); p.pan.linearRampToValueAtTime(p1, t + d); p.connect(dry); return p; };
-    const shaper = o.createWaveShaper(); { const n = 1024, c = new Float32Array(n); for (let i = 0; i < n; i++) { const x = i / (n - 1) * 2 - 1; c[i] = Math.tanh(x * 2.6); } shaper.curve = c; }
+    const T = 1.78, END = 3.9;
 
-    // 1) approaching truck: brown-noise rumble, sub bass and a growling engine, swelling until the logo lands
-    const T1 = 1.74;
-    { const s = src(brown, 0, 2.2), lp = o.createBiquadFilter(), g = o.createGain();
-      lp.type = 'lowpass'; lp.frequency.setValueAtTime(70, 0); lp.frequency.exponentialRampToValueAtTime(760, T1 - .12);
-      g.gain.setValueAtTime(.012, 0); g.gain.exponentialRampToValueAtTime(.95, T1 - .12); g.gain.exponentialRampToValueAtTime(.04, T1 + .02); g.gain.exponentialRampToValueAtTime(.0001, T1 + .2);
-      s.connect(lp); lp.connect(g); g.connect(dry); }
-    { const sub = o.createOscillator(), g = o.createGain(); sub.type = 'sine';
-      sub.frequency.setValueAtTime(31, 0); sub.frequency.exponentialRampToValueAtTime(58, T1);
-      g.gain.setValueAtTime(.02, 0); g.gain.exponentialRampToValueAtTime(.75, T1 - .12); g.gain.exponentialRampToValueAtTime(.02, T1 + .02); g.gain.exponentialRampToValueAtTime(.0001, T1 + .12);
-      sub.connect(g); g.connect(dry); sub.start(0); sub.stop(T1 + .2); }
-    { const saw = o.createOscillator(), saw2 = o.createOscillator(), lp = o.createBiquadFilter(), am = o.createGain(), lfo = o.createOscillator(), lfoG = o.createGain(), env = o.createGain();
-      saw.type = 'sawtooth'; saw2.type = 'sawtooth';
-      saw.frequency.setValueAtTime(44, 0); saw.frequency.exponentialRampToValueAtTime(82, T1); saw2.frequency.setValueAtTime(44.7, 0); saw2.frequency.exponentialRampToValueAtTime(83.4, T1);
-      lp.type = 'lowpass'; lp.Q.value = 3; lp.frequency.setValueAtTime(90, 0); lp.frequency.exponentialRampToValueAtTime(620, T1);
-      lfo.frequency.setValueAtTime(14, 0); lfo.frequency.exponentialRampToValueAtTime(31, T1); lfoG.gain.value = .45; am.gain.value = .55; lfo.connect(lfoG); lfoG.connect(am.gain);
-      env.gain.setValueAtTime(.006, 0); env.gain.exponentialRampToValueAtTime(.45, T1 - .12); env.gain.exponentialRampToValueAtTime(.01, T1 + .02); env.gain.exponentialRampToValueAtTime(.0001, T1 + .1);
-      saw.connect(lp); saw2.connect(lp); lp.connect(shaper); shaper.connect(am); am.connect(env); env.connect(dry);
-      [saw, saw2, lfo].forEach(x => { x.start(0); x.stop(T1 + .2); }); }
+    // 1) the buzz: warm, slightly detuned low tones that power up while the logo flies in
+    { const lp = o.createBiquadFilter(), am = o.createGain(), lfo = o.createOscillator(), lfoG = o.createGain(), env = o.createGain();
+      lp.type = 'lowpass'; lp.Q.value = 5;
+      lp.frequency.setValueAtTime(130, 0); lp.frequency.exponentialRampToValueAtTime(1150, T); lp.frequency.exponentialRampToValueAtTime(520, T + 1.1); lp.frequency.exponentialRampToValueAtTime(260, END);
+      lfo.frequency.value = 29; lfoG.gain.value = .08; am.gain.value = .92; lfo.connect(lfoG); lfoG.connect(am.gain);
+      env.gain.setValueAtTime(.0001, 0); env.gain.exponentialRampToValueAtTime(.05, .7); env.gain.exponentialRampToValueAtTime(.2, T);
+      env.gain.setValueAtTime(.2, T + .25); env.gain.exponentialRampToValueAtTime(.12, T + .75); env.gain.exponentialRampToValueAtTime(.0001, END);
+      const voices = [[54.6, .5, -.25], [55.3, .5, .25], [82.4, .22, 0], [110.2, .12, 0]];
+      voices.forEach(([f, v, p]) => { const os = o.createOscillator(), g = o.createGain(), pn = o.createStereoPanner(); os.type = 'sawtooth';
+        os.frequency.setValueAtTime(f * .94, 0); os.frequency.exponentialRampToValueAtTime(f, T); g.gain.value = v; pn.pan.value = p;
+        os.connect(g); g.connect(pn); pn.connect(lp); os.start(0); os.stop(END + .1); });
+      lp.connect(am); am.connect(env); env.connect(dry); lfo.start(0); lfo.stop(END + .1); }
+    // sub foundation
+    { const sub = o.createOscillator(), g = o.createGain(); sub.type = 'sine'; sub.frequency.setValueAtTime(52, 0); sub.frequency.exponentialRampToValueAtTime(55, T);
+      g.gain.setValueAtTime(.0001, 0); g.gain.exponentialRampToValueAtTime(.22, T); g.gain.setValueAtTime(.22, T + .2); g.gain.exponentialRampToValueAtTime(.12, T + .75); g.gain.exponentialRampToValueAtTime(.0001, END - .3);
+      sub.connect(g); g.connect(dry); sub.start(0); sub.stop(END); }
 
-    // 2) whooshes: each part of the logo flies in from its own direction
-    const whoosh = (t, d, f0, f1, p0, p1, peak, q = 1.1) => { const s = src(white, t, d + .05), bp = o.createBiquadFilter(), g = o.createGain();
-      bp.type = 'bandpass'; bp.Q.value = q; bp.frequency.setValueAtTime(f0, t); bp.frequency.exponentialRampToValueAtTime(f1, t + d);
-      g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(peak, t + d * .62); g.gain.exponentialRampToValueAtTime(.0001, t + d);
-      s.connect(bp); bp.connect(g); g.connect(pan(p0, p1, t, d)); };
-    whoosh(.15, 1.0, 2400, 420, 0, 0, .6);       // arc from above
-    whoosh(.40, .98, 520, 1600, -1, 0, .55);     // circle from the left
-    whoosh(.65, .95, 380, 1300, -.9, -.1, .5);   // left leg from bottom left
-    whoosh(.80, .92, 420, 1400, .9, .1, .5);     // right leg from bottom right
+    // 2) soft lock-in when the logo lands
+    { const k = o.createOscillator(), g = o.createGain(); k.type = 'sine'; k.frequency.setValueAtTime(96, T); k.frequency.exponentialRampToValueAtTime(48, T + .35);
+      g.gain.setValueAtTime(.0001, T); g.gain.exponentialRampToValueAtTime(.32, T + .012); g.gain.exponentialRampToValueAtTime(.0001, T + .6);
+      k.connect(g); g.connect(dry); k.start(T); k.stop(T + .65); }
+    { const s = o.createBufferSource(), bp = o.createBiquadFilter(), g = o.createGain(); s.buffer = white; bp.type = 'bandpass'; bp.frequency.value = 2600; bp.Q.value = 1.4;
+      g.gain.setValueAtTime(.0001, T); g.gain.exponentialRampToValueAtTime(.05, T + .004); g.gain.exponentialRampToValueAtTime(.0001, T + .08);
+      s.connect(bp); bp.connect(g); g.connect(dry); s.start(T, 1, .1); }
 
-    // 3) impact when everything lands
-    const T2 = 1.78;
-    { const boom = o.createOscillator(), g = o.createGain(); boom.type = 'sine'; boom.frequency.setValueAtTime(118, T2); boom.frequency.exponentialRampToValueAtTime(33, T2 + .85);
-      g.gain.setValueAtTime(.0001, T2); g.gain.exponentialRampToValueAtTime(1.3, T2 + .005); g.gain.exponentialRampToValueAtTime(.0001, T2 + 1.8);
-      boom.connect(g); g.connect(dry); boom.start(T2); boom.stop(T2 + 1.8); }
-    { const tail = o.createOscillator(), g = o.createGain(); tail.type = 'sine'; tail.frequency.value = 41;
-      g.gain.setValueAtTime(.0001, T2); g.gain.exponentialRampToValueAtTime(.38, T2 + .05); g.gain.exponentialRampToValueAtTime(.0001, T2 + 2.4);
-      tail.connect(g); g.connect(dry); tail.start(T2); tail.stop(T2 + 2.5); }
-    { const s = src(white, T2, .12), hp = o.createBiquadFilter(), g = o.createGain(); hp.type = 'highpass'; hp.frequency.value = 1900;
-      g.gain.setValueAtTime(.0001, T2); g.gain.exponentialRampToValueAtTime(.75, T2 + .002); g.gain.exponentialRampToValueAtTime(.0001, T2 + .1);
-      s.connect(hp); hp.connect(g); g.connect(dry); }
-    { const s = src(brown, T2, 1.0), lp = o.createBiquadFilter(), g = o.createGain(); lp.type = 'lowpass'; lp.frequency.setValueAtTime(900, T2); lp.frequency.exponentialRampToValueAtTime(120, T2 + .8);
-      g.gain.setValueAtTime(.0001, T2); g.gain.exponentialRampToValueAtTime(1.1, T2 + .008); g.gain.exponentialRampToValueAtTime(.0001, T2 + .9);
-      s.connect(lp); lp.connect(g); g.connect(dry); }
-
-    // 4) letters: fine particles, scattered in the stereo field
-    for (let i = 0; i < 14; i++) { const t = 1.55 + i * .04 + .22, s = src(white, t, .06), bp = o.createBiquadFilter(), g = o.createGain();
-      bp.type = 'bandpass'; bp.Q.value = 9; bp.frequency.value = 4200 + (i % 5) * 600;
-      g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(.09, t + .003); g.gain.exponentialRampToValueAtTime(.0001, t + .05);
-      s.connect(bp); bp.connect(g); g.connect(pan((i % 2 ? .5 : -.5) * ((i % 3) / 2 + .3), 0, t, .05)); }
-
-    // 5) the line draws from right to left: bright airy sweep
-    whoosh(2.3, .85, 900, 5200, .7, -.7, .13, 2.2);
-    { const sn = o.createOscillator(), g = o.createGain(); sn.type = 'sine'; sn.frequency.setValueAtTime(1320, 2.35); sn.frequency.exponentialRampToValueAtTime(1760, 3.0);
-      g.gain.setValueAtTime(.0001, 2.35); g.gain.exponentialRampToValueAtTime(.025, 2.6); g.gain.exponentialRampToValueAtTime(.0001, 3.2);
-      sn.connect(g); g.connect(pan(.4, -.4, 2.35, .8)); sn.start(2.35); sn.stop(3.25); }
-
-    // 6) exit: everything slides away to the left
-    whoosh(4.08, .62, 1800, 260, .2, -1, .3);
-    { const s = src(brown, 4.08, .6), lp = o.createBiquadFilter(), g = o.createGain(); lp.type = 'lowpass'; lp.frequency.value = 220;
-      g.gain.setValueAtTime(.0001, 4.08); g.gain.exponentialRampToValueAtTime(.45, 4.3); g.gain.exponentialRampToValueAtTime(.0001, 4.7);
-      s.connect(lp); lp.connect(g); g.connect(dry); }
+    // 3) very quiet air: logo parts, line and exit only as a shimmer in the background
+    const air = (t, d, f0, f1, p0, p1, peak) => { const s = o.createBufferSource(), bp = o.createBiquadFilter(), g = o.createGain(); s.buffer = white;
+      bp.type = 'bandpass'; bp.Q.value = 1.6; bp.frequency.setValueAtTime(f0, t); bp.frequency.exponentialRampToValueAtTime(f1, t + d);
+      g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(peak, t + d * .6); g.gain.exponentialRampToValueAtTime(.0001, t + d);
+      s.connect(bp); bp.connect(g); g.connect(pan(p0, p1, t, d)); s.start(t, t % 2, d + .05); };
+    air(.15, 1.1, 3800, 1600, 0, 0, .035); air(.4, 1.0, 1500, 3200, -.8, 0, .03); air(.7, .95, 1400, 3000, .8, 0, .03);
+    air(2.3, .8, 1800, 6000, .6, -.6, .025);
+    air(4.08, .55, 2600, 700, .2, -.9, .035);
     return o.startRendering();
   },
   // starts in sync with the animation. If sound is allowed right away, the animation waits (max. 0.7 s) until the sound is
@@ -7284,7 +7252,7 @@ function pageHelpSlides() {
 /* ================= home-screen app (PWA) ================= */
 const isStandalone = () => window.matchMedia?.('(display-mode: standalone)').matches || window.navigator.standalone === true;
 const isIOS = () => /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-const APP_VERSION = '03.11.2026 (13)';
+const APP_VERSION = '03.11.2026 (14)';
 function registerSW() {
   if (!('serviceWorker' in navigator) || (location.protocol !== 'https:' && location.hostname !== 'localhost') || IN_CLAUDE_HOST()) return;
   navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).then(reg => {
