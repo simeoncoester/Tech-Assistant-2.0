@@ -11,6 +11,7 @@ Der Projektinhaber kommuniziert auf **Deutsch**, oft per Diktat (Tippfehler wie 
 | `index.html` | Die komplette App: HTML, CSS und JavaScript in **einer** Datei, keine Frameworks, kein Build-Schritt |
 | `manifest.webmanifest` | PWA-Manifest (Home-Bildschirm-App) |
 | `sw.js` | Service Worker: Seite network-first mit `cache: 'no-store'`, Rest cache-first; Cache-Name bei SW-Änderungen hochzählen |
+| `.github/workflows/pages-refresh.yml` | Fordert bei jedem Push auf `main` (oder manuell unter Actions) einen GitHub-Pages-Build an – Absicherung, falls GitHub die Veröffentlichung nach einem Push nicht selbst startet. Ein doppelter Lauf wird dabei abgebrochen („cancelled“), das ist normal |
 | `apple-touch-icon.png`, `icon-192.png`, `icon-512.png`, `icon-maskable-512.png` | App-Icons (Logo auf dunklem Grund) |
 
 Externe Bibliotheken nur per CDN und erst bei Bedarf geladen: pdf.js, mammoth (Word), Tesseract.js 5.1.1 (Texterkennung), jsPDF 2.5.1, Google Fonts (Barlow, Barlow Condensed, Permanent Marker).
