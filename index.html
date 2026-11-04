@@ -814,7 +814,7 @@ body.reordering{-webkit-user-select:none;user-select:none}
 .imp-row.off{opacity:.45}
 .s-ed .keyrow{grid-column:auto;display:grid;grid-template-columns:1fr 1fr;gap:6px}
 .s-ed .keyrow select{grid-column:1/-1}
-.s-ed .keyrow .btn{width:100%}/* ===================== AREA PALETTES (per theme) + refined tiles ===================== */
+/* ===================== AREA PALETTES (per theme) + refined tiles ===================== */
 
 
 :root{--a-tuner:#5B8FE0;--a-quick:#38B6C6;--a-kits:#E3A043;--a-chain:#A58AE6;--a-sets:#4CBF7A;--a-tunings:#E77C9C;
@@ -3926,8 +3926,7 @@ function viewSetlist() {
       all.length ? null : h('p', { class: 'muted', style: 'font-size:.82rem;margin:0' }, 'Eigene Instrumente legst du unter Bass oder Gitarre bei „Instrumente“ an.'));
   };
   const keyRow = song => h('div', { class: 'keyrow' },
-    h('select', { 'aria-label': 'Tonart', value: song.key || '', onchange: e => { song.key = e.target.value; touch(); } }, h('option', { value: '' }, 'Tonart / Key …'), KEYS.map(k => h('option', { value: k.v }, k.l))),
-    (P().drums || []).length ? h('button', { class: 'btn small nav', type: 'button', onclick: () => showTuningSheet(P(), { songId: song.id }) }, 'Tom-Tuning') : null);
+    h('select', { 'aria-label': 'Tonart', value: song.key || '', onchange: e => { song.key = e.target.value; touch(); } }, h('option', { value: '' }, 'Tonart / Key …'), KEYS.map(k => h('option', { value: k.v }, k.l))));
   
   const aiPanel = song => {
     if (!aiOpen.has(song.id)) return null;
@@ -7211,7 +7210,7 @@ function pageHelpSlides() {
 /* ================= home-screen app (PWA) ================= */
 const isStandalone = () => window.matchMedia?.('(display-mode: standalone)').matches || window.navigator.standalone === true;
 const isIOS = () => /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-const APP_VERSION = '04.11.2026 (9)';
+const APP_VERSION = '04.11.2026 (10)';
 function registerSW() {
   if (!('serviceWorker' in navigator) || (location.protocol !== 'https:' && location.hostname !== 'localhost') || IN_CLAUDE_HOST()) return;
   navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).then(reg => {
