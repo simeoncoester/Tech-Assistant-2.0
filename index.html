@@ -640,7 +640,7 @@ html.glass body::before{background:rgba(12,16,26,.35);-webkit-backdrop-filter:bl
 .glass .str.hot{background:linear-gradient(180deg,rgba(110,200,150,.75),rgba(50,140,90,.7))}
 .glass .ins,.glass .dbv{background:rgba(0,0,0,.35)}
 .glass .mic-card{border-radius:18px}
-.theme-row{display:flex;align-items:center;justify-content:center;gap:10px;margin-top:26px;color:var(--muted);font-size:.9rem}/* glass: more see-through surfaces + slightly translucent type */
+/* glass: more see-through surfaces + slightly translucent type */
 
 html.glass{--ink:rgba(244,247,251,.86);--muted:rgba(206,216,230,.6)}
 html.glass body{color:var(--ink)}
@@ -1175,12 +1175,6 @@ body.wm #wm{display:grid}
 .dm-minif{gap:36px!important}
 .dm-minif .onb-fader i{width:26px!important;margin-left:-13px!important;height:16px!important}
 
-.ft-corner{all:unset;box-sizing:border-box;cursor:pointer;position:fixed;right:calc(env(safe-area-inset-right,0px) + 16px);bottom:calc(env(safe-area-inset-bottom,0px) + 16px);z-index:12;width:44px;height:44px;border-radius:50%;display:grid;place-items:center;color:var(--muted);border:1px solid var(--line);background:rgba(255,255,255,.04);opacity:.75;transition:opacity .2s,color .2s}
-.ft-corner svg{width:22px;height:22px}
-.ft-corner:hover,.ft-corner:focus-visible{opacity:1;color:var(--ink)}
-.ft-corner:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
-.glass .ft-corner{background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.14);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px)}
-.ice .ft-corner{background:rgba(255,255,255,.7);border-color:#fff;box-shadow:0 3px 10px rgba(30,60,100,.12)}
 .bar .t h1{margin:0;line-height:1.15;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .bar{min-height:56px}
 
@@ -1193,7 +1187,6 @@ body.wm #wm{display:grid}
 .hdr-artist{flex:0 0 auto;max-width:58%}
 .hdr-prod{flex:1 1 auto}
 
-.ft-corner.left{right:auto;left:calc(env(safe-area-inset-left,0px) + 16px)}
 .ck-main{display:flex;flex-direction:column;gap:14px;align-items:stretch}
 .ck-tempo{display:flex;align-items:center;justify-content:center;gap:18px}
 .ck-bpm{font:700 4.6rem/1 "Barlow Condensed",sans-serif;min-width:3.2ch;text-align:center;font-variant-numeric:tabular-nums}
@@ -2091,6 +2084,20 @@ html .ss-click.b-beat .ss-bpm{animation:clkTxtH var(--flash,90ms) linear!importa
 .pop .wm-preview{margin:4px 0}
 .ice .pop{background:#f8fafd;border-color:#fff;color:var(--ink);box-shadow:inset 0 1px 0 #fff,0 18px 40px rgba(30,60,100,.18)}
 .ice .pop h3{color:var(--ink)}
+.sq-adds{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px;margin-top:12px}
+.sq-adds .sq.add,.glass .sq-adds .sq.add,.ice .sq-adds .sq.add{border:1.5px dashed var(--line-strong);background:transparent;box-shadow:none;min-height:64px;aspect-ratio:auto;flex-direction:row;justify-content:center;gap:10px;padding:12px}
+.sq-adds .sq-plus{font-size:1.8rem;display:inline-flex}
+.sq-adds .sq-plus svg{width:22px;height:22px}
+.sq-share{color:var(--muted);font-size:.86rem}
+.tool-row{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px;margin-top:12px}
+.tool-tile{all:unset;box-sizing:border-box;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;min-height:64px;padding:12px;border-radius:14px;background:linear-gradient(160deg,var(--surface-2),var(--surface));border:1px solid var(--line);font:600 .95rem Barlow,sans-serif;color:var(--ink)}
+.tool-tile svg{width:22px;height:22px;flex:none;color:var(--blue-hi)}
+.tool-tile:hover{border-color:var(--blue)}
+.tool-tile:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+.set-btn svg{width:16px;height:16px;margin-right:6px;vertical-align:-3px}
+.pop-set .set-row{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:10px 0;color:var(--muted);font-size:.9rem;flex-wrap:wrap}
+.pop-set .lang-row{margin:0;gap:6px}
+.pop-set .lang-btn{width:40px;height:40px}
 </style>
 </head>
 <body>
@@ -2553,8 +2560,13 @@ function viewArtists() {
       artistBadge(a),
       h('span', {}, artistNameNode(a), h('br'), h('span', { class: 'sq-meta' }, plural(a.productions.length, 'Produktion', 'Produktionen')))),
     moreBtn(a.name, () => artistMenu(a))));
-  tiles.push(h('button', { class: 'sq add', type: 'button', onclick: () => { route.addingArtist = true; render(true); setTimeout(() => document.getElementById('newArtist')?.focus(), 0); } },
-    h('span', { class: 'sq-plus', 'aria-hidden': 'true' }, '+'), h('span', { class: 'sq-meta' }, 'Künstler hinzufügen')));
+  const shareTile = importProductionButton('Geteilte Daten übernehmen'); shareTile.className = 'sq add sq-share';
+  shareTile.prepend(h('span', { class: 'sq-plus', 'aria-hidden': 'true' }, svg('svg', { viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', 'stroke-width': 2, 'stroke-linecap': 'round', 'stroke-linejoin': 'round' }, svg('path', { d: 'M12 4v11M7 10l5 5 5-5M5 20h14' }))));
+  const adds = h('div', { class: 'sq-adds' },
+    h('button', { class: 'sq add', type: 'button', onclick: () => { route.addingArtist = true; render(true); setTimeout(() => document.getElementById('newArtist')?.focus(), 0); } },
+      h('span', { class: 'sq-plus', 'aria-hidden': 'true' }, '+'), h('span', { class: 'sq-meta' }, 'Künstler hinzufügen')),
+    shareTile);
+  const tool = (label, icon, go) => h('button', { class: 'tool-tile', type: 'button', onclick: go }, icon, h('span', {}, label));
   return {
     title: 'Tech Assistent', sub: 'Künstler wählen',
     body: [
@@ -2563,18 +2575,16 @@ function viewArtists() {
         enableReorder(grid, S.artists, redraw, { row: '.sqrow', head: '.sq', ignore: '.more-btn' });
         return grid;
       })(),
-      S.artists.length ? null : null,
-      h('div', { class: 'theme-row' }, h('span', {}, 'Design'), chipGroup([['ice', 'Hell'], ['glass', 'Dunkel']], currentTheme(), v => setTheme(v), 'Design')),
-      h('div', { class: 'theme-row', style: 'margin-top:10px' }, h('span', {}, 'Startsound'), chipGroup([['on', 'An'], ['off', 'Aus']], StartSound.on() ? 'on' : 'off', v => StartSound.set(v === 'on'), 'Startsound')),
-      h('div', { class: 'row', style: 'justify-content:center;margin-top:12px' }, importProductionButton('Geteilte Daten übernehmen')),
+      adds,
+      h('div', { class: 'tool-row' },
+        tool('Clicktrack', metronomeIcon(), () => nav('click', { artistId: null, prodId: null })),
+        tool('Drum-Tuner', areaIcon('tuner'), () => { Tuner.range = 'Alles'; route.L = null; route.R = null; nav('tuner', { artistId: null, prodId: null, target: null, side: 'top', tTab: 'lugs', tunerFrom: 'free' }); })),
+      h('div', { class: 'row', style: 'justify-content:center;margin-top:18px' }, h('button', { class: 'btn ghost small set-btn', type: 'button', onclick: settingsPop },
+        svg('svg', { viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', 'stroke-width': 2, 'stroke-linecap': 'round', 'aria-hidden': 'true' }, svg('path', { d: 'M4 7h10M18 7h2M4 17h4M12 17h8' }), svg('circle', { cx: 16, cy: 7, r: 2 }), svg('circle', { cx: 10, cy: 17, r: 2 })), 'Einstellungen')),
       installHint(),
       h('p', { class: 'app-version no-i18n', 'aria-label': 'App-Version' }, `Version ${APP_VERSION}`),
       h('div', { class: 'help-row' }, h('button', { class: 'help-btn', type: 'button', 'aria-label': 'Einführung ansehen', title: 'Einführung ansehen', onclick: () => showOnboarding() },
         logoSvg('help-logo', 22), h('span', { class: 'help-q', 'aria-hidden': 'true' }, '?'), h('i', { class: 'spark s1' }), h('i', { class: 'spark s2' }), h('i', { class: 'spark s3' }))),
-      h('div', { class: 'lang-row', role: 'group', 'aria-label': 'Sprache' }, [['de', '🇩🇪'], ['en', '🇬🇧'], ['es', '🇪🇸'], ['fr', '🇫🇷']].map(([k, f]) =>
-        h('button', { class: 'lang-btn no-i18n' + (LANG === k ? ' on' : ''), type: 'button', lang: k, 'aria-label': LANGS[k], title: LANGS[k], 'aria-pressed': String(LANG === k), onclick: () => { if (LANG !== k) setLang(k); } }, f))),
-      h('button', { class: 'ft-corner left', type: 'button', 'aria-label': 'Clicktrack öffnen', title: 'Clicktrack', onclick: () => nav('click', { artistId: null, prodId: null }) }, metronomeIcon()),
-      h('button', { class: 'ft-corner', type: 'button', 'aria-label': 'Drum-Tuner ohne Speichern öffnen', title: 'Drum-Tuner', onclick: () => { Tuner.range = 'Alles'; route.L = null; route.R = null; nav('tuner', { artistId: null, prodId: null, target: null, side: 'top', tTab: 'lugs', tunerFrom: 'free' }); } }, areaIcon('tuner')),
       adding && h('div', { class: 'card', style: 'margin-top:16px' },
         h('label', { class: 'field' }, h('span', {}, 'Neuer Künstler'), inp),
         brandingFields({ logo: pend.logo, fontFamily: pend.fontFamily, fontName: pend.fontName, name: pend.name,
@@ -3798,7 +3808,7 @@ function viewSetlists() {
   const list = P().setlists.filter(s => s.mode === route.mode);
   const create = () => { const s = { id: newId(), mode: route.mode, name: '', date: '', venue: '', prodId: '', songs: [] }; P().setlists.unshift(s); touch(); nav('setlist', { setId: s.id }); };
   return {
-    title: 'Setlisten', sub: `${a.name}, ${modeName()}`, back: () => route.setFrom === 'inst' ? nav('inst') : nav(route.inst === 'drums' ? 'home' : 'ghome'),
+    title: 'Setlisten', sub: `${a.name}, ${modeName()}`, back: () => route.setFrom === 'inst' || !route.inst ? nav('inst') : nav(route.inst === 'drums' ? 'home' : 'ghome'),
     body: [
       h('div', { class: 'row', style: 'margin-top:0' }, h('button', { class: 'btn solid', type: 'button', onclick: create }, 'Neue Setliste anlegen'), importButton('Setliste aus Datei oder Foto hochladen', null)),
       null,
@@ -3860,11 +3870,7 @@ function viewSetlist() {
   };
   const keyRow = song => h('div', { class: 'keyrow' },
     h('select', { 'aria-label': 'Tonart', value: song.key || '', onchange: e => { song.key = e.target.value; touch(); } }, h('option', { value: '' }, 'Tonart / Key …'), KEYS.map(k => h('option', { value: k.v }, k.l))),
-    route.inst === 'drums' ? h('button', { class: 'btn small nav', type: 'button', onclick: () => {
-      const pp = P();
-      if (!pp) { toast('Ordne der Setliste oben zuerst ein Drumkit zu.'); return; }
-      showTuningSheet(pp, { songId: song.id });
-    } }, 'Tom-Tuning') : null);
+    (P().drums || []).length ? h('button', { class: 'btn small nav', type: 'button', onclick: () => showTuningSheet(P(), { songId: song.id }) }, 'Tom-Tuning') : null);
   
   const aiPanel = song => {
     if (!aiOpen.has(song.id)) return null;
@@ -5690,6 +5696,22 @@ function colorPop(title, current, onPick) {
     h('div', { class: 'pop-btns' }, h('button', { class: 'btn small ghost', type: 'button', onclick: close }, 'Abbrechen'), h('button', { class: 'btn small' + (current ? '' : ' nav'), type: 'button', onclick: () => pick(null) }, 'Standard'))));
   document.body.append(ov); setTimeout(() => ov.querySelector('.cp-sw.on, .cp-sw')?.focus(), 50);
 }
+function settingsPop() {
+  const ov = h('div', { class: 'sheet-ov pop-ov', role: 'dialog', 'aria-modal': 'true', 'aria-label': 'Einstellungen' });
+  const close = () => { ov.remove(); document.removeEventListener('keydown', esc); };
+  const esc = e => { if (e.key === 'Escape') close(); };
+  ov.addEventListener('click', e => { if (e.target === ov) close(); });
+  document.addEventListener('keydown', esc);
+  const row = (label, el) => h('div', { class: 'set-row' }, h('span', {}, label), el);
+  ov.append(h('div', { class: 'pop pop-set' }, h('h3', {}, 'Einstellungen'),
+    row('Design', chipGroup([['ice', 'Hell'], ['glass', 'Dunkel']], currentTheme(), v => setTheme(v), 'Design')),
+    row('Startsound', chipGroup([['on', 'An'], ['off', 'Aus']], StartSound.on() ? 'on' : 'off', v => StartSound.set(v === 'on'), 'Startsound')),
+    row('Sprache', h('div', { class: 'lang-row', role: 'group', 'aria-label': 'Sprache' }, [['de', '🇩🇪'], ['en', '🇬🇧'], ['es', '🇪🇸'], ['fr', '🇫🇷']].map(([k, f]) =>
+      h('button', { class: 'lang-btn no-i18n' + (LANG === k ? ' on' : ''), type: 'button', lang: k, 'aria-label': LANGS[k], title: LANGS[k], 'aria-pressed': String(LANG === k), onclick: () => { if (LANG !== k) setLang(k); } }, f)))),
+    h('div', { class: 'pop-btns' }, h('button', { class: 'btn small solid', type: 'button', onclick: close }, 'Fertig'))));
+  document.body.append(ov);
+  setTimeout(() => ov.querySelector('.chip[aria-pressed="true"]')?.focus(), 50);
+}
 function namePop(title, value, onSave) {
   const ov = h('div', { class: 'sheet-ov pop-ov', role: 'dialog', 'aria-modal': 'true', 'aria-label': title });
   const inp = h('input', { value: value || '', 'aria-label': 'Name' });
@@ -7019,7 +7041,7 @@ function pageHelpSlides() {
 /* ================= home-screen app (PWA) ================= */
 const isStandalone = () => window.matchMedia?.('(display-mode: standalone)').matches || window.navigator.standalone === true;
 const isIOS = () => /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-const APP_VERSION = '04.11.2026 (1)';
+const APP_VERSION = '04.11.2026 (2)';
 function registerSW() {
   if (!('serviceWorker' in navigator) || (location.protocol !== 'https:' && location.hostname !== 'localhost') || IN_CLAUDE_HOST()) return;
   navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).then(reg => {

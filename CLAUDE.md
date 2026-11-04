@@ -42,7 +42,9 @@ song        → { id, title, key, bpm, sig, note, sheet{…}, lyrics{…}, instN
 
 - `route` + `nav(view, patch)`. Ablauf: Künstler → Live/Studio → Tour/Produktion → Instrument → Funktionen.
 - Wischen links/rechts wechselt Bereiche, untere Leiste (`#tabbar`), Logo oben rechts = Startseite.
-- Freier Tuner und Clicktrack sind ohne Künstler erreichbar (Symbole unten auf der Startseite); im freien Tuner Umschalter Drums/Bass/Gitarre in der Kopfzeile, Drums ist Standard.
+- Startseite: Künstler-Kacheln, darunter „Künstler hinzufügen“ und „Geteilte Daten übernehmen“ nebeneinander, dann Kacheln „Clicktrack“ und „Drum-Tuner“ (frei, ohne Künstler), Knopf „Einstellungen“ (`settingsPop`: Design, Startsound, Sprache).
+- Setlisten sind unabhängig vom Instrument-Bereich: derselbe Editor mit allen Feldern, „Tom-Tuning“ erscheint, sobald die Produktion Trommeln hat.
+- Im freien Tuner Umschalter Drums/Bass/Gitarre in der Kopfzeile, Drums ist Standard.
 - **Studio-Bereich ist für Tester gesperrt** („Under Construction“). Freischalten per URL `#studio-freigeben`, sperren per `#studio-sperren`.
 
 ## Wichtige Bereiche im Code
@@ -61,7 +63,7 @@ song        → { id, title, key, bpm, sig, note, sheet{…}, lyrics{…}, instN
 - **Backups** (`viewBackups`): pro Produktion und Instrument, Gerätelisten `BACKUP_DEVICES` (Bass/Gitarre) und `BACKUP_DEVICES_DRUMS`.
 - **Teilen** (`shareArtistDialog`, `shareProductionDialog`, `receivePayload`, `applyArtistPayload`, `applyPayload`): ganzer Künstler oder einzelne Tour, Künstlerprofil (Logo, Schrift, Schriftzug) reist immer mit. Link (`#import=` gzip) oder Datei (`.techassistent.json`).
 - **Hilfe**: `START_SLIDES` (Startseite, 4 Folien), `HELP[view]` (Kontexthilfe), Grafiken in `ARTS`, Animationen in `DEMOS`, Folien über `SL(art, demo, title, text, steps, extra)`. Stichpunkte sind an Demo-Schritte gekoppelt; ohne Stichpunkte läuft die Demo automatisch.
-- **Startsound** (`StartSound`): dezenter „Power-on-Buzz“ wie bei Logo-Sounds von Automarken (warme, leicht verstimmte Sägezahn-Töne um 55 Hz durch sich öffnenden Tiefpass, Sub-Basis, leichtes 29-Hz-Brummen, keine harten Schläge: beim Einrasten (1,78 s) blüht der Klang sanft auf, leiser luftiger Oberton; Whooshes der Logo-Teile und Übergang zur App nur als sehr leiser Hauch; Spitzenpegel ca. 0,26), per `OfflineAudioContext` einmal gerendert und synchron zur Splash-Animation abgespielt. Ist Ton sofort erlaubt, wartet die Animation (Klasse `hold`, max. 0,7 s) und beide starten gemeinsam; sonst startet der Ton beim ersten Antippen an der Position der laufenden Animation. `audioSession.type = 'ambient'` (respektiert den Lautlos-Schalter). Schalter „Startsound An/Aus“ auf der Startseite (`drumtech-startsound`).
+- **Startsound** (`StartSound`): dezenter „Power-on-Buzz“ wie bei Logo-Sounds von Automarken (warme, leicht verstimmte Sägezahn-Töne um 55 Hz durch sich öffnenden Tiefpass, Sub-Basis, leichtes 29-Hz-Brummen, keine harten Schläge: beim Einrasten (1,78 s) blüht der Klang sanft auf, leiser luftiger Oberton; Whooshes der Logo-Teile und Übergang zur App nur als sehr leiser Hauch; Spitzenpegel ca. 0,26), per `OfflineAudioContext` einmal gerendert und synchron zur Splash-Animation abgespielt. Ist Ton sofort erlaubt, wartet die Animation (Klasse `hold`, max. 0,7 s) und beide starten gemeinsam; sonst startet der Ton beim ersten Antippen an der Position der laufenden Animation. `audioSession.type = 'ambient'` (respektiert den Lautlos-Schalter). Schalter „Startsound An/Aus“ im Einstellungen-Pop-up der Startseite (`drumtech-startsound`).
 - **PWA**: `registerSW` (nicht in claude.ai), Installationshinweis auf der Startseite (nur im Browser).
 
 ## Mehrsprachigkeit (Pflicht bei jeder Textänderung)
