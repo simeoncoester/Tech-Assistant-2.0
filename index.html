@@ -2128,6 +2128,8 @@ html .stage .stage-bar .stage-x{order:5;font-size:1.7rem}
 @media (max-width:359px){
 html .stage .stage-bar .stage-show{order:6;flex:1 1 100%;max-width:none}
 }
+.stage.editing .st-row .st-blank:not([data-c="no"]):not([data-c="files"]):not([data-c="tuning"]):not([data-c="insts"]){min-height:34px;display:flex;align-items:center;justify-content:center}
+.stage.editing .st-row .st-blank:not([data-c="no"]):not([data-c="files"]):not([data-c="tuning"]):not([data-c="insts"])::after{content:"+";color:rgba(108,155,239,.55);font:400 1.2rem/1 Barlow,sans-serif}
 </style>
 </head>
 <body>
@@ -4177,7 +4179,8 @@ function newColDialog(s, song) {
     setTimeout(() => { const f = [...document.querySelectorAll('.x-f')].find(e => e.querySelector('.x-lab .no-i18n')?.textContent === name); f?.querySelector('textarea, select')?.focus(); }, 60); };
   const esc = e => { if (e.key === 'Escape') { e.stopPropagation(); close(); } };
   inp.addEventListener('keydown', e => { if (e.key === 'Enter') save(); });
-  ov.addEventListener('click', e => { if (e.target === ov) close(); });
+  const t0 = Date.now(); // the second tap of a double tap must not close the pop-up right away
+  ov.addEventListener('click', e => { if (e.target === ov && Date.now() - t0 > 450) close(); });
   document.addEventListener('keydown', esc, true);
   ov.append(h('div', { class: 'pop pop-edit' }, h('h3', {}, 'Eigene Spalte erzeugen'), inp, typeRow, hint,
     h('p', { class: 'pop-hint' }, 'Die Spalte gilt für die ganze Setliste und erscheint bei jedem Song.'),
@@ -4224,7 +4227,11 @@ function showStage(s) {
   if (window.ResizeObserver) { let rt = 0; new ResizeObserver(() => { clearTimeout(rt); rt = setTimeout(remeasure, 120); }).observe(list); }
   const rowClick = (e, x, i) => {
     const row = e.currentTarget;
-    if (editing) { const cell = e.target.closest('[data-c]'); if (cell && row.contains(cell)) stEditField(s, x, cell.dataset.c, () => { touch(); draw(); if (document.getElementById('app')) render(true); }); return; }
+    if (editing) {
+      // empty fields are only a thin line: a tap anywhere in that column of the row opens the field
+      let cell = e.target.closest('[data-c]');
+      if (!cell || !row.contains(cell)) cell = [...row.querySelectorAll('[data-c]')].find(c => { if (['no', 'files'].includes(c.dataset.c)) return false; const r = c.getBoundingClientRect(); return r.width && e.clientX >= r.left - 4 && e.clientX <= r.right + 4; });
+      if (cell && row.contains(cell)) stEditField(s, x, cell.dataset.c, () => { touch(); draw(); if (document.getElementById('app')) render(true); }); return; }
     const clip = e.target.closest('.clip'), more = e.target.closest('.st-more');
     if (more || (clip && (clip.classList.contains('cut') || row.classList.contains('xp')))) { e.stopPropagation(); stToggleRow(row, x.id); return; }
     open(i);
@@ -4240,7 +4247,7 @@ function showStage(s) {
       const tpl = cols.map(k => stW(k, C)).join(' '), minW = cols.reduce((a, k) => a + stMinW(k, C), 0) + (cols.length - 1) * 0.6 + 1.8;
       const head = h('div', { class: 'st-tr st-th' }, cols.map(k => h('div', { ...stCC(C, k, 'st-c stc-' + k), 'data-c': k }, h('span', { class: 'st-grip', 'aria-hidden': 'true' }, '⋮'), h('span', { class: 'st-hl' + (stIsX(k) ? ' no-i18n' : '') }, stLabel(k)))));
       const rows = s.songs.map((x, i) => h('div', { class: 'st-tr st-row' + (stNoteOpen.has(x.id) ? ' xp' : ''), 'data-sid': x.id, role: 'button', tabindex: 0, 'aria-label': `${i + 1}. ${x.title || 'Song'} groß anzeigen`, onclick: e => rowClick(e, x, i), onkeydown: e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); open(i); } } },
-        cols.map(k => { const v = stCell(x, k, i, 'table'); return h('div', { ...stCC(C, k, 'st-c ' + (stIsX(k) ? 'stc-x' : 'stc-' + k) + (['title', 'tuning'].includes(k) || stIsX(k) ? ' no-i18n' : '')), 'data-c': k }, v); })));
+        cols.map(k => { const v = stCell(x, k, i, 'table'); return h('div', { ...stCC(C, k, 'st-c ' + (v === '' || v == null ? 'st-blank ' : '') + (stIsX(k) ? 'stc-x' : 'stc-' + k) + (['title', 'tuning'].includes(k) || stIsX(k) ? ' no-i18n' : '')), 'data-c': k }, v); })));
       const table = h('div', { class: 'st-table', role: 'table', style: `--st-tpl:${tpl};min-width:${minW}em` }, head, h('div', { class: 'st-body' }, rows));
       list.classList.add('wide'); const sc = h('div', { class: 'st-scroll' }, table); list.replaceChildren(sc);
       const edge = () => sc.classList.toggle('more', sc.scrollLeft + sc.clientWidth < sc.scrollWidth - 4); sc.addEventListener('scroll', edge, { passive: true }); requestAnimationFrame(edge);
@@ -4318,7 +4325,8 @@ function editPop(title, o, onSave) {
   const save = () => { const v = String(inp.value).trim(); if (o.required && !v) { inp.focus(); return; } close(); onSave(v); };
   const esc = e => { if (e.key === 'Escape') { e.stopPropagation(); close(); } };
   if (o.type !== 'area') inp.addEventListener('keydown', e => { if (e.key === 'Enter') save(); });
-  ov.addEventListener('click', e => { if (e.target === ov) close(); });
+  const t0 = Date.now(); // the second tap of a double tap must not close the pop-up right away
+  ov.addEventListener('click', e => { if (e.target === ov && Date.now() - t0 > 450) close(); });
   document.addEventListener('keydown', esc, true);
   ov.append(h('div', { class: 'pop pop-edit' }, h('h3', { class: o.own === false ? '' : 'no-i18n' }, trText(title)), inp, o.hint ? h('p', { class: 'pop-hint' }, o.hint) : null,
     h('div', { class: 'pop-btns' }, h('button', { class: 'btn small ghost', type: 'button', onclick: close }, 'Abbrechen'), h('button', { class: 'btn small solid', type: 'button', onclick: save }, 'Speichern'))));
@@ -7076,7 +7084,7 @@ function pageHelpSlides() {
 /* ================= home-screen app (PWA) ================= */
 const isStandalone = () => window.matchMedia?.('(display-mode: standalone)').matches || window.navigator.standalone === true;
 const isIOS = () => /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-const APP_VERSION = '04.11.2026 (4)';
+const APP_VERSION = '04.11.2026 (5)';
 function registerSW() {
   if (!('serviceWorker' in navigator) || (location.protocol !== 'https:' && location.hostname !== 'localhost') || IN_CLAUDE_HOST()) return;
   navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).then(reg => {
