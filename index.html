@@ -2089,11 +2089,6 @@ html .ss-click.b-beat .ss-bpm{animation:clkTxtH var(--flash,90ms) linear!importa
 .sq-adds .sq-plus{font-size:1.8rem;display:inline-flex}
 .sq-adds .sq-plus svg{width:22px;height:22px}
 .sq-share{color:var(--muted);font-size:.86rem}
-.tool-row{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px;margin-top:12px}
-.tool-tile{all:unset;box-sizing:border-box;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;min-height:64px;padding:12px;border-radius:14px;background:linear-gradient(160deg,var(--surface-2),var(--surface));border:1px solid var(--line);font:600 .95rem Barlow,sans-serif;color:var(--ink)}
-.tool-tile svg{width:22px;height:22px;flex:none;color:var(--blue-hi)}
-.tool-tile:hover{border-color:var(--blue)}
-.tool-tile:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
 .set-btn svg{width:16px;height:16px;margin-right:6px;vertical-align:-3px}
 .pop-set .set-row{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:10px 0;color:var(--muted);font-size:.9rem;flex-wrap:wrap}
 .pop-set .lang-row{margin:0;gap:6px}
@@ -2111,6 +2106,28 @@ html .ss-click.b-beat .ss-bpm{animation:clkTxtH var(--flash,90ms) linear!importa
 .stp-mr{display:grid;grid-template-columns:52px minmax(0,1fr);align-items:center;gap:8px;font-size:.82rem;color:rgba(255,255,255,.6)}
 .stp-mr .stp-wd{grid-column:auto;margin:0}
 .stp-mnote{margin:0;font-size:.78rem;color:rgba(255,255,255,.5)}
+.ft-corner{all:unset;box-sizing:border-box;cursor:pointer;position:fixed;right:calc(env(safe-area-inset-right,0px) + 16px);bottom:calc(env(safe-area-inset-bottom,0px) + 16px);z-index:12;width:44px;height:44px;border-radius:50%;display:grid;place-items:center;color:var(--muted);border:1px solid var(--line);background:rgba(255,255,255,.04);opacity:.75;transition:opacity .2s,color .2s}
+.ft-corner svg{width:22px;height:22px}
+.ft-corner:hover,.ft-corner:focus-visible{opacity:1;color:var(--ink)}
+.ft-corner:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+.glass .ft-corner{background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.14);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px)}
+.ice .ft-corner{background:rgba(255,255,255,.7);border-color:#fff;box-shadow:0 3px 10px rgba(30,60,100,.12)}
+.ft-corner.left{right:auto;left:calc(env(safe-area-inset-left,0px) + 16px)}
+/* ===== large view header on phones: five equal buttons in one row, two rows on very small phones ===== */
+@media (max-width:600px){
+html .stage .stage-bar{gap:8px;flex-wrap:wrap;justify-content:flex-start}
+html .stage .stage-bar-r,html .stage .stage-bar-x{display:contents}
+html .stage .stage-view span,html .stage .stage-edit span{display:none}
+html .stage .stage-view,html .stage .stage-edit,html .stage .stage-help,html .stage .stage-bar .stage-x{box-sizing:border-box;flex:none;width:40px!important;height:40px!important;padding:0!important;display:inline-grid;place-items:center}
+html .stage .stage-view{order:1}
+html .stage .stage-bar .stage-show{order:2;box-sizing:border-box;flex:1 1 0;min-width:0;max-width:220px;height:40px;padding:0 10px!important;display:inline-flex;align-items:center;justify-content:center;white-space:nowrap;font-size:.98rem!important}
+html .stage .stage-edit{order:3}
+html .stage .stage-help{order:4;margin-left:auto}
+html .stage .stage-bar .stage-x{order:5;font-size:1.7rem}
+}
+@media (max-width:359px){
+html .stage .stage-bar .stage-show{order:6;flex:1 1 100%;max-width:none}
+}
 </style>
 </head>
 <body>
@@ -2580,7 +2597,6 @@ function viewArtists() {
     h('button', { class: 'sq add', type: 'button', onclick: () => { route.addingArtist = true; render(true); setTimeout(() => document.getElementById('newArtist')?.focus(), 0); } },
       h('span', { class: 'sq-plus', 'aria-hidden': 'true' }, '+'), h('span', { class: 'sq-meta' }, 'Künstler hinzufügen')),
     shareTile);
-  const tool = (label, icon, go) => h('button', { class: 'tool-tile', type: 'button', onclick: go }, icon, h('span', {}, label));
   return {
     title: 'Tech Assistent', sub: 'Künstler wählen',
     body: [
@@ -2590,15 +2606,14 @@ function viewArtists() {
         return grid;
       })(),
       adds,
-      h('div', { class: 'tool-row' },
-        tool('Clicktrack', metronomeIcon(), () => nav('click', { artistId: null, prodId: null })),
-        tool('Drum-Tuner', areaIcon('tuner'), () => { Tuner.range = 'Alles'; route.L = null; route.R = null; nav('tuner', { artistId: null, prodId: null, target: null, side: 'top', tTab: 'lugs', tunerFrom: 'free' }); })),
       h('div', { class: 'row', style: 'justify-content:center;margin-top:18px' }, h('button', { class: 'btn ghost small set-btn', type: 'button', onclick: settingsPop },
         svg('svg', { viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', 'stroke-width': 2, 'stroke-linecap': 'round', 'aria-hidden': 'true' }, svg('path', { d: 'M4 7h10M18 7h2M4 17h4M12 17h8' }), svg('circle', { cx: 16, cy: 7, r: 2 }), svg('circle', { cx: 10, cy: 17, r: 2 })), 'Einstellungen')),
       installHint(),
       h('p', { class: 'app-version no-i18n', 'aria-label': 'App-Version' }, `Version ${APP_VERSION}`),
       h('div', { class: 'help-row' }, h('button', { class: 'help-btn', type: 'button', 'aria-label': 'Einführung ansehen', title: 'Einführung ansehen', onclick: () => showOnboarding() },
         logoSvg('help-logo', 22), h('span', { class: 'help-q', 'aria-hidden': 'true' }, '?'), h('i', { class: 'spark s1' }), h('i', { class: 'spark s2' }), h('i', { class: 'spark s3' }))),
+      h('button', { class: 'ft-corner left', type: 'button', 'aria-label': 'Clicktrack öffnen', title: 'Clicktrack', onclick: () => nav('click', { artistId: null, prodId: null }) }, metronomeIcon()),
+      h('button', { class: 'ft-corner', type: 'button', 'aria-label': 'Drum-Tuner ohne Speichern öffnen', title: 'Drum-Tuner', onclick: () => { Tuner.range = 'Alles'; route.L = null; route.R = null; nav('tuner', { artistId: null, prodId: null, target: null, side: 'top', tTab: 'lugs', tunerFrom: 'free' }); } }, areaIcon('tuner')),
       adding && h('div', { class: 'card', style: 'margin-top:16px' },
         h('label', { class: 'field' }, h('span', {}, 'Neuer Künstler'), inp),
         brandingFields({ logo: pend.logo, fontFamily: pend.fontFamily, fontName: pend.fontName, name: pend.name,
@@ -7061,7 +7076,7 @@ function pageHelpSlides() {
 /* ================= home-screen app (PWA) ================= */
 const isStandalone = () => window.matchMedia?.('(display-mode: standalone)').matches || window.navigator.standalone === true;
 const isIOS = () => /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-const APP_VERSION = '04.11.2026 (3)';
+const APP_VERSION = '04.11.2026 (4)';
 function registerSW() {
   if (!('serviceWorker' in navigator) || (location.protocol !== 'https:' && location.hostname !== 'localhost') || IN_CLAUDE_HOST()) return;
   navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).then(reg => {
