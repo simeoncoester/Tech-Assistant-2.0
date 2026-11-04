@@ -4103,6 +4103,15 @@ function stLoad() {
   if (!stCfgOf(o, o.active)) o.active = 'cards';
   return o;
 }
+// every setlist keeps its own design (key + copy of the settings); saved designs are only a library to pick from
+function stDesignOf(sl, L) {
+  if (sl.design && sl.design.cfg) { sl.design.cfg = stFixCfg(sl.design.cfg); return sl.design; }
+  const key = L.active || 'cards';
+  sl.design = { key, cfg: stFixCfg(stCfgOf(L, key) || ST_PRESETS.cards) };
+  return sl.design;
+}
+// setlists without an own design take the design they show right now, before the library changes
+function stSnapshotAll(L) { let ch = false; S.artists.forEach(a => (a.productions || []).forEach(p => (p.setlists || []).forEach(sl => { if (!sl.design) { stDesignOf(sl, L); ch = true; } }))); if (ch) touch(); }
 function stSave(o) { try { localStorage.setItem(ST_KEY, JSON.stringify(o)); } catch (e) {} }
 function stCfgOf(o, key) {
   if (!key) return null;
@@ -4244,6 +4253,7 @@ function stCell(x, k, i, mode) {
 
 function showStage(s) {
   let L = stLoad(), temp = null; // temp = unsaved changes, only for this session
+  stSnapshotAll(L); const D = stDesignOf(s, L);
   const list = h('div', { class: 'st-list' });
   const open = i => showStageSong(s, i);
   let editing = false;
@@ -4264,9 +4274,9 @@ function showStage(s) {
   };
   const moveSong = (from, to) => { const [it] = s.songs.splice(from, 1); s.songs.splice(to, 0, it); touch(); draw(); if (document.getElementById('app')) render(true); };
   function draw() {
-    const C = temp || stCfgOf(L, L.active); stLiveCfg = C; const ex = [...new Set([...stExtras(s.songs), ...slCols(s).map(c => c.name)])], cols = C.cols.filter(c => c.on && (!stIsX(c.k) || ex.includes(c.k.slice(2)))).map(c => c.k);
+    const C = temp || D.cfg; stLiveCfg = C; const ex = [...new Set([...stExtras(s.songs), ...slCols(s).map(c => c.name)])], cols = C.cols.filter(c => c.on && (!stIsX(c.k) || ex.includes(c.k.slice(2)))).map(c => c.k);
     // the suggestions "Karten" and "Tabelle" show the setlist's own columns automatically
-    if (!temp && ['cards', 'table'].includes(L.active)) ex.forEach(n => { if (!cols.includes('x:' + n)) cols.push('x:' + n); });
+    if (!temp && ['cards', 'table'].includes(D.key)) ex.forEach(n => { if (!cols.includes('x:' + n)) cols.push('x:' + n); });
     ov.dataset.size = C.size; ov.style.setProperty('--st-py', (C.pad ?? ST_PAD[C.dens] ?? 12) + 'px');
     if (!s.songs.length) { list.replaceChildren(h('p', { class: 'st-empty' }, 'Noch keine Songs in dieser Setliste.')); return; }
     if (C.mode === 'table') {
@@ -4308,7 +4318,7 @@ function showStage(s) {
   const ov = h('div', { class: 'stage', role: 'dialog', 'aria-label': 'Großansicht' },
     h('div', { class: 'stage-bar' },
       h('div', { class: 'stage-bar-r' },
-        h('button', { class: 'stage-view', type: 'button', 'aria-label': 'Ansicht anpassen', onclick: () => stagePanel(L, temp, (nl, nt) => { L = nl; temp = nt; stSave(L); draw(); }, ov, [...new Set([...stExtras(s.songs), ...slCols(s).map(c => c.name)])]) }, viewIcon, h('span', {}, 'Ansicht')),
+        h('button', { class: 'stage-view', type: 'button', 'aria-label': 'Ansicht anpassen', onclick: () => stagePanel({ ...L, active: D.key, cur: D.cfg }, temp, (nl, nt, cur) => { L = { ...nl, active: L.active }; delete L.cur; stSave(L); D.key = nl.active; D.cfg = stFixCfg(cur); temp = nt; touch(); draw(); }, ov, [...new Set([...stExtras(s.songs), ...slCols(s).map(c => c.name)])]) }, viewIcon, h('span', {}, 'Ansicht')),
         h('button', { class: 'stage-show', type: 'button', disabled: !s.songs.length, onclick: () => showStageSong(s, 0) }, '▶ Showmodus'),
         h('button', { class: 'stage-edit', type: 'button', 'aria-pressed': 'false', onclick: e => { editing = !editing; ov.classList.toggle('editing', editing); const b = e.currentTarget; b.setAttribute('aria-pressed', String(editing)); b.lastChild.textContent = trText(editing ? 'Fertig' : 'Bearbeiten'); if (editing) toast('Tippe auf einen Wert, um ihn zu ändern.'); } },
           svg('svg', { viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', 'stroke-width': 2, 'stroke-linecap': 'round', 'stroke-linejoin': 'round', 'aria-hidden': 'true' }, svg('path', { d: 'M12 20h9' }), svg('path', { d: 'M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z' })), h('span', {}, 'Bearbeiten'))),
@@ -4366,15 +4376,16 @@ let stPanTab = 'pick'; const stOpenCols = new Set();
 function stagePanel(L0, temp0, onChange, host, extras = []) {
   const L = JSON.parse(JSON.stringify(L0));
   const withX = c => { extras.forEach(n => { if (!c.cols.some(x => x.k === 'x:' + n)) c.cols.push({ k: 'x:' + n, on: false }); }); return c; };
-  let work = withX(stFixCfg(temp0 || stCfgOf(L, L.active))), dirty = !!temp0;
+  let cur = stFixCfg(L0.cur || stCfgOf(L, L.active) || ST_PRESETS.cards); // design this setlist uses right now
+  let work = withX(stFixCfg(temp0 || cur)), dirty = !!temp0;
   const ov = h('div', { class: 'st-pov', role: 'dialog', 'aria-modal': 'true', 'aria-label': 'Ansicht der Großansicht' });
   const box = h('div', { class: 'st-pan' });
   const close = () => { ov.remove(); document.removeEventListener('keydown', esc); };
   const esc = e => { if (e.key === 'Escape' && !document.querySelector('.sheet-ov')) close(); };
   ov.addEventListener('click', e => { if (e.target === ov) close(); });
   document.addEventListener('keydown', esc);
-  const live = () => { dirty = !stSame(work, stCfgOf(L, L.active)); onChange(JSON.parse(JSON.stringify(L)), dirty ? stFixCfg(work) : null); const st = box.querySelector('.stp-status'); if (st) { st.classList.toggle('dirty', dirty); st.firstChild.textContent = trText(dirty ? 'Nicht gespeichert' : 'Gespeichert'); } };
-  const apply = () => { dirty = !stSame(work, stCfgOf(L, L.active)); onChange(JSON.parse(JSON.stringify(L)), dirty ? stFixCfg(work) : null); draw(); };
+  const live = () => { dirty = !stSame(work, cur); onChange(JSON.parse(JSON.stringify(L)), dirty ? stFixCfg(work) : null, cur); const st = box.querySelector('.stp-status'); if (st) { st.classList.toggle('dirty', dirty); st.firstChild.textContent = trText(dirty ? 'Nicht gespeichert' : 'Gespeichert'); } };
+  const apply = () => { dirty = !stSame(work, cur); onChange(JSON.parse(JSON.stringify(L)), dirty ? stFixCfg(work) : null, cur); draw(); };
   const isUser = () => String(L.active).startsWith('u:');
   const mini = cfg => {
     if (cfg.mode === 'table') { const n = Math.max(1, Math.min(cfg.cols.filter(c => c.on).length, 6)); return h('span', { class: 'stp-mini tbl' }, [0, 1, 2, 3].map(r => h('i', { class: r ? '' : 'hd', style: `--n:${n}` }, Array.from({ length: n }, () => h('b'))))); }
@@ -4387,11 +4398,11 @@ function stagePanel(L0, temp0, onChange, host, extras = []) {
     return h('div', { class: 'stp-slider ' + (cls || '') }, r, out);
   };
   const seg = (val, opts, set) => h('div', { class: 'stp-seg', role: 'group' }, opts.map(([v, l]) => h('button', { type: 'button', class: 'chip', 'aria-pressed': String(val === v), onclick: () => { set(v); apply(); } }, l)));
-  const pick = key => { L.active = key; work = withX(stFixCfg(stCfgOf(L, key))); apply(); };
+  const pick = key => { L.active = key; cur = stFixCfg(stCfgOf(L, key)); work = withX(stFixCfg(cur)); apply(); };
   const saveAs = () => namePop('Design speichern unter', `Design ${L.saved.length + 1}`, name => {
-    const id = newId(); L.saved.push({ id, name, cfg: stFixCfg(work) }); L.active = 'u:' + id; apply(); toast(`„${name}“ gespeichert`);
+    const id = newId(); L.saved.push({ id, name, cfg: stFixCfg(work) }); L.active = 'u:' + id; cur = stFixCfg(work); apply(); toast(`„${name}“ gespeichert`);
   });
-  const saveOver = () => { const d = L.saved.find(x => 'u:' + x.id === L.active); if (!d) return; d.cfg = stFixCfg(work); apply(); toast(`„${d.name}“ gespeichert`); };
+  const saveOver = () => { const d = L.saved.find(x => 'u:' + x.id === L.active); if (!d) return; d.cfg = stFixCfg(work); cur = stFixCfg(work); apply(); toast(`„${d.name}“ gespeichert`); };
   function draw() {
     const tile = (key, name, cfg) => h('button', { type: 'button', class: 'stp-pre' + (L.active === key ? ' on' : '') + (key.startsWith('u:') ? ' user' : ''), 'aria-pressed': String(L.active === key), onclick: () => pick(key) }, mini(cfg), h('span', { class: key.startsWith('u:') ? 'no-i18n' : '' }, name));
     const presets = h('div', { class: 'stp-presets' }, Object.entries(ST_PRESETS).map(([k, p]) => tile(k, p.name, p)));
@@ -4416,10 +4427,10 @@ function stagePanel(L0, temp0, onChange, host, extras = []) {
     const saveRow = h('div', { class: 'stp-save' },
       h('button', { type: 'button', class: 'btn small solid', onclick: saveAs }, 'Speichern unter …'),
       isUser() && dirty ? h('button', { type: 'button', class: 'btn small', onclick: saveOver }, 'Änderungen speichern') : null,
-      dirty ? h('button', { type: 'button', class: 'btn small ghost', onclick: () => { work = withX(stFixCfg(stCfgOf(L, L.active))); apply(); } }, 'Verwerfen') : null);
+      dirty ? h('button', { type: 'button', class: 'btn small ghost', onclick: () => { work = withX(stFixCfg(cur)); apply(); } }, 'Verwerfen') : null);
     const manage = isUser() ? h('div', { class: 'stp-save' },
       h('button', { type: 'button', class: 'btn small', onclick: () => { const d = L.saved.find(x => 'u:' + x.id === L.active); namePop(`${d.name} umbenennen`, d.name, v => { d.name = v; apply(); toast('Umbenannt'); }); } }, 'Umbenennen'),
-      delBtn('Design löschen', () => { const d = L.saved.find(x => 'u:' + x.id === L.active); L.saved = L.saved.filter(x => x !== d); L.active = 'cards'; work = stFixCfg(ST_PRESETS.cards); apply(); toast(`„${d.name}“ gelöscht`); }, 'small')) : null;
+      delBtn('Design löschen', () => { const d = L.saved.find(x => 'u:' + x.id === L.active); L.saved = L.saved.filter(x => x !== d); L.active = 'cards'; cur = stFixCfg(ST_PRESETS.cards); work = withX(stFixCfg(cur)); apply(); toast(`„${d.name}“ gelöscht`); }, 'small')) : null;
     box.replaceChildren(...[
       h('h3', {}, 'Ansicht der Großansicht'),
       h('div', { class: 'stp-tabs', role: 'tablist' }, [['pick', 'Design wählen'], ['edit', 'Anpassen']].map(([k, l]) => h('button', { type: 'button', role: 'tab', class: 'stp-tab', 'aria-selected': String(stPanTab === k), onclick: () => { stPanTab = k; draw(); } }, l))),
@@ -4493,7 +4504,7 @@ function showStageSong(s, start) {
   function draw(dir = 0) {
     ov.querySelector('.sc-panel')?.remove();
     const x = s.songs[i];
-    const SC = stLiveCfg || (() => { const l = stLoad(); return stCfgOf(l, l.active); })(), sc = (k, cls) => stCC(SC, k, cls);
+    const SC = stLiveCfg || stDesignOf(s, stLoad()).cfg, sc = (k, cls) => stCC(SC, k, cls);
     const ins = route.inst === 'bass' ? 'bass' : route.inst === 'guitar' ? 'guitar' : null;
     const ai = x.ai ? (ins ? x.ai[ins] : (x.ai.guitar || x.ai.bass)) : null;
     const info = [['Stimmung', stageTun(x)], ...Object.entries(x.extra || {}).map(([k, v]) => [k, String(v || '').trim(), true])].filter(r => r[1]);
@@ -6219,7 +6230,8 @@ function tableDesign(tbl, fileName) {
   if (!order.includes('title')) order.unshift('title');
   const cfg = stFixCfg({ mode: 'table', size: 'm', dens: 'n', cols: [...order.map(k => ({ k, on: true })), ...ST_COLS.filter(k => !order.includes(k)).map(k => ({ k, on: false }))] });
   const L = stLoad(), id = newId(), name = `Wie PDF: ${String(fileName || 'Setliste').replace(/\.[^.]+$/, '')}`.slice(0, 60);
-  L.saved.push({ id, name, cfg }); L.active = 'u:' + id; stSave(L);
+  L.saved.push({ id, name, cfg }); stSave(L);
+  return { key: 'u:' + id, cfg };
 }
 async function docxToText(file) {
   const Z = await getJSZip(); const zip = await Z.loadAsync(await file.arrayBuffer());
@@ -6472,10 +6484,11 @@ ${String(text).slice(0, 12000)}`, { modelTier: 'default' });
   }
   function commit() {
     const chosen = list.filter(x => x.on && x.title).map(x => { const o = { id: newId(), title: x.title, key: x.key || '', bpm: x.bpm || null, note: x.note || '' }; if (x.sig) o.sig = x.sig; if (x.extra && Object.keys(x.extra).length) o.extra = { ...x.extra }; return o; });
-    if (table && makeDesign) tableDesign(table, fileName);
+    const newDesign = table && makeDesign ? tableDesign(table, fileName) : null;
     if (!chosen.length) { toast('Keine Songs ausgewählt.'); return; }
     if (target) { target.songs.push(...chosen); touch(); close(); toast(`${plural(chosen.length, 'Song', 'Songs')} hinzugefügt`); render(true); return; }
     const sl = { id: newId(), mode: route.mode, info: info.filter(x => x.k && x.v), cols: table ? table.kinds.map((k, ci) => k === 'extra' ? { name: (table.headers[ci].name || `Spalte ${ci + 1}`).slice(0, 40), type: 'text' } : null).filter(Boolean) : [], name: name.trim() || 'Importierte Setliste', date: date || '', venue: (venue || '').trim(), prodId: '', songs: chosen };
+    if (newDesign) { stSnapshotAll(stLoad()); sl.design = newDesign; }
     P().setlists.unshift(sl); touch(); close(); toast(`Setliste mit ${plural(chosen.length, 'Song', 'Songs')} erstellt`); nav('setlist', { setId: sl.id });
   }
   function draw() {
@@ -7198,7 +7211,7 @@ function pageHelpSlides() {
 /* ================= home-screen app (PWA) ================= */
 const isStandalone = () => window.matchMedia?.('(display-mode: standalone)').matches || window.navigator.standalone === true;
 const isIOS = () => /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-const APP_VERSION = '04.11.2026 (8)';
+const APP_VERSION = '04.11.2026 (9)';
 function registerSW() {
   if (!('serviceWorker' in navigator) || (location.protocol !== 'https:' && location.hostname !== 'localhost') || IN_CLAUDE_HOST()) return;
   navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).then(reg => {
