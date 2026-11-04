@@ -1,0 +1,17 @@
+# Requests a fresh GitHub Pages build of the main branch.
+# Safety net for pushes where GitHub did not start "pages build and deployment" on its own.
+name: Pages neu veröffentlichen
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  pages: write
+jobs:
+  request-build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Pages-Build anfordern
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh api -X POST "repos/${{ github.repository }}/pages/builds"
