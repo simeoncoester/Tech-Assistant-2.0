@@ -78,6 +78,11 @@ song        → { id, title, key, bpm, sig, note, sheet{…}, lyrics{…}, instN
 - Eigene Eingaben (Namen, Titel, Notizen) nicht übersetzen: Selektor `NO_I18N` bzw. Klasse `no-i18n`.
 - Tonarten lokal (`keyLocal`), Zahlen und Datum im Landesformat.
 
+## Scrollen
+
+- Seiten sind genau so hoch wie der sichtbare Bereich unter der Kopfzeile: `main#app` `min-height: calc(100dvh - var(--hdr))`, `--hdr` misst `syncHdr()` nach jedem Rendern und bei Größenänderung; Platz für die schwebende Reiterleiste unten = deren echte Höhe (`--tabpad`). `overscroll-behavior: none` verhindert den Gummiband-Effekt. Scrollen entsteht nur, wenn der Inhalt wirklich länger ist (Setlisten, Kit, Clicktrack, Formulare).
+- Tuner-Seiten passen ohne Scrollen: Einstellungen (inkl. Lug-Anzahl, Reihenfolge, Auto-Weiter, Empfindlichkeit, Eingang) sind eingeklappt, die Trommeln richten ihre Größe nach der Bildschirmhöhe (`max-height` mit `100dvh`), auf kurzen Bildschirmen (≤ 760 px hoch) ist das Frequenzspektrum ausgeblendet.
+
 ## Design-Regeln
 
 - Dunkles Design als Standard, helles Design über Klasse `ice`. Farben als CSS-Variablen.

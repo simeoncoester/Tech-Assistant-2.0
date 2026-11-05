@@ -2047,9 +2047,9 @@ html .stage > .st-pov{max-width:none!important;margin:0!important}
   .bar .home-btn svg{width:36px;height:36px}
 }/* ===== content: short pages sit in the middle between header and tab bar ===== */
 
-main#app{display:flex;flex-direction:column;min-height:calc(100dvh - 60px)}
+main#app{display:flex;flex-direction:column;min-height:calc(100vh - var(--hdr,60px));min-height:calc(100dvh - var(--hdr,60px))}
 main#app > .app-in{margin-block:auto;width:100%}
-@media (min-width:1024px){main#app{min-height:calc(100dvh - 80px)}}
+
 .stage-bar-x{display:flex;align-items:center;gap:8px;flex:none}
 html .stage-song .ss-close{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;font:400 1.9rem/1 Barlow,sans-serif;color:#ff4a3d;background:rgba(40,12,12,.85);border:1.5px solid #e5352b;box-shadow:inset 0 1px 0 rgba(255,255,255,.12)}
 html .stage-song .ss-close:focus-visible{outline:2px solid #ff4a3d;outline-offset:2px}
@@ -2174,7 +2174,8 @@ html .stage .stage-bar .stage-show{order:6;flex:1 1 100%;max-width:none}
 .km-dots{display:flex;gap:6px}
 .km-dots i{width:7px;height:7px;border-radius:50%;background:var(--line-strong)}
 .km-dots i.on{background:#6c9bef}
-html,body{overscroll-behavior-x:none}
+html,body{overscroll-behavior:none}
+body{min-height:100vh;min-height:100dvh}
 .play-btn{background:color-mix(in srgb,var(--accent) 12%,transparent)!important;border:1.5px solid var(--accent);color:color-mix(in srgb,var(--accent) 55%,#fff)!important;box-shadow:none!important}
 .ice .play-btn{background:rgba(255,255,255,.75)!important;color:var(--accent)!important}
 .se-card.open .se-menu{transform:none;opacity:1;color:#9fbcf5}
@@ -2237,6 +2238,13 @@ html .str[aria-pressed="true"].hot{background:linear-gradient(180deg,#5fe0a0,#1f
 .ice .glass-logo .gl-body{opacity:.10}
 .ice .glass-logo .gl-edge{opacity:.45}
 .help-row .help-q{animation:none!important;filter:none!important;background-image:none!important;font:900 34px/1 Barlow,sans-serif!important;color:var(--accent,#6c9bef)!important;-webkit-text-fill-color:currentColor!important;background:none!important;text-shadow:0 0 12px rgba(77,141,255,.45)}
+html body.has-tabs main,html.glass body.has-tabs main,html.ice body.has-tabs main{padding-bottom:var(--tabpad,120px)}
+@media (max-width:1023px){
+[data-pane="pitch"] .lugwrap .drumsvg{max-height:max(220px,calc(100dvh - var(--hdr,60px) - var(--tabpad,100px) - 445px))}
+[data-pane="lugs"] .lugwrap .drumsvg{max-height:max(220px,calc(100dvh - var(--hdr,60px) - var(--tabpad,100px) - 300px))}
+}
+@media (max-width:1023px) and (max-height:760px){[data-pane="pitch"] canvas.spec{display:none}[data-pane="pitch"] .lugwrap .drumsvg{max-height:max(170px,calc(100dvh - var(--hdr,60px) - var(--tabpad,100px) - 320px))}[data-pane="lugs"] .lugwrap .drumsvg{max-height:max(170px,calc(100dvh - var(--hdr,60px) - var(--tabpad,100px) - 336px))}}
+.gt-settings .card{margin-top:12px}
 </style>
 </head>
 <body>
@@ -2608,6 +2616,13 @@ function hdrIdent(ar) {
   return h('span', { class: 'hdr-artist', style: artistFontStyle(ar) }, ar.name);
 }
 window.matchMedia && window.matchMedia('(min-width: 1024px)').addEventListener?.('change', () => { try { render(true); } catch (e) {} });
+// pages are exactly as high as the visible screen below the header: no scrolling unless the content needs it
+function syncHdr() {
+  const b = document.querySelector('.bar'); if (b) document.documentElement.style.setProperty('--hdr', Math.ceil(b.offsetTop + b.offsetHeight) + 'px');
+  // room at the bottom: exactly the floating tab bar plus a small gap
+  const tb = document.getElementById('tabbar'); if (tb && !tb.hidden) document.documentElement.style.setProperty('--tabpad', Math.ceil(window.innerHeight - tb.getBoundingClientRect().top + 14) + 'px');
+}
+window.addEventListener('resize', () => syncHdr());
 function render(keepScroll) {
   const y = window.scrollY;
   const bar = document.getElementById('bar'), app = document.getElementById('app');
@@ -2657,6 +2672,7 @@ function render(keepScroll) {
   document.body.classList.add('wm');
   saveRoute();
   renderTabs();
+  syncHdr();
   app.append(h('div', { class: 'app-in' }, ...[v.body, v.after].flat(Infinity).filter(x => x != null && x !== false)));
   if (pendingSlide) { app.classList.remove('slide-l', 'slide-r'); void app.offsetWidth; app.classList.add(pendingSlide > 0 ? 'slide-l' : 'slide-r'); pendingSlide = 0; }
   window.scrollTo(0, keepScroll ? y : 0);
@@ -4945,12 +4961,10 @@ function viewTuner() {
     h('button', { class: 'chip', type: 'button', 'aria-pressed': String(L.pattern === k), onclick: e => { L.pattern = k; patChips.querySelectorAll('.chip').forEach(c => c.setAttribute('aria-pressed', String(c === e.currentTarget))); const o = lugOrder(L.n, k, L.ref); L.sel = o.find(j => !L.vals[j]) ?? o[0]; drawLugs(); } }, l)));
   const lugPane = h('div', { 'data-pane': 'lugs' },
     h('div', { class: 'card' },
-      h('div', { class: 'grid' }, h('label', { class: 'field' }, h('span', {}, 'Stimmschrauben'), lugCount), h('div', { class: 'field' }, h('span', {}, 'Reihenfolge'), patChips)),
       h('div', { class: 'lugwrap' }, lugSvg), lugInfo),
     h('div', { class: 'row' },
       h('button', { class: 'btn solid', type: 'button', disabled: !d, onclick: () => { const arr = L.vals.map(v => v ? Math.round(v * 10) / 10 : null); if (route.side === 'top') d.lugsTop = arr; else d.lugsBottom = arr; touch(); toast('Lug-Werte gespeichert'); } }, d ? `Lug-Werte für ${dName} speichern` : 'Trommel wählen zum Speichern'),
-      h('button', { class: 'btn ghost', type: 'button', onclick: () => { L.vals = L.vals.map(() => null); L.sel = L.ref || 0; drawLugs(); } }, 'Zurücksetzen')),
-    h('div', { class: 'row', style: 'margin-top:4px' }, h('button', { class: 'chip', type: 'button', 'aria-pressed': String(L.auto !== false), onclick: e => { L.auto = L.auto === false; e.currentTarget.setAttribute('aria-pressed', String(L.auto !== false)); } }, 'Automatisch zur nächsten Schraube')));
+      h('button', { class: 'btn ghost', type: 'button', onclick: () => { L.vals = L.vals.map(() => null); L.sel = L.ref || 0; drawLugs(); } }, 'Zurücksetzen')),);
 
   // --- resonance pane
   const slotTop = h('button', { class: 'slot', type: 'button' }), slotBot = h('button', { class: 'slot', type: 'button' });
@@ -4984,7 +4998,9 @@ function viewTuner() {
           h('div', { class: 'field' }, h('span', {}, 'Fellseite'), sideChips),
           h('label', { class: 'field' }, h('span', {}, 'Zielfrequenz (Hz)'), hzInp),
           !d && route.qSize ? null : h('div', { class: 'field wide' }, h('span', {}, 'Frequenzbereich'), rangeChips),
-          h('label', { class: 'field wide' }, h('span', {}, 'Empfindlichkeit'), sens)));
+          h('label', { class: 'field wide' }, h('span', {}, 'Empfindlichkeit'), sens),
+          h('label', { class: 'field' }, h('span', {}, 'Stimmschrauben'), lugCount), h('div', { class: 'field' }, h('span', {}, 'Reihenfolge'), patChips),
+          h('div', { class: 'field wide' }, h('span', {}, 'Lugs'), h('div', { class: 'chips' }, h('button', { class: 'chip', type: 'button', 'aria-pressed': String(L.auto !== false), onclick: e => { L.auto = L.auto === false; e.currentTarget.setAttribute('aria-pressed', String(L.auto !== false)); } }, 'Automatisch zur nächsten Schraube')))));
   const setBtns = [];
   const placeSettings = () => { const c = panes[route.tTab]?.querySelector(':scope > .card'); if (c) c.after(dSettings); };
   Object.values(panes).forEach(pn => { const c = pn.querySelector(':scope > .card'); if (!c) return; c.classList.add('dt-card');
@@ -5472,7 +5488,7 @@ function viewGTuner() {
         route.gSet ? h('div', { class: 'gt-settings' }, h('div', { class: 'grid' },
           h('label', { class: 'field wide' }, h('span', {}, 'Stimmung'), sel),
           h('label', { class: 'field' }, h('span', {}, 'Referenz A4 (Hz)'), h('input', { type: 'number', step: '0.1', inputmode: 'decimal', value: a4, oninput: e => { a4 = parseFloat(e.target.value) || 440; const l = disp.querySelector('.gt-label'); if (l) l.textContent = `${trText(T.name || 'Stimmung')} · A4 ${fmtNum(a4, a4 % 1 ? 1 : 0)} Hz`; } })),
-          h('div', { class: 'field' }, h('span', {}, 'Saitenwahl'), h('div', { class: 'chips' }, autoChip)))) : null,
+          h('div', { class: 'field' }, h('span', {}, 'Saitenwahl'), h('div', { class: 'chips' }, autoChip)), h('div', { class: 'field wide' }, sensField())), inputPanel()) : null,
         h('div', { class: 'strings' }, strBtns),
         T.capo ? h('div', { class: 'capo' }, `Kapo im ${T.capo}. Bund`) : null),
       micButton(errEl), errEl,
@@ -5480,8 +5496,7 @@ function viewGTuner() {
         const n = { id: newId(), inst, name: T.name, strings: [...T.strings], capo: 0, a4, notes: '' }; P().tunings.push(n); touch();
         route.gTun = 's:' + n.id; toast('Stimmung gespeichert'); render(true);
       } }, 'Als eigene Stimmung speichern')) : null,
-      h('div', { class: 'card', style: 'margin-top:16px' }, sensField()),
-      inputPanel()
+      null
     ]
   };
 }
@@ -7500,7 +7515,7 @@ function pageHelpSlides() {
 /* ================= home-screen app (PWA) ================= */
 const isStandalone = () => window.matchMedia?.('(display-mode: standalone)').matches || window.navigator.standalone === true;
 const isIOS = () => /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-const APP_VERSION = '05.11.2026 (13)';
+const APP_VERSION = '05.11.2026 (14)';
 function registerSW() {
   if (!('serviceWorker' in navigator) || (location.protocol !== 'https:' && location.hostname !== 'localhost') || IN_CLAUDE_HOST()) return;
   navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).then(reg => {
