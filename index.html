@@ -2180,6 +2180,7 @@ html,body{overscroll-behavior-x:none}
 .se-card.open .se-menu{transform:none;opacity:1;color:#9fbcf5}
 .lugwrap .drumsvg{max-width:460px}
 .lugwrap > .drumwrap{width:100%}
+@media (hover:hover){.song.srow .s-head{cursor:grab}.song.srow .s-head .handle{cursor:pointer}body.reordering,body.reordering *{cursor:grabbing!important}}
 </style>
 </head>
 <body>
@@ -4126,7 +4127,7 @@ function viewSetlist() {
           delBtn('Song entfernen', () => { s.songs.splice(i, 1); songOpen.delete(song.id); touch(); render(true); }, 'small'))) : null);
   });
   const songList = h('div', { class: 'songlist' }, songs);
-  enableReorder(songList, s.songs, () => { touch(); render(true); }, { handleDrag: false });
+  enableReorder(songList, s.songs, () => { touch(); render(true); }, { handleDrag: false, mouseDrag: true, pressMs: 320 });
   return {
     title: s.name || 'Neue Setliste', sub: `${a.name}, ${modeName()}`, back: () => nav('setlists'),
     body: [
@@ -6161,7 +6162,7 @@ function enableReorder(listEl, arr, onDone, opts = {}) {
     if (IGNORE && target.closest(IGNORE)) return;
     sx = x; sy = y; lastY = y;
     if (immediate) { begin(row, y); return; }
-    timer = setTimeout(() => { timer = null; begin(row, sy); }, 420);
+    timer = setTimeout(() => { timer = null; begin(row, sy); }, opts.pressMs || 420);
   };
   listEl.addEventListener('touchstart', e => { if (e.touches.length !== 1) return; const t = e.touches[0]; startPress(e.target, t.clientX, t.clientY, false); }, { passive: true });
   listEl.addEventListener('touchmove', e => {
@@ -6174,7 +6175,9 @@ function enableReorder(listEl, arr, onDone, opts = {}) {
   listEl.addEventListener('mousedown', e => {
     if (e.button !== 0) return;
     startPress(e.target, e.clientX, e.clientY, opts.handleDrag !== false && !!e.target.closest('.handle'));
-    const mm = ev => { if (timer && (Math.abs(ev.clientY - sy) > 6)) { clearTimeout(timer); timer = null; } if (drag) { ev.preventDefault(); update(ev.clientY); } };
+    const row0 = timer && e.target.closest(ROW);
+    // mouse: press and pull starts moving right away (opts.mouseDrag), no long press needed
+    const mm = ev => { if (timer && (Math.abs(ev.clientY - sy) > 6)) { clearTimeout(timer); timer = null; if (opts.mouseDrag && row0) begin(row0, sy); } if (drag) { ev.preventDefault(); update(ev.clientY); } };
     const mu = () => { window.removeEventListener('mousemove', mm); window.removeEventListener('mouseup', mu); finish(); };
     window.addEventListener('mousemove', mm); window.addEventListener('mouseup', mu);
   });
@@ -7357,7 +7360,7 @@ function pageHelpSlides() {
 /* ================= home-screen app (PWA) ================= */
 const isStandalone = () => window.matchMedia?.('(display-mode: standalone)').matches || window.navigator.standalone === true;
 const isIOS = () => /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-const APP_VERSION = '05.11.2026 (4)';
+const APP_VERSION = '05.11.2026 (5)';
 function registerSW() {
   if (!('serviceWorker' in navigator) || (location.protocol !== 'https:' && location.hostname !== 'localhost') || IN_CLAUDE_HOST()) return;
   navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).then(reg => {
