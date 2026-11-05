@@ -5845,19 +5845,19 @@ function swipeNeighbors() {
   // laptop: two-finger swipe on the trackpad arrives as horizontal wheel events
   const scrollsX = (el, dx) => { for (let e = el; e && e !== document.body && e.nodeType === 1; e = e.parentElement) { const cs = getComputedStyle(e); if (/(auto|scroll)/.test(cs.overflowX) && e.scrollWidth > e.clientWidth + 1 && (dx > 0 ? e.scrollLeft + e.clientWidth < e.scrollWidth - 1 : e.scrollLeft > 0)) return true; } return false; };
   // one gesture = one switch; the trackpad's momentum tail is ignored, but a new swipe (deltas rising again) works right away
-  let wAcc = 0, wLast = 0, wLocked = false, wTimer = 0, wFireT = 0, wPrevAbs = 0;
+  let wAcc = 0, wLast = 0, wLocked = false, wTimer = 0, wFireT = 0, wPrevAbs = 0, wRises = 0;
   window.addEventListener('wheel', e => {
     if (e.ctrlKey || Math.abs(e.deltaX) <= Math.abs(e.deltaY) * 1.2) return;
     if (!canSwipe() || blocked(e.target) || scrollsX(e.target, e.deltaX)) return;
     e.preventDefault(); // keeps the browser from going back in its history
-    const now = e.timeStamp || performance.now(), abs = Math.abs(e.deltaX); // event times, so a busy main thread does not look like a pause
-    if (now - wTimer > 180) { wLocked = false; wAcc = 0; } // pause between gestures
+    const now = e.timeStamp || performance.now(), abs = Math.abs(e.deltaX);
+    if (now - wTimer > 450) { wLocked = false; wAcc = 0; } // long pause: the last gesture is over
     wTimer = now;
-    if (wLocked) {
-      if (now - wFireT > 280 && abs > 4 && abs > wPrevAbs * 1.5) { wLocked = false; wAcc = 0; } // fingers swiped again
-      wPrevAbs = abs; if (wLocked) return;
-    }
+    // momentum only ever gets weaker; deltas growing twice in a row mean the fingers swiped again
+    wRises = abs > wPrevAbs + 0.5 ? wRises + 1 : 0;
+    if (wLocked && wRises >= 2 && now - wFireT > 250) { wLocked = false; wAcc = 0; }
     wPrevAbs = abs;
+    if (wLocked) return;
     if (now - wLast > 200 || Math.sign(e.deltaX) !== Math.sign(wAcc)) wAcc = 0; wLast = now;
     wAcc += e.deltaX;
     if (Math.abs(wAcc) < 90) return;
@@ -7511,7 +7511,7 @@ function pageHelpSlides() {
 /* ================= home-screen app (PWA) ================= */
 const isStandalone = () => window.matchMedia?.('(display-mode: standalone)').matches || window.navigator.standalone === true;
 const isIOS = () => /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-const APP_VERSION = '05.11.2026 (16)';
+const APP_VERSION = '05.11.2026 (17)';
 function registerSW() {
   if (!('serviceWorker' in navigator) || (location.protocol !== 'https:' && location.hostname !== 'localhost') || IN_CLAUDE_HOST()) return;
   navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).then(reg => {

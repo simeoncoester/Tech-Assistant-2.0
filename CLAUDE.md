@@ -43,7 +43,7 @@ song        → { id, title, key, bpm, sig, note, sheet{…}, lyrics{…}, instN
 ## Navigation
 
 - `route` + `nav(view, patch)`. Ablauf: Künstler → Live/Studio → Tour/Produktion → Instrument → Funktionen.
-- Wischen links/rechts wechselt Bereiche (auf dem Laptop auch Zweifinger-Wischen am Trackpad: horizontale `wheel`-Ereignisse in `initSwipe`, eine Geste = ein Wechsel; Nachschwung wird über Ereignis-Zeitstempel erkannt, ein erneutes Wischen (Werte steigen wieder an) wirkt sofort, `overscroll-behavior-x: none` gegen die Browser-Zurück-Geste), untere Leiste (`#tabbar`), Logo oben rechts = Startseite.
+- Wischen links/rechts wechselt Bereiche (auf dem Laptop auch Zweifinger-Wischen am Trackpad: horizontale `wheel`-Ereignisse in `initSwipe`, eine Geste = ein Wechsel; Nachschwung wird ignoriert (er wird nur schwächer); steigen die Werte zweimal hintereinander wieder an, gilt das als neue Geste; nach 450 ms Pause ist die Geste vorbei, `overscroll-behavior-x: none` gegen die Browser-Zurück-Geste), untere Leiste (`#tabbar`), Logo oben rechts = Startseite.
 - Startseite: Künstler-Kacheln, darunter „Künstler hinzufügen“ und „Geteilte Daten übernehmen“ nebeneinander, Zahnrad oben in der Kopfzeile auf jeder Seite (zwischen „?“ und Logo, Klasse `gear-btn`) öffnet die Einstellungen (`settingsPop`: Design, Startsound, Sprache); Großansicht und Showmodus haben eigene Kopfzeilen ohne Zahnrad. Clicktrack und freier Drum-Tuner als kleine Symbole unten links/rechts in den Ecken (`.ft-corner`).
 - Setlisten sind unabhängig vom Instrument-Bereich: derselbe Editor mit allen Feldern. „Tom-Tuning“ gibt es nur im Drumkit (dort mit Auswahl Setliste/Song), nicht im Song-Editor.
 - Im freien Tuner Umschalter Drums/Bass/Gitarre in der Kopfzeile, Drums ist Standard.
