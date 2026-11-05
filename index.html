@@ -2196,7 +2196,7 @@ html,body{overscroll-behavior-x:none}
 .gt-disp .gt-oct{fill:rgba(216,255,240,.6)}
 .gt-disp.ok .gt-note{fill:#5dffb0}
 .gt-disp.off .gt-note{fill:#ffffff}
-.gt-disp.stale .gt-note,.gt-disp.stale .gt-small{opacity:.4}
+.gt-disp.stale .gt-note,.gt-disp.stale .gt-small{opacity:.35}
 .gt-disp .gt-small{fill:rgba(205,230,220,.7)}
 .gt-disp .gt-stat{fill:rgba(205,230,220,.75)}
 .gt-disp.ok .gt-stat{fill:#5dffb0}
@@ -2209,6 +2209,10 @@ html,body{overscroll-behavior-x:none}
 .gt-disp.ok .gt-glow{opacity:1}
 @media (max-width:360px){.bar .qhelp{width:32px;height:32px;margin-right:3px}.bar .home-btn{width:36px;height:36px}.bar .gear-btn svg{width:17px;height:17px}}
 .dm-gt{width:min(300px,82vw)!important;margin:4px auto!important}
+/* selected string: clearly lit in green (in tune = fully green) */
+html .str[aria-pressed="true"],html.glass .str[aria-pressed="true"],html.ice .str[aria-pressed="true"]{background:linear-gradient(180deg,rgba(61,220,140,.38),rgba(30,140,85,.32));border:2px solid #3ddc8c;color:#eafff3;box-shadow:0 0 0 3px rgba(61,220,140,.22),0 0 16px rgba(61,220,140,.45)}
+html.ice .str[aria-pressed="true"]{color:#0f5a34;background:linear-gradient(180deg,rgba(120,230,170,.55),rgba(70,190,125,.4))}
+html .str[aria-pressed="true"].hot{background:linear-gradient(180deg,#5fe0a0,#1f9a5c);color:#fff}
 </style>
 </head>
 <body>
@@ -5128,7 +5132,7 @@ function gtDisplay() {
     svg('line', { x1: px, y1: py, x2: px, y2: py - 200, 'stroke-width': 2.6, 'stroke-linecap': 'round' }),
     svg('circle', { cx: px, cy: py - 200, r: 3.2 }));
   kids.push(needle, svg('circle', { cx: px, cy: py, r: 9, fill: '#1b2a26', stroke: 'rgba(255,255,255,.35)', 'stroke-width': 2 }));
-  const el = svg('svg', { viewBox: `0 0 ${W} ${H}`, class: 'gt-disp', role: 'img', 'aria-label': trText('Tuner-Anzeige') }, kids);
+  const el = svg('svg', { viewBox: `0 0 ${W} ${H}`, class: 'gt-disp stale', role: 'img', 'aria-label': trText('Tuner-Anzeige') }, kids);
   el.update = ({ name, cents, ok, fresh, hzTxt, statusTxt }) => {
     const m = /^(.+?)(-?\d+)$/.exec(name || ''); note.firstChild.textContent = m ? m[1] : (name || '–'); oct.textContent = m ? m[2] : '';
     hz.textContent = hzTxt || ''; ct.textContent = cents == null ? '' : `${cents >= 0 ? '+' : '−'}${Math.abs(Math.round(cents))} ct`;
@@ -7452,7 +7456,7 @@ function pageHelpSlides() {
 /* ================= home-screen app (PWA) ================= */
 const isStandalone = () => window.matchMedia?.('(display-mode: standalone)').matches || window.navigator.standalone === true;
 const isIOS = () => /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-const APP_VERSION = '05.11.2026 (9)';
+const APP_VERSION = '05.11.2026 (10)';
 function registerSW() {
   if (!('serviceWorker' in navigator) || (location.protocol !== 'https:' && location.hostname !== 'localhost') || IN_CLAUDE_HOST()) return;
   navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).then(reg => {
