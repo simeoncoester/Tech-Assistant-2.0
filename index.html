@@ -2228,7 +2228,7 @@ html .str[aria-pressed="true"].hot{background:linear-gradient(180deg,#5fe0a0,#1f
 .dt-card{position:relative}
 .dt-set{color:var(--muted);border-color:var(--line);background:rgba(255,255,255,.04);top:10px;right:10px;z-index:2}
 .dt-set[aria-expanded="true"]{color:var(--green,#36c97e);border-color:color-mix(in srgb,var(--green,#36c97e) 60%,transparent);background:color-mix(in srgb,var(--green,#36c97e) 10%,transparent)}
-.dt-label{font-size:.78rem;color:var(--muted);padding:2px 48px 0 2px;min-height:28px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+[data-pane="res"] .dt-card{padding-top:58px}
 .dt-settings[hidden]{display:none}
 .help-row .help-btn{animation:none!important}
 .help-row .help-logo.glass-logo{animation:none!important;filter:none}
@@ -2244,6 +2244,7 @@ html body.has-tabs main,html.glass body.has-tabs main,html.ice body.has-tabs mai
 }
 @media (max-width:1023px) and (max-height:760px){[data-pane="pitch"] canvas.spec{display:none}[data-pane="pitch"] .lugwrap .drumsvg{max-height:max(170px,calc(100dvh - var(--hdr,60px) - var(--tabpad,100px) - 320px))}[data-pane="lugs"] .lugwrap .drumsvg{max-height:max(170px,calc(100dvh - var(--hdr,60px) - var(--tabpad,100px) - 336px))}}
 .gt-settings .card{margin-top:12px}
+[data-pane]:not([data-pane="lugs"]) .dt-lugonly{display:none}
 </style>
 </head>
 <body>
@@ -4897,7 +4898,7 @@ function viewTuner() {
   const hzInp = h('input', { type: 'number', step: '0.1', inputmode: 'decimal', value: targetHz ?? '', placeholder: 'z. B. 110', 'aria-label': 'Zielfrequenz in Hz',
     oninput: e => { const v = e.target.value; targetHz = v === '' ? null : parseFloat(v); if (!d) route.freeTarget = targetHz; drawLugs(); } });
   const rangeChips = h('div', { class: 'chips', role: 'group', 'aria-label': 'Frequenzbereich' }, Object.keys(RANGES).map(k =>
-    h('button', { class: 'chip', type: 'button', 'aria-pressed': String(Tuner.range === k), onclick: e => { Tuner.range = k; Tuner.recent = []; rangeChips.querySelectorAll('.chip').forEach(c => c.setAttribute('aria-pressed', String(c === e.currentTarget))); document.querySelectorAll('.dt-label').forEach(l => { l.textContent = [dName || trText('Freie Trommel'), trText(sideName(route.side)), trText(k)].join(' · '); }); } }, k)));
+    h('button', { class: 'chip', type: 'button', 'aria-pressed': String(Tuner.range === k), onclick: e => { Tuner.range = k; Tuner.recent = []; rangeChips.querySelectorAll('.chip').forEach(c => c.setAttribute('aria-pressed', String(c === e.currentTarget))); } }, k)));
   const sens = h('input', { type: 'range', min: '1', max: '10', 'aria-label': 'Empfindlichkeit', value: String(Math.max(1, Math.min(10, Math.round(11 - Math.log10(Tuner.threshold / 0.002) * 4.5)))),
     oninput: e => { Tuner.threshold = 0.002 * Math.pow(10, (11 - +e.target.value) / 4.5); } });
 
@@ -4934,7 +4935,7 @@ function viewTuner() {
       h('div', { class: 'lugwrap' }, pDrum),
       h('div', { class: 'status', style: 'text-align:center' }, statusEl),
       canvas),
-    h('div', { class: 'row' }, saveBtn));
+    d ? h('div', { class: 'row' }, saveBtn) : null);
 
   // --- lug pane
   const lugSvg = h('div', { class: 'drumwrap' });
@@ -4962,7 +4963,7 @@ function viewTuner() {
     h('div', { class: 'card' },
       h('div', { class: 'lugwrap' }, lugSvg), lugInfo),
     h('div', { class: 'row' },
-      h('button', { class: 'btn solid', type: 'button', disabled: !d, onclick: () => { const arr = L.vals.map(v => v ? Math.round(v * 10) / 10 : null); if (route.side === 'top') d.lugsTop = arr; else d.lugsBottom = arr; touch(); toast('Lug-Werte gespeichert'); } }, d ? `Lug-Werte für ${dName} speichern` : 'Trommel wählen zum Speichern'),
+      d ? h('button', { class: 'btn solid', type: 'button', disabled: !d, onclick: () => { const arr = L.vals.map(v => v ? Math.round(v * 10) / 10 : null); if (route.side === 'top') d.lugsTop = arr; else d.lugsBottom = arr; touch(); toast('Lug-Werte gespeichert'); } }, d ? `Lug-Werte für ${dName} speichern` : 'Trommel wählen zum Speichern') : null,
       h('button', { class: 'btn ghost', type: 'button', onclick: () => { L.vals = L.vals.map(() => null); L.sel = L.ref || 0; drawLugs(); } }, 'Zurücksetzen')),);
 
   // --- resonance pane
@@ -4984,7 +4985,7 @@ function viewTuner() {
   const resPane = h('div', { 'data-pane': 'res' },
     h('div', { class: 'card' }, h('div', { class: 'res-slots' }, slotTop, slotBot), intEl),
     h('div', { class: 'row' },
-      h('button', { class: 'btn solid', type: 'button', disabled: !d, onclick: () => { if (R.top) d.pitchTop = Math.round(R.top * 10) / 10; if (R.bottom) d.pitchBottom = Math.round(R.bottom * 10) / 10; touch(); toast('Beide Werte gespeichert'); } }, d ? `Beide Werte für ${dName} speichern` : 'Trommel wählen zum Speichern'),
+      d ? h('button', { class: 'btn solid', type: 'button', disabled: !d, onclick: () => { if (R.top) d.pitchTop = Math.round(R.top * 10) / 10; if (R.bottom) d.pitchBottom = Math.round(R.bottom * 10) / 10; touch(); toast('Beide Werte gespeichert'); } }, d ? `Beide Werte für ${dName} speichern` : 'Trommel wählen zum Speichern') : null,
       h('button', { class: 'btn ghost', type: 'button', onclick: () => { R.top = R.bottom = null; R.armed = 'top'; drawRes(); } }, 'Zurücksetzen')));
 
   // --- tabs
@@ -4998,14 +4999,14 @@ function viewTuner() {
           h('label', { class: 'field' }, h('span', {}, 'Zielfrequenz (Hz)'), hzInp),
           !d && route.qSize ? null : h('div', { class: 'field wide' }, h('span', {}, 'Frequenzbereich'), rangeChips),
           h('label', { class: 'field wide' }, h('span', {}, 'Empfindlichkeit'), sens),
-          h('label', { class: 'field' }, h('span', {}, 'Stimmschrauben'), lugCount), h('div', { class: 'field' }, h('span', {}, 'Reihenfolge'), patChips),
-          h('div', { class: 'field wide' }, h('span', {}, 'Lugs'), h('div', { class: 'chips' }, h('button', { class: 'chip', type: 'button', 'aria-pressed': String(L.auto !== false), onclick: e => { L.auto = L.auto === false; e.currentTarget.setAttribute('aria-pressed', String(L.auto !== false)); } }, 'Automatisch zur nächsten Schraube')))));
+          h('label', { class: 'field dt-lugonly' }, h('span', {}, 'Stimmschrauben'), lugCount), h('div', { class: 'field dt-lugonly' }, h('span', {}, 'Reihenfolge'), patChips),
+          h('div', { class: 'field wide dt-lugonly' }, h('span', {}, 'Lugs'), h('div', { class: 'chips' }, h('button', { class: 'chip', type: 'button', 'aria-pressed': String(L.auto !== false), onclick: e => { L.auto = L.auto === false; e.currentTarget.setAttribute('aria-pressed', String(L.auto !== false)); } }, 'Automatisch zur nächsten Schraube')))));
   const setBtns = [];
   const placeSettings = () => { const c = panes[route.tTab]?.querySelector(':scope > .card'); if (c) c.after(dSettings); };
   Object.values(panes).forEach(pn => { const c = pn.querySelector(':scope > .card'); if (!c) return; c.classList.add('dt-card');
     const b = h('button', { class: 'gt-set dt-set', type: 'button', 'aria-expanded': String(!!route.dSet), 'aria-label': 'Tuner-Einstellungen', title: 'Tuner-Einstellungen', onclick: () => { route.dSet = !route.dSet; saveRoute(); dSettings.hidden = !route.dSet; setBtns.forEach(x => x.setAttribute('aria-expanded', String(!!route.dSet))); placeSettings(); } },
       svg('svg', { viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', 'stroke-width': 2, 'stroke-linecap': 'round', 'aria-hidden': 'true' }, svg('path', { d: 'M4 7h10M18 7h2M4 17h4M12 17h8' }), svg('circle', { cx: 16, cy: 7, r: 2 }), svg('circle', { cx: 10, cy: 17, r: 2 })));
-    setBtns.push(b); c.prepend(h('div', { class: 'dt-label no-i18n' }, [dName || trText('Freie Trommel'), trText(sideName(route.side)), trText(Tuner.range)].join(' · ')), b); });
+    setBtns.push(b); c.prepend(b); });
   const tabs = h('div', { class: 'tabs', role: 'tablist' }, [['pitch', 'Pitch'], ['lugs', 'Lugs'], ['res', 'Resonanz']].map(([k, l]) =>
     h('button', { type: 'button', role: 'tab', 'aria-selected': String(route.tTab === k), onclick: e => { route.tTab = k; saveRoute(); setTimeout(placeSettings); tabs.querySelectorAll('button').forEach(b => b.setAttribute('aria-selected', String(b === e.currentTarget))); Object.entries(panes).forEach(([pk, el]) => el.hidden = pk !== k); } }, l)));
   Object.entries(panes).forEach(([pk, el]) => el.hidden = pk !== route.tTab);
@@ -7511,7 +7512,7 @@ function pageHelpSlides() {
 /* ================= home-screen app (PWA) ================= */
 const isStandalone = () => window.matchMedia?.('(display-mode: standalone)').matches || window.navigator.standalone === true;
 const isIOS = () => /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-const APP_VERSION = '05.11.2026 (17)';
+const APP_VERSION = '05.11.2026 (18)';
 function registerSW() {
   if (!('serviceWorker' in navigator) || (location.protocol !== 'https:' && location.hostname !== 'localhost') || IN_CLAUDE_HOST()) return;
   navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).then(reg => {
