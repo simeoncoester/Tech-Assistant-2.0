@@ -2174,6 +2174,7 @@ html .stage .stage-bar .stage-show{order:6;flex:1 1 100%;max-width:none}
 .km-dots{display:flex;gap:6px}
 .km-dots i{width:7px;height:7px;border-radius:50%;background:var(--line-strong)}
 .km-dots i.on{background:#6c9bef}
+html,body{overscroll-behavior-x:none}
 </style>
 </head>
 <body>
@@ -5674,6 +5675,10 @@ function swipeNeighbors() {
     const n = swipeNeighbors(), dir = dx < 0 ? 1 : -1, W = window.innerWidth, v = Math.abs(dx) / Math.max(1, Date.now() - st);
     const go = (Math.abs(dx) > W * .25 || (v > .45 && Math.abs(dx) > 40)) && (dir > 0 ? n.canNext : n.canPrev);
     if (!go) { reset(true); return; }
+    fire(dir, n);
+  };
+  function fire(dir, n) {
+    const W = window.innerWidth;
     app.style.transition = 'transform .18s ease-in, opacity .18s ease-in';
     app.style.transform = `translateX(${dir > 0 ? -W : W}px)`; app.style.opacity = '0';
     setTimeout(() => {
@@ -5681,8 +5686,23 @@ function swipeNeighbors() {
       (dir > 0 ? n.next : n.prev)();
       requestAnimationFrame(() => requestAnimationFrame(() => reset(true)));
     }, 180);
-  };
+  }
   document.addEventListener('touchend', end); document.addEventListener('touchcancel', end);
+  // laptop: two-finger swipe on the trackpad arrives as horizontal wheel events
+  const scrollsX = (el, dx) => { for (let e = el; e && e !== document.body && e.nodeType === 1; e = e.parentElement) { const cs = getComputedStyle(e); if (/(auto|scroll)/.test(cs.overflowX) && e.scrollWidth > e.clientWidth + 1 && (dx > 0 ? e.scrollLeft + e.clientWidth < e.scrollWidth - 1 : e.scrollLeft > 0)) return true; } return false; };
+  let wAcc = 0, wLast = 0, wLocked = false, wTimer = 0;
+  window.addEventListener('wheel', e => {
+    if (e.ctrlKey || Math.abs(e.deltaX) <= Math.abs(e.deltaY) * 1.2) return;
+    if (!canSwipe() || blocked(e.target) || scrollsX(e.target, e.deltaX)) return;
+    e.preventDefault(); // keeps the browser from going back in its history
+    clearTimeout(wTimer); wTimer = setTimeout(() => { wLocked = false; wAcc = 0; }, 260); // gesture (incl. momentum) has ended
+    if (wLocked) return;
+    const now = performance.now(); if (now - wLast > 300) wAcc = 0; wLast = now;
+    wAcc += e.deltaX;
+    if (Math.abs(wAcc) < 110) return;
+    const dir = wAcc > 0 ? 1 : -1, n = swipeNeighbors(); wAcc = 0; wLocked = true;
+    if (dir > 0 ? n.canNext : n.canPrev) fire(dir, n);
+  }, { passive: false });
 })();
 function renderTabs() {
   let tb = document.getElementById('tabbar');
@@ -7317,7 +7337,7 @@ function pageHelpSlides() {
 /* ================= home-screen app (PWA) ================= */
 const isStandalone = () => window.matchMedia?.('(display-mode: standalone)').matches || window.navigator.standalone === true;
 const isIOS = () => /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-const APP_VERSION = '05.11.2026 (1)';
+const APP_VERSION = '05.11.2026 (2)';
 function registerSW() {
   if (!('serviceWorker' in navigator) || (location.protocol !== 'https:' && location.hostname !== 'localhost') || IN_CLAUDE_HOST()) return;
   navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).then(reg => {
