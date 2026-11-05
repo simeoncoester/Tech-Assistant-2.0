@@ -2224,8 +2224,6 @@ html .str[aria-pressed="true"].hot{background:linear-gradient(180deg,#5fe0a0,#1f
 .gt-settings{max-width:640px;margin:0 auto 12px;padding:12px;border-radius:14px;border:1px solid var(--line);background:rgba(255,255,255,.03);text-align:left;animation:gtOpen .22s ease-out}
 @keyframes gtOpen{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
 .gt-disp .gt-label{fill:rgba(205,230,220,.6)}
-.sp-hint{position:absolute;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 42px);transform:translateX(-50%);padding:8px 14px;border-radius:999px;font:500 .85rem Barlow,sans-serif;color:rgba(255,255,255,.75);background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.16);white-space:nowrap;animation:spHint .5s ease-out both;pointer-events:none}
-@keyframes spHint{from{opacity:0;transform:translate(-50%,6px)}to{opacity:1;transform:translate(-50%,0)}}
 .dt-card{position:relative}
 .dt-set{color:var(--muted);border-color:var(--line);background:rgba(255,255,255,.04);top:10px;right:10px;z-index:2}
 .dt-set[aria-expanded="true"]{color:var(--green,#36c97e);border-color:color-mix(in srgb,var(--green,#36c97e) 60%,transparent);background:color-mix(in srgb,var(--green,#36c97e) 10%,transparent)}
@@ -6868,8 +6866,6 @@ const StartSound = {
     let ctx = null, done = false, bufP = null;
     // iOS unlocks audio only when the finger is lifted (touchend/click), so listen to those as well
     const evs = ['pointerdown', 'touchstart', 'touchend', 'pointerup', 'click', 'keydown', 'mousedown'];
-    const hint = () => { if (splash.querySelector('.sp-hint') || done) return; splash.append(h('div', { class: 'sp-hint' }, trText('Antippen für Startsound'))); };
-    const unhint = () => splash.querySelector('.sp-hint')?.remove();
     const off = () => evs.forEach(ev => document.removeEventListener(ev, tap, true));
     const play = (buf, at) => { const s = ctx.createBufferSource(); s.buffer = buf; s.connect(ctx.destination); s.start(0, Math.max(0, at)); s.onended = () => { try { ctx.close(); } catch (e) {} }; };
     // position of the animation: taken from the running CSS animation itself, else from the start time
@@ -6881,7 +6877,7 @@ const StartSound = {
       try {
         if (ctx.state !== 'running') { try { await ctx.resume(); } catch (e) {} }
         if (ctx.state !== 'running') { busy = false; return; }
-        done = true; off(); unhint();
+        done = true; off();
         const buf = await bufP, at = animPos() + (ctx.outputLatency || ctx.baseLatency || 0);
         if (at > buf.duration - .3) { ctx.close(); return; }
         play(buf, at);
@@ -6900,8 +6896,7 @@ const StartSound = {
       return;
     }
     evs.forEach(ev => document.addEventListener(ev, tap, true));
-    ctx.resume().then(() => { if (ctx.state === 'running') tap(); else setTimeout(hint, 350); }).catch(() => setTimeout(hint, 350));
-    setTimeout(() => { if (!done && ctx.state !== 'running') hint(); }, 600);
+    ctx.resume().then(() => { if (ctx.state === 'running') tap(); }).catch(() => {});
     setTimeout(() => { off(); if (!done) { try { ctx.close(); } catch (e) {} } }, 4600);
   }
 };
@@ -7515,7 +7510,7 @@ function pageHelpSlides() {
 /* ================= home-screen app (PWA) ================= */
 const isStandalone = () => window.matchMedia?.('(display-mode: standalone)').matches || window.navigator.standalone === true;
 const isIOS = () => /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-const APP_VERSION = '05.11.2026 (14)';
+const APP_VERSION = '05.11.2026 (15)';
 function registerSW() {
   if (!('serviceWorker' in navigator) || (location.protocol !== 'https:' && location.hostname !== 'localhost') || IN_CLAUDE_HOST()) return;
   navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).then(reg => {
