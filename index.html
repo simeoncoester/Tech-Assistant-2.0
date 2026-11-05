@@ -2181,6 +2181,10 @@ html,body{overscroll-behavior-x:none}
 .lugwrap .drumsvg{max-width:460px}
 .lugwrap > .drumwrap{width:100%}
 @media (hover:hover){.song.srow .s-head{cursor:grab}.song.srow .s-head .handle{cursor:pointer}body.reordering,body.reordering *{cursor:grabbing!important}}
+.gear-btn{color:var(--muted)}
+.gear-btn svg{width:19px;height:19px}
+.gear-btn:hover{color:var(--ink)}
+@media (min-width:1024px){.bar .gear-btn svg{width:23px;height:23px}}
 </style>
 </head>
 <body>
@@ -2593,6 +2597,10 @@ function render(keepScroll) {
       h('button', { class: 'ts-btn' + (cur === k ? ' on' : ''), type: 'button', 'aria-label': l, title: l, 'aria-pressed': String(cur === k), onclick: () => { if (cur === k) return; k === 'drums' ? nav('tuner', { tunerFrom: 'free', tTab: 'lugs', target: null }) : nav('gtuner', { tunerFrom: 'free', inst: k, gTun: null }); } }, instIcon(k)))));
   }
   if (route.view !== 'artists' && pageHelpSlides()) bar.append(h('button', { class: 'qhelp', type: 'button', 'aria-label': 'Hilfe zu dieser Seite', title: 'Hilfe zu dieser Seite', onclick: () => showHelp(pageHelpSlides()) }, h('span', { class: 'help-q' }, '?')));
+  bar.append(h('button', { class: 'qhelp gear-btn', type: 'button', 'aria-label': 'Einstellungen', title: 'Einstellungen', onclick: settingsPop },
+    svg('svg', { viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', 'stroke-width': 1.8, 'stroke-linecap': 'round', 'stroke-linejoin': 'round', 'aria-hidden': 'true' },
+      svg('circle', { cx: 12, cy: 12, r: 3.2 }),
+      svg('path', { d: 'M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z' }))));
   if (route.view !== 'artists') bar.append(h('button', { class: 'home-btn', type: 'button', 'aria-label': 'Zur Startseite (Künstlerauswahl)', title: 'Zur Startseite', onclick: () => nav('artists') }, logoSvg('logo-ico', 30)));
   document.body.classList.add('wm');
   saveRoute();
@@ -2667,8 +2675,6 @@ function viewArtists() {
         return grid;
       })(),
       adds,
-      h('div', { class: 'row', style: 'justify-content:center;margin-top:18px' }, h('button', { class: 'btn ghost small set-btn', type: 'button', onclick: settingsPop },
-        svg('svg', { viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', 'stroke-width': 2, 'stroke-linecap': 'round', 'aria-hidden': 'true' }, svg('path', { d: 'M4 7h10M18 7h2M4 17h4M12 17h8' }), svg('circle', { cx: 16, cy: 7, r: 2 }), svg('circle', { cx: 10, cy: 17, r: 2 })), 'Einstellungen')),
       installHint(),
       h('p', { class: 'app-version no-i18n', 'aria-label': 'App-Version' }, `Version ${APP_VERSION}`),
       h('div', { class: 'help-row' }, h('button', { class: 'help-btn', type: 'button', 'aria-label': 'Einführung ansehen', title: 'Einführung ansehen', onclick: () => showOnboarding() },
@@ -7360,7 +7366,7 @@ function pageHelpSlides() {
 /* ================= home-screen app (PWA) ================= */
 const isStandalone = () => window.matchMedia?.('(display-mode: standalone)').matches || window.navigator.standalone === true;
 const isIOS = () => /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-const APP_VERSION = '05.11.2026 (5)';
+const APP_VERSION = '05.11.2026 (6)';
 function registerSW() {
   if (!('serviceWorker' in navigator) || (location.protocol !== 'https:' && location.hostname !== 'localhost') || IN_CLAUDE_HOST()) return;
   navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).then(reg => {
