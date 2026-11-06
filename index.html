@@ -4476,7 +4476,7 @@ function prPick(st, onDone) {
       catch (err) { toast('Das Foto konnte nicht geladen werden.'); } } }); document.body.append(inp); inp.click(); setTimeout(() => inp.remove(), 60000); };
   const tpls = S.devTpls;
   askDialog({ title: 'Foto-Recall', text: tpls.length ? 'Gespeichertes Gerät wählen oder ein neues fotografieren.' : 'Fotografiere das Gerät von vorne, möglichst gerade. Danach tippst du die Regler im Foto an.', buttons: [
-    ...[...tpls].sort((a, b) => (b === prTplFor(st)) - (a === prTplFor(st))).slice(0, 8).map(t => ({ label: t.name || 'Gerät', primary: t === prTplFor(st), onClick: () => { st.photo = { tplId: t.id, vals: {} }; prBind(st); touch(); onDone(); showPhotoRecall(st, t, false); } })),
+    ...[...tpls].sort((a, b) => (b === prTplFor(st)) - (a === prTplFor(st))).slice(0, 8).map(t => ({ label: t.name || 'Gerät', primary: t === prTplFor(st), onClick: () => { prAttach(st, t); touch(); onDone(); showPhotoRecall(st, t, false); } })),
     { label: 'Foto aufnehmen', primary: true, onClick: () => pickFile(true) },
     { label: 'Foto aus der Galerie', onClick: () => pickFile(false) },
     ...(tpls.length ? [{ label: 'Gespeicherte Fotos verwalten', onClick: () => devManager(onDone) }] : []),
@@ -4653,6 +4653,13 @@ const prTplFor = st => { const g = String(st.gear || '').trim().toLowerCase(); r
 const prTplForKind = kind => (S.devTpls || []).filter(t => t.kind === kind).sort((a, b) => (b.usedAt || 0) - (a.usedAt || 0))[0] || null;
 // new stage or other gear: attach the saved device photo right away (all controls at zero); an untouched photo follows the gear
 // the photo belongs to the gear of the stage it was added to: same name, so it comes back whenever that gear is chosen
+// a saved device chosen for a stage: the stage takes over its gear name (shown at the top and in the gear picker)
+function prAttach(st, t) {
+  st.photo = { tplId: t.id, vals: {} }; t.usedAt = Date.now();
+  const own = String(t.name || '').trim(), named = own && ![st.kind, 'Gerät', trText('Gerät')].includes(own);
+  if (t.gear) st.gear = t.gear; else if (!String(st.gear || '').trim() && named) st.gear = own;
+  prBind(st);
+}
 function prBind(st) {
   const t = st.photo && S.devTpls.find(x => x.id === st.photo.tplId), g = String(st.gear || '').trim();
   if (!t || !g || t.gear || (S.devTpls || []).some(x => x !== t && x.gear === g)) return;
@@ -4673,7 +4680,7 @@ function photoRecallRow(st) {
   const tpl = st.photo && S.devTpls.find(t => t.id === st.photo.tplId);
   if (!tpl) { const fpg = FACEPLATES[String(st.gear || '').trim()], sug = prTplFor(st) || (fpg ? null : (S.devTpls || []).filter(t => t.kind === st.kind).slice(-1)[0]);
     return h('div', { class: 'row', style: 'margin-top:10px' },
-      sug ? h('button', { class: 'btn small solid', type: 'button', onclick: () => { st.photo = { tplId: sug.id, vals: {} }; touch(); render(true); showPhotoRecall(st, sug, false); } }, `📷 ${sug.name || trText('Gerät')} ${trText('übernehmen')}`)
+      sug ? h('button', { class: 'btn small solid', type: 'button', onclick: () => { prAttach(st, sug); touch(); render(true); showPhotoRecall(st, sug, false); } }, `📷 ${sug.name || trText('Gerät')} ${trText('übernehmen')}`)
         : fpg ? h('button', { class: 'btn small solid', type: 'button', onclick: () => { const t = prBuiltinFor(st); st.photo = { tplId: t.id, vals: {} }; touch(); render(true); showPhotoRecall(st, t, false); } }, `▦ ${trText('Faceplate übernehmen')}`) : null,
       h('button', { class: 'btn small nav', type: 'button', onclick: () => prPick(st, () => render(true)) }, sug ? trText('Anderes Gerät …') : '📷 Foto-Recall')); }
   const vals = tpl.ctrls.map(c => [c, st.photo.vals[c.id]]).filter(([c, v]) => v);
@@ -8406,7 +8413,7 @@ function pageHelpSlides() {
 /* ================= home-screen app (PWA) ================= */
 const isStandalone = () => window.matchMedia?.('(display-mode: standalone)').matches || window.navigator.standalone === true;
 const isIOS = () => /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-const APP_VERSION = '06.11.2026 (25)';
+const APP_VERSION = '06.11.2026 (26)';
 function registerSW() {
   if (!('serviceWorker' in navigator) || (location.protocol !== 'https:' && location.hostname !== 'localhost') || IN_CLAUDE_HOST()) return;
   navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).then(reg => {
