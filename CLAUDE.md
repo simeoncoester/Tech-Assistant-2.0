@@ -47,7 +47,8 @@ song        → { id, title, key, bpm, sig, note, sheet{…}, lyrics{…}, instN
 - Startseite: Künstler-Kacheln, darunter „Künstler hinzufügen“ und „Geteilte Daten übernehmen“ nebeneinander, Zahnrad oben in der Kopfzeile auf jeder Seite (zwischen „?“ und Logo, Klasse `gear-btn`) öffnet die Einstellungen (`settingsPop`: Design, Startsound, Sprache); Großansicht und Showmodus haben eigene Kopfzeilen ohne Zahnrad. Clicktrack und freier Drum-Tuner als kleine Symbole unten links/rechts in den Ecken (`.ft-corner`).
 - Setlisten sind unabhängig vom Instrument-Bereich: derselbe Editor mit allen Feldern. „Tom-Tuning“ gibt es nur im Drumkit (dort mit Auswahl Setliste/Song), nicht im Song-Editor.
 - Im freien Tuner Umschalter Drums/Bass/Gitarre in der Kopfzeile, Drums ist Standard.
-- **Studio-Bereich ist für Tester gesperrt** („Under Construction“). Freischalten per URL `#studio-freigeben`, sperren per `#studio-sperren`.
+- **Studio-Bereich mit Passwort** (auf github.io): Kachel „Studio · Mit Passwort“ öffnet `studioPwPop`, Passwort `STUDIO_PW = '12345'`; danach `localStorage drumtech-dev = 1` (einmal pro Gerät). Weiterhin freischalten per URL `#studio-freigeben`, sperren per `#studio-sperren`.
+- **Geräte-Bibliothek ist global** (`S.devTpls`, Fotos in IndexedDB `dev-<id>`, `S.customGear`), gilt für alle Produktionen. Teilen: Produktionsdatei enthält `devPayload` (benutzte Geräte inkl. Fotos + alle eigenen Geräte `customGear`); `applyDevPayload` ersetzt gleiche Geräte-IDs mit dem geteilten Stand, ergänzt eigene Geräte, eine Gerätezuordnung bleibt beim eigenen Foto, falls schon eins für den Namen existiert. „Alle Geräte teilen“ in „Gespeicherte Fotos“ (`shareDevices`, Datei `type: 'devices'`, Empfang in `receivePayload`). Link-Teilen trägt keine Fotos, darum bei Produktionen mit Geräte-Fotos die Datei als Hauptknopf.
 
 ## Wichtige Bereiche im Code
 
