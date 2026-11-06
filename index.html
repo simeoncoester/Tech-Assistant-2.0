@@ -4227,7 +4227,9 @@ const PR_TYPES = [['knob', 'Drehregler'], ['switch', 'Schalter'], ['dir', '5-Weg
 const PR_DIRS = { c: 'Mitte', u: 'Hoch', d: 'Runter', l: 'Links', r: 'Rechts' };
 const PR_COLORS = ['#e53935', '#fb8c00', '#fdd835', '#43a047', '#1e88e5', '#8e24aa', '#f5f5f5', '#212121'];
 const prVal = (c, v) => c.type === 'switch' ? trText(v && v.on ? 'An' : 'Aus') : c.type === 'push' ? trText(v && v.in ? 'Gedrückt' : 'Raus') : c.type === 'dir' ? trText(PR_DIRS[(v && v.dir) || 'c']) : v && v.text ? v.text : v && v.pos != null ? Math.round(v.pos * 100) + ' %' : '0 %';
-const prHasVal = (c, v) => !!v && (c.type === 'switch' ? v.on : c.type === 'push' ? v.in : c.type === 'dir' ? v.dir && v.dir !== 'c' : (v.text || v.pos > 0));
+// knobs turn all the way round: pos 0 = 7 o'clock (zero), 1 = 5 o'clock, the range runs on to straight down on both sides
+const PR_PMIN = -45 / 270, PR_PMAX = 1 + 45 / 270;
+const prHasVal = (c, v) => !!v && (c.type === 'switch' ? v.on : c.type === 'push' ? v.in : c.type === 'dir' ? v.dir && v.dir !== 'c' : (v.text || Math.abs(v.pos || 0) > .004));
 // colour detection: the most saturated colour around the tapped point (caps of coloured knobs)
 const prPixCache = {};
 // size detection: grow a ring from the tapped point until the colour clearly changes (edge of the knob)
@@ -4260,7 +4262,6 @@ async function prDetectPos(tpl, x, y, r) {
     const sc = []; for (let d = -180; d < 180; d += 3) sc.push([d, score(d)]);
     const sorted = sc.map(q => q[1]).sort((a, b) => a - b), median = sorted[sorted.length >> 1], [bd, bs] = sc.reduce((m, q) => q[1] > m[1] ? q : m, [0, 0]);
     if (bs < 45 || bs < median * 2.2) return null; // no clear line
-    if (bd < -135 || bd > 135) return null; // points into the dead zone of a pot
     return (bd + 135) / 270;
   } catch (e) { return null; }
 }
@@ -4365,7 +4366,7 @@ function prControlPop(c, v, setup, onSave, onDelete, onLive) {
   const nameInp = h('input', { value: c.name || '', placeholder: 'z. B. Threshold', 'aria-label': 'Name des Reglers' });
   const knob = h('div', { class: 'pr-knob big' }, h('i', { class: 'pr-ptr' }));
   const draw = () => { knob.style.setProperty('--a', (-135 + pos * 270) + 'deg'); knob.style.setProperty('--kc', color || ''); knob.classList.toggle('colored', !!color); };
-  const range = h('input', { type: 'range', min: 0, max: 100, step: 1, value: Math.round(pos * 100), 'aria-label': 'Stellung', oninput: e => { pos = +e.target.value / 100; draw(); } });
+  const range = h('input', { type: 'range', min: Math.round(PR_PMIN * 100), max: Math.round(PR_PMAX * 100), step: 1, value: Math.round(pos * 100), 'aria-label': 'Stellung', oninput: e => { pos = +e.target.value / 100; draw(); } });
   const txt = h('input', { value: v.text || '', placeholder: 'z. B. −12 dB, 4:1, 30 ms', 'aria-label': 'Genauer Wert' });
   const chips = (opts, cur, set) => { const g = h('div', { class: 'chips' }, opts.map(([k, l]) => h('button', { class: 'chip', type: 'button', 'aria-pressed': String(cur === k), onclick: e => { set(k); g.querySelectorAll('.chip').forEach(x => x.setAttribute('aria-pressed', String(x === e.currentTarget))); } }, l))); return g; };
   const cross = () => h('div', { class: 'pr-cross', role: 'group', 'aria-label': 'Stellung' }, ['u', 'l', 'c', 'r', 'd'].map(k => h('button', { type: 'button', class: 'pr-cr ' + k, 'aria-pressed': String(dir === k), onclick: e => { dir = k; e.currentTarget.parentElement.querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', String(x === e.currentTarget))); } }, trText(PR_DIRS[k]))));
@@ -4433,7 +4434,7 @@ function showPhotoRecall(st, tpl, setup) {
       if (mode === 'setup' && resize) { const r = wrap.getBoundingClientRect(), cx = r.left + c.x * r.width, cy = r.top + c.y * r.height; c.r = Math.max(.015, Math.min(.45, Math.hypot(e.clientX - cx, e.clientY - cy) * 2 / Math.SQRT2 / r.width)); el.style.width = c.r * 100 + '%'; }
       else if (mode === 'setup') { const r = wrap.getBoundingClientRect(); c.x = Math.max(0, Math.min(1, cx0 + dx / r.width)); c.y = Math.max(0, Math.min(1, cy0 + dy / r.height)); el.style.left = c.x * 100 + '%'; el.style.top = c.y * 100 + '%'; }
       else if (c.type === 'dir') { if (Math.hypot(dx, dy) > 14) { const d = Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? 'r' : 'l') : (dy > 0 ? 'd' : 'u'); st.photo.vals[c.id] = { dir: d }; Object.assign(v, { dir: d }); refresh(); } }
-      else if (!c.type || c.type === 'knob') { const np = Math.max(0, Math.min(1, p0 + (-dy + dx) / 220)); st.photo.vals[c.id] = { ...v, pos: np, text: '' }; Object.assign(v, st.photo.vals[c.id]); refresh(); } });
+      else if (!c.type || c.type === 'knob') { const np = Math.max(PR_PMIN, Math.min(PR_PMAX, p0 + (-dy + dx) / 220)); st.photo.vals[c.id] = { ...v, pos: np, text: '' }; Object.assign(v, st.photo.vals[c.id]); refresh(); } });
     const pop = () => prControlPop(c, st.photo.vals[c.id] || {}, mode === 'setup', nv => { st.photo.vals[c.id] = nv; changed(); draw(); },
       () => { tpl.ctrls = tpl.ctrls.filter(x => x !== c); delete st.photo.vals[c.id]; changed(); draw(); },
       lv => { c.color = lv.color; c.r = lv.r; el.style.width = c.r * 100 + '%'; refresh(); });
@@ -8160,7 +8161,7 @@ function pageHelpSlides() {
 /* ================= home-screen app (PWA) ================= */
 const isStandalone = () => window.matchMedia?.('(display-mode: standalone)').matches || window.navigator.standalone === true;
 const isIOS = () => /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-const APP_VERSION = '06.11.2026 (17)';
+const APP_VERSION = '06.11.2026 (18)';
 function registerSW() {
   if (!('serviceWorker' in navigator) || (location.protocol !== 'https:' && location.hostname !== 'localhost') || IN_CLAUDE_HOST()) return;
   navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).then(reg => {
