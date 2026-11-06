@@ -2460,6 +2460,7 @@ button.ins:focus-visible{outline:2px solid #6c9bef;outline-offset:1px}
 .pr-mini{margin:0 auto;max-height:none;pointer-events:none}.pr-mini img{width:100%;height:100%;object-fit:contain;max-height:none;border-radius:8px}
 .pr-mini.nophoto{background:linear-gradient(160deg,#2a2f38,#15181d)}
 .dip-vals{margin:0;font-size:.82rem;color:var(--muted);overflow-wrap:anywhere}
+.dip-set{display:inline-flex;align-items:center;justify-content:center;gap:8px}.dip-set .cog-ico{width:18px;height:18px;flex:none}
 </style>
 </head>
 <body>
@@ -6758,6 +6759,7 @@ function prMini(st, tpl) {
     layer.append(h('div', { class: 'pr-ctrl t-' + (c.type || 'knob'), style: `left:${c.x * 100}%;top:${c.y * 100}%;width:${(c.r || .08) * 100}%` }, f)); });
   wrap.append(img, layer); return wrap;
 }
+const cogIcon = () => svg('svg', { class: 'cog-ico', viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', 'stroke-width': 1.8, 'stroke-linecap': 'round', 'stroke-linejoin': 'round', 'aria-hidden': 'true' }, svg('circle', { cx: 12, cy: 12, r: 3.2 }), svg('path', { d: 'M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z' }));
 function dualInsPop(ch, i) {
   const ov = h('div', { class: 'sheet-ov pop-ov', role: 'dialog', 'aria-modal': 'true', 'aria-label': ch.name || trText('Kanal') });
   const close = () => { ov.remove(); document.removeEventListener('keydown', esc, true); };
@@ -6771,9 +6773,9 @@ function dualInsPop(ch, i) {
     const vals = tpl ? tpl.ctrls.map(c => [c, st.photo.vals[c.id]]).filter(([c, v]) => v && prHasVal(c, v)).map(([c, v]) => (c.name ? c.name + ': ' : '') + (c.type && c.type !== 'knob' ? prVal(c, v) : v.text || prVal(c, v)))
       : Object.entries(st.vals || {}).filter(([k, v]) => String(v ?? '').trim() && !['aus', 'off', 'normal', 'false', '0'].includes(String(v).trim().toLowerCase())).map(([k, v]) => `${trText(k)}: ${v}`);
     return h('div', { class: 'dip-col' }, hd, h('b', { class: 'dip-dev no-i18n' }, st.gear || (tpl && tpl.name) || st.kind), h('small', { class: 'muted' }, st.kind),
-      tpl ? h('button', { class: 'dip-pic', type: 'button', 'aria-label': trText('Foto öffnen'), onclick: () => { close(); showPhotoRecall(st, tpl, false); } }, prMini(st, tpl)) : null,
+      tpl ? h('button', { class: 'dip-pic', type: 'button', 'aria-label': trText('Einstellungen'), onclick: () => { close(); showPhotoRecall(st, tpl, false); } }, prMini(st, tpl)) : null,
       h('p', { class: 'dip-vals' }, vals.length ? vals.join(' · ') : trText('Noch keine Werte eingetragen.')),
-      tpl ? h('button', { class: 'btn small nav', type: 'button', onclick: () => { close(); showPhotoRecall(st, tpl, false); } }, 'Foto öffnen') : null);
+      tpl ? h('button', { class: 'btn small nav dip-set', type: 'button', onclick: () => { close(); showPhotoRecall(st, tpl, false); } }, cogIcon(), trText('Einstellungen')) : null);
   };
   ov.append(h('div', { class: 'pop pop-dual' }, h('h3', {}, `${ch.name || trText('Kanal')} · Dual Mono`),
     h('div', { class: 'dip-grid' }, col('L', (ch.stages || [])[i]), col('R', (ch.stagesR || [])[i])),
@@ -8413,7 +8415,7 @@ function pageHelpSlides() {
 /* ================= home-screen app (PWA) ================= */
 const isStandalone = () => window.matchMedia?.('(display-mode: standalone)').matches || window.navigator.standalone === true;
 const isIOS = () => /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-const APP_VERSION = '06.11.2026 (26)';
+const APP_VERSION = '06.11.2026 (27)';
 function registerSW() {
   if (!('serviceWorker' in navigator) || (location.protocol !== 'https:' && location.hostname !== 'localhost') || IN_CLAUDE_HOST()) return;
   navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).then(reg => {
