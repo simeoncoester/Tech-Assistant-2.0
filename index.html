@@ -2232,9 +2232,11 @@ html .str[aria-pressed="true"].hot{background:linear-gradient(180deg,#5fe0a0,#1f
 .dt-settings[hidden]{display:none}
 .help-row .help-btn{animation:none!important}
 .help-row .help-logo.saber-logo{animation:none!important;filter:none;overflow:visible}
-.saber-logo .sb-glow{color:#3f7dff;filter:drop-shadow(0 0 4px rgba(63,125,255,1)) drop-shadow(0 0 10px rgba(63,125,255,.7));opacity:1}
-.saber-logo .sb-core{color:#9cc0ff}
-.ice .saber-logo .sb-glow{color:#8fb4ff;opacity:.55;filter:drop-shadow(0 0 4px rgba(61,123,255,.55))}
+.saber-logo .sb-haze{color:#2f5fd0;opacity:.28}
+.saber-logo .sb-glow{color:#3f7dff;opacity:.55}
+.saber-logo .sb-core{color:#a8c6ff}
+.ice .saber-logo .sb-haze{color:#6f9cff;opacity:.3}
+.ice .saber-logo .sb-glow{color:#5a8dff;opacity:.45}
 .ice .saber-logo .sb-core{color:#2a63d6}
 .help-row .help-q{font-size:30px;font-weight:900}
 html body.has-tabs main,html.glass body.has-tabs main,html.ice body.has-tabs main{padding-bottom:var(--tabpad,120px)}
@@ -6941,8 +6943,10 @@ function glassLogo(cls) {
     svg('line', { x1: 260, y1: 290, x2: 65, y2: 620, stroke: col, 'stroke-width': w * 1.2 }), svg('line', { x1: 210, y1: 290, x2: 412, y2: 620, stroke: col, 'stroke-width': w * 1.2 })];
   // thin light line with a soft blue glow (like a light sabre)
   return svg('svg', { viewBox: '-60 -60 586 770', class: (cls || '') + ' saber-logo', 'aria-hidden': 'true', fill: 'none', 'stroke-linecap': 'round' },
-    svg('g', { class: 'sb-glow' }, ...shapes(16, 'currentColor')),
-    svg('g', { class: 'sb-core' }, ...shapes(7, 'currentColor')));
+    svg('defs', {}, svg('filter', { id, x: '-30%', y: '-30%', width: '160%', height: '160%' }, svg('feGaussianBlur', { stdDeviation: 16 }))),
+    svg('g', { class: 'sb-haze', filter: `url(#${id})` }, ...shapes(30, 'currentColor')),
+    svg('g', { class: 'sb-glow', filter: `url(#${id})` }, ...shapes(10, 'currentColor')),
+    svg('g', { class: 'sb-core' }, ...shapes(4, 'currentColor')));
 }
 function logoSvg(cls, sw = 10) {
   return svg('svg', { viewBox: '0 0 466 650', class: cls || '', 'aria-hidden': 'true', fill: 'none', stroke: 'currentColor', 'stroke-width': sw, 'stroke-linecap': 'round' },
@@ -7547,7 +7551,7 @@ function pageHelpSlides() {
 /* ================= home-screen app (PWA) ================= */
 const isStandalone = () => window.matchMedia?.('(display-mode: standalone)').matches || window.navigator.standalone === true;
 const isIOS = () => /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-const APP_VERSION = '05.11.2026 (22)';
+const APP_VERSION = '06.11.2026 (1)';
 function registerSW() {
   if (!('serviceWorker' in navigator) || (location.protocol !== 'https:' && location.hostname !== 'localhost') || IN_CLAUDE_HOST()) return;
   navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).then(reg => {
