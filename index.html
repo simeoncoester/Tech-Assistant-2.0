@@ -2420,6 +2420,20 @@ button.ins:focus-visible{outline:2px solid #6c9bef;outline-offset:1px}
 .dual-col{scroll-snap-align:start;min-width:0;border:1px dashed var(--line);border-radius:14px;padding:8px}
 .dual-col .flow{margin-top:6px}
 .dual-hd{display:flex;align-items:center;gap:8px;font-weight:600;color:var(--muted);font-size:.85rem}
+.dual-tabs{display:none}
+@media (max-width:760px){
+  .dual-tabs{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}
+  .dual-tab{display:flex;align-items:center;gap:8px;padding:10px 12px;border-radius:12px;border:1px solid var(--line-strong);background:var(--surface-2);color:inherit;font:600 .95rem Barlow,sans-serif;cursor:pointer;text-align:left}
+  .dual-tab b{display:grid;place-items:center;width:24px;height:24px;border-radius:50%;background:rgba(240,170,70,.18);color:#f0b35a;font-size:.8rem;flex:none}
+  .dual-tab .dual-n{margin-left:auto;white-space:nowrap;font-weight:500;font-size:.75rem;color:var(--muted)}
+  .dual-tab i{font-style:normal;color:var(--muted);transition:transform .15s}
+  .dual-tab[aria-expanded="true"]{border-color:#f0b35a;box-shadow:0 0 0 1px rgba(240,170,70,.35)}
+  .dual-tab[aria-expanded="true"] i{transform:rotate(180deg)}
+  .dual{display:block;overflow:visible;margin-top:8px}
+  .dual-col{display:none;border:0;padding:0}
+  .dual.open-L .dual-col.L,.dual.open-R .dual-col.R{display:block}
+  .dual-hd{display:none}
+}
 .dual-hd b{display:grid;place-items:center;width:24px;height:24px;border-radius:50%;background:rgba(240,170,70,.18);color:#f0b35a;font-size:.8rem}
 .src-w{color:#7fb2ff;font-weight:700}
 .bus-dot{display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--bc);box-shadow:0 0 6px var(--bc);margin-right:8px;align-self:center;flex:none}
@@ -4676,6 +4690,7 @@ function busColorRow(b, busses) {
 }
 const capGrad = c => `linear-gradient(180deg,color-mix(in srgb,${c} 45%,#fff) 0%,${c} 44%,color-mix(in srgb,${c} 35%,#000) 50%,${c} 56%,color-mix(in srgb,${c} 45%,#fff) 100%)`;
 // channel width: mono (default), stereo (one chain for both sides) or dual mono (own chain for left and right, side by side)
+const dualOpen = {}; // phone: which side of a dual mono channel is folded out
 const CH_WIDTHS = [['mono', 'Mono'], ['stereo', 'Stereo'], ['dual', 'Dual Mono']];
 const chWidth = ch => ch.width === 'stereo' || ch.width === 'dual' ? ch.width : 'mono';
 const ensureRight = ch => { if (!Array.isArray(ch.stagesR)) ch.stagesR = JSON.parse(JSON.stringify(ch.stages || [])).map(st => ({ ...st, id: newId() })); }; // right side starts as a copy of the left
@@ -4688,9 +4703,18 @@ function chainCard(ch, arr, isBus, chans = []) {
   const flowOf = list => { const f = []; list.forEach((s, i) => { if (i) f.push(h('div', { class: 'arrow', 'aria-hidden': 'true' }, '↓')); f.push(stageBlock(s, list)); }); return list.length ? h('div', { class: 'flow' }, f) : null; };
   const badge = w === 'mono' ? null : h('span', { class: 'ch-width w-' + w }, w === 'stereo' ? 'Stereo' : 'Dual Mono');
   const widthSeg = h('div', { class: 'seg ch-wseg', role: 'group', 'aria-label': 'Kanalbreite' }, CH_WIDTHS.map(([k, l]) => h('button', { type: 'button', 'aria-pressed': String(w === k), onclick: () => setChWidth(ch, k) }, l)));
-  const chainPart = dual
-    ? h('div', { class: 'dual' }, [['L', ch.stages], ['R', ch.stagesR]].map(([side, list]) => h('div', { class: 'dual-col' }, h('div', { class: 'dual-hd' }, h('b', {}, side), trText(side === 'L' ? 'Links' : 'Rechts')), flowOf(list), h('div', { style: 'margin-top:10px' }, addSel(list)))))
-    : [flowOf(ch.stages), h('div', { style: 'margin-top:12px' }, addSel(ch.stages))];
+  // dual mono: side by side on wide screens; on the phone two buttons fold out the left or the right chain
+  let chainPart;
+  if (dual) {
+    const box = h('div', { class: 'dual' + (dualOpen[ch.id] ? ' open-' + dualOpen[ch.id] : '') }, [['L', ch.stages], ['R', ch.stagesR]].map(([side, list]) => h('div', { class: 'dual-col ' + side }, h('div', { class: 'dual-hd' }, h('b', {}, side), trText(side === 'L' ? 'Links' : 'Rechts')), flowOf(list), h('div', { style: 'margin-top:10px' }, addSel(list)))));
+    const tab = side => h('button', { class: 'dual-tab', type: 'button', 'aria-expanded': String(dualOpen[ch.id] === side), onclick: () => {
+      dualOpen[ch.id] = dualOpen[ch.id] === side ? null : side;
+      box.className = 'dual' + (dualOpen[ch.id] ? ' open-' + dualOpen[ch.id] : '');
+      tabs.querySelectorAll('.dual-tab').forEach((b, i) => b.setAttribute('aria-expanded', String(dualOpen[ch.id] === (i ? 'R' : 'L')))); } },
+      h('b', {}, side), trText(side === 'L' ? 'Links' : 'Rechts'), h('span', { class: 'dual-n' }, plural((side === 'L' ? ch.stages : ch.stagesR).length, 'Stufe', 'Stufen')), h('i', { 'aria-hidden': 'true' }, '▾'));
+    const tabs = h('div', { class: 'dual-tabs' }, tab('L'), tab('R'));
+    chainPart = [tabs, box];
+  } else chainPart = [flowOf(ch.stages), h('div', { style: 'margin-top:12px' }, addSel(ch.stages))];
   return h('details', { class: 'chain', open: openSet.has(ch.id), ontoggle: e => e.target.open ? openSet.add(ch.id) : openSet.delete(ch.id) },
     h('summary', {}, h('span', { class: 'ch-name' }, isBus ? h('i', { class: 'bus-dot', style: `--bc:${busColor(ch, arr)}`, 'aria-hidden': 'true' }) : null, h('span', { class: 'ch-n' }, ch.name || (isBus ? 'Unbenannter Bus' : 'Unbenannter Kanal')), badge)),
     h('div', { class: 'ch-body' },
@@ -8326,7 +8350,7 @@ function pageHelpSlides() {
 /* ================= home-screen app (PWA) ================= */
 const isStandalone = () => window.matchMedia?.('(display-mode: standalone)').matches || window.navigator.standalone === true;
 const isIOS = () => /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-const APP_VERSION = '06.11.2026 (23)';
+const APP_VERSION = '06.11.2026 (24)';
 function registerSW() {
   if (!('serviceWorker' in navigator) || (location.protocol !== 'https:' && location.hostname !== 'localhost') || IN_CLAUDE_HOST()) return;
   navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).then(reg => {
