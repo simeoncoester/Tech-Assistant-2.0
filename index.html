@@ -2428,6 +2428,8 @@ button.ins:focus-visible{outline:2px solid #6c9bef;outline-offset:1px}
 .bus-sw{width:30px;height:30px;border-radius:50%;border:2px solid rgba(255,255,255,.2);background:var(--bc);cursor:pointer;padding:0}
 .bus-sw[aria-pressed="true"]{outline:2px solid var(--bc);outline-offset:3px;border-color:#fff}
 .bus-src .chip[aria-pressed="true"]{color:#fff;border-color:var(--accent,#4d8cf0);background:rgba(77,140,240,.22)}
+.knob.send{background:radial-gradient(circle at 36% 30%,color-mix(in srgb,var(--bc) 55%,#fff),var(--bc) 55%,color-mix(in srgb,var(--bc) 45%,#000));--kc:#111}
+.send-lbl{max-width:100%;overflow:hidden;text-overflow:clip;white-space:nowrap}
 </style>
 </head>
 <body>
@@ -4673,11 +4675,6 @@ function busColorRow(b, busses) {
     h('div', { class: 'bus-colors', role: 'group', 'aria-label': 'Farbe am Fader' }, BUS_COLORS.map(c => h('button', { type: 'button', class: 'bus-sw', style: `--bc:${c}`, 'aria-label': c, 'aria-pressed': String(cur === c), onclick: () => { b.color = c; touch(); render(true); } }))));
 }
 const capGrad = c => `linear-gradient(180deg,color-mix(in srgb,${c} 45%,#fff) 0%,${c} 44%,color-mix(in srgb,${c} 35%,#000) 50%,${c} 56%,color-mix(in srgb,${c} 45%,#fff) 100%)`;
-// channel fader cap: upper half as usual, lower half split into the colours of the busses it feeds
-function capSplit(colors) {
-  const n = colors.length, bands = colors.map((c, i) => { const a = 52 + i * 48 / n, e = 52 + (i + 1) * 48 / n; return `${c} ${a}%,${c} ${e}%`; }).join(',');
-  return `linear-gradient(180deg,#ffffff 0%,#d9dde3 44%,#5b6068 48%,#20242a 52%,${bands})`;
-}
 // channel width: mono (default), stereo (one chain for both sides) or dual mono (own chain for left and right, side by side)
 const CH_WIDTHS = [['mono', 'Mono'], ['stereo', 'Stereo'], ['dual', 'Dual Mono']];
 const chWidth = ch => ch.width === 'stereo' || ch.width === 'dual' ? ch.width : 'mono';
@@ -6639,11 +6636,22 @@ function holdToAdjust(el, { start, move, end }) {
   });
   el.addEventListener('contextmenu', e => e.preventDefault());
 }
-function colorFader(parts, feeds, own) {
-  const cap = parts[1].querySelector('.cap');
-  if (own) cap.style.background = capGrad(own); else if (feeds && feeds.length) cap.style.background = capSplit(feeds);
-  return parts;
+// aux / bus send of a channel: −∞ … +10 dB like the fader scale, default 0 dB
+function sendKnob(m, b, color) {
+  m.sends ||= {}; if (!(b.id in m.sends)) m.sends[b.id] = 0;
+  const name = b.name || trText('Bus'), val = h('span', { class: 'kval' });
+  const k = h('div', { class: 'knob send', tabindex: 0, role: 'slider', style: `--bc:${color}`, 'aria-label': `Send ${name}`, 'aria-valuemin': -90, 'aria-valuemax': 10 });
+  const pos = () => dbToPos(m.sends[b.id]);
+  const draw = () => { k.style.setProperty('--a', `${-135 + pos() * 270}deg`); const t = fmtDb(m.sends[b.id]); val.textContent = t; k.setAttribute('aria-valuetext', t + ' dB'); };
+  const set = pp => { pp = Math.max(0, Math.min(1, pp)); let db = posToDb(pp); if (db != null) { db = Math.round(db * 10) / 10; if (Math.abs(db) < .6) db = 0; } m.sends[b.id] = db; draw(); };
+  let y0 = 0, p0 = 0;
+  holdToAdjust(k, { start: y => { y0 = y; p0 = pos(); }, move: y => set(p0 + (y0 - y) / 160), end: () => touch() });
+  k.addEventListener('dblclick', () => { m.sends[b.id] = 0; draw(); touch(); });
+  k.addEventListener('keydown', e => { if (!['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) return; e.preventDefault(); set(pos() + (['ArrowUp', 'ArrowRight'].includes(e.key) ? .03 : -.03)); touch(); });
+  draw();
+  return h('div', { class: 'knob-wrap send-wrap', title: name }, h('span', { class: 'send-lbl', style: `color:${color}` }, (name.replace(/[-\s]*(bus|send)$/i, '') || name).slice(0, 7).toUpperCase()), k, val);
 }
+function colorFader(parts, own) { if (own) parts[1].querySelector('.cap').style.background = capGrad(own); return parts; }
 function faderEl(obj, label) {
   const readout = h('div', { class: 'dbv' }), cap = h('div', { class: 'cap' });
   const ticks = [[10, '+10'], [5, '5'], [0, '0'], [-10, '10'], [-20, '20'], [-30, '30'], [-40, '40'], [-60, '60'], [null, '∞']].map(([db, l]) =>
@@ -6697,6 +6705,10 @@ function viewConsole() {
   const all = [...C.channels, ...C.busses];
   all.forEach(c => c.mix ||= { fader: 0, pan: 0, mute: false, solo: false });
   const wrap = h('div', { class: 'console-wrap' });
+  // one send knob per bus that has channels, in the bus colour; strips that do not feed it keep an empty slot so the rows line up
+  const sendBusses = () => C.busses.filter(b => (b.srcIds || []).some(id => C.channels.some(c => c.id === id)));
+  const sendRows = (ch, kind) => sendBusses().map(b => kind === 'ch' && (b.srcIds || []).includes(ch.id) ? sendKnob(ch.mix, b, busColor(b, C.busses))
+    : h('div', { class: 'knob-wrap', style: 'visibility:hidden', 'aria-hidden': 'true' }, 'S', h('div', { class: 'knob ro' }), h('span', { class: 'kval' }, '–')));
   const strip = (ch, kind, anySolo, redraw) => {
     const m = ch.mix, ins = ch.stages.slice(0, 4).map(st => { const [sh, col] = STAGE_UI[st.kind] || STAGE_UI.Sonstiges; const tpl = st.photo && S.devTpls.find(t => t.id === st.photo.tplId); const g = (st.gear || (tpl && tpl.name) || '').trim().split(/\s+/).pop();
       return h('button', { class: 'ins' + (tpl ? ' has-photo' : ''), type: 'button', style: `--k:${col}`, title: `${st.kind}${st.gear ? ': ' + st.gear : ''}`, 'aria-label': `${st.kind}${st.gear ? ': ' + st.gear : ''}${tpl ? ', ' + trText('Foto mit Einstellungen') : ''}`, onclick: () => insOpen(st, tpl) }, h('i', {}, sh), h('span', {}, g || '')); });
@@ -6704,8 +6716,8 @@ function viewConsole() {
     const toggle = (key, cls, label) => h('button', { class: cls, type: 'button', 'aria-pressed': String(!!m[key]), 'aria-label': `${label} ${ch.name || ''}`, onclick: () => { m[key] = !m[key]; touch(); redraw(); } }, cls.toUpperCase());
     return h('div', { class: `strip ${kind}` + (anySolo && !m.solo ? ' dim' : '') + (m.mute ? ' dim' : '') },
       ins, kind === 'ch' ? gainKnob(ch) : h('div', { class: 'knob-wrap', style: 'visibility:hidden' }, 'GAIN', h('div', { class: 'knob ro' }), h('span', { class: 'kval' }, '–')),
-      panKnob(m), h('div', { class: 'ms' }, toggle('mute', 'm', 'Stumm'), toggle('solo', 's', 'Solo')),
-      colorFader(faderEl(m, ch.name || 'Kanal'), kind === 'ch' ? C.busses.filter(b => (b.srcIds || []).includes(ch.id)).map(b => busColor(b, C.busses)) : null, kind === 'ch' ? null : busColor(ch, C.busses)),
+      panKnob(m), sendRows(ch, kind), h('div', { class: 'ms' }, toggle('mute', 'm', 'Stumm'), toggle('solo', 's', 'Solo')),
+      colorFader(faderEl(m, ch.name || 'Kanal'), kind === 'ch' ? null : busColor(ch, C.busses)),
       h('button', { class: 'scribble', type: 'button', title: 'Signalkette öffnen', onclick: () => { openSet.add(ch.id); nav('chain'); } }, ch.name || (kind === 'bus' ? 'Bus' : 'Kanal')),
       h('div', { class: 'src' }, chWidth(ch) === 'stereo' ? h('b', { class: 'src-w' }, 'ST ') : chWidth(ch) === 'dual' ? h('b', { class: 'src-w' }, 'L/R ') : null, kind === 'bus' ? (ch.source || 'Bus') : kind === 'send' ? (ch.source || 'Send') : (ch.source || '')));
   };
@@ -6719,6 +6731,7 @@ function viewConsole() {
       h('div', { class: 'strip master' }, h('div', { class: 'ins empty' }), h('div', { class: 'ins empty' }), h('div', { class: 'ins empty' }), h('div', { class: 'ins empty' }),
         h('div', { class: 'knob-wrap', style: 'visibility:hidden' }, 'GAIN', h('div', { class: 'knob ro' }), h('span', { class: 'kval' }, '–')),
         h('div', { class: 'knob-wrap', style: 'visibility:hidden' }, 'PAN', h('div', { class: 'knob ro' }), h('span', { class: 'kval' }, '–')),
+        sendRows(null, 'master'),
         h('div', { class: 'ms', style: 'visibility:hidden' }, h('button', {}, 'M')),
         faderEl(C.master, 'Master'), h('div', { class: 'scribble', style: 'cursor:default' }, 'Master'), h('div', { class: 'src' }, 'Stereo'))));
   };
@@ -8313,7 +8326,7 @@ function pageHelpSlides() {
 /* ================= home-screen app (PWA) ================= */
 const isStandalone = () => window.matchMedia?.('(display-mode: standalone)').matches || window.navigator.standalone === true;
 const isIOS = () => /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-const APP_VERSION = '06.11.2026 (22)';
+const APP_VERSION = '06.11.2026 (23)';
 function registerSW() {
   if (!('serviceWorker' in navigator) || (location.protocol !== 'https:' && location.hostname !== 'localhost') || IN_CLAUDE_HOST()) return;
   navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).then(reg => {
