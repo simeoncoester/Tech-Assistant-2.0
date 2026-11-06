@@ -6775,11 +6775,10 @@ function dualInsPop(ch, i) {
     const hd = h('div', { class: 'dual-hd' }, h('b', {}, side), trText(side === 'L' ? 'Links' : 'Rechts'));
     if (!st) return h('div', { class: 'dip-col' }, hd, h('p', { class: 'muted' }, 'Keine Stufe'));
     const tpl = tplOf(st);
-    const vals = tpl ? tpl.ctrls.map(c => [c, st.photo.vals[c.id]]).filter(([c, v]) => v && prHasVal(c, v)).map(([c, v]) => (c.name ? c.name + ': ' : '') + (c.type && c.type !== 'knob' ? prVal(c, v) : v.text || prVal(c, v)))
-      : Object.entries(st.vals || {}).filter(([k, v]) => String(v ?? '').trim() && !['aus', 'off', 'normal', 'false', '0'].includes(String(v).trim().toLowerCase())).map(([k, v]) => `${trText(k)}: ${v}`);
+    const vals = tpl ? [] : Object.entries(st.vals || {}).filter(([k, v]) => String(v ?? '').trim() && !['aus', 'off', 'normal', 'false', '0'].includes(String(v).trim().toLowerCase())).map(([k, v]) => `${trText(k)}: ${v}`);
     return h('div', { class: 'dip-col' }, hd, h('b', { class: 'dip-dev no-i18n' }, st.gear || (tpl && tpl.name) || st.kind), h('small', { class: 'muted' }, st.kind),
       tpl ? h('button', { class: 'dip-pic', type: 'button', 'aria-label': trText('Einstellungen'), onclick: () => { close(); showPhotoRecall(st, tpl, false); } }, prMini(st, tpl)) : null,
-      h('p', { class: 'dip-vals' }, vals.length ? vals.join(' · ') : trText('Noch keine Werte eingetragen.')),
+      tpl ? null : h('p', { class: 'dip-vals' }, vals.length ? vals.join(' · ') : trText('Noch keine Werte eingetragen.')), // with a photo the picture shows the settings
       tpl ? h('button', { class: 'btn small nav dip-set', type: 'button', onclick: () => { close(); showPhotoRecall(st, tpl, false); } }, cogIcon(), trText('Einstellungen')) : null);
   };
   ov.append(h('div', { class: 'pop pop-dual' }, h('h3', {}, `${ch.name || trText('Kanal')} · Dual Mono`),
@@ -8420,7 +8419,7 @@ function pageHelpSlides() {
 /* ================= home-screen app (PWA) ================= */
 const isStandalone = () => window.matchMedia?.('(display-mode: standalone)').matches || window.navigator.standalone === true;
 const isIOS = () => /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-const APP_VERSION = '06.11.2026 (28)';
+const APP_VERSION = '06.11.2026 (29)';
 function registerSW() {
   if (!('serviceWorker' in navigator) || (location.protocol !== 'https:' && location.hostname !== 'localhost') || IN_CLAUDE_HOST()) return;
   navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).then(reg => {
