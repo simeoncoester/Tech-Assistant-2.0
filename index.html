@@ -2366,6 +2366,9 @@ html.ice .res-slots .slot[aria-pressed="true"] em{color:#0f6a3c}
 .pr-pop-ov .pr-pop{max-height:none;overflow:visible}
 .pr-ctrl{display:block!important}
 .pr-ctrl > .pr-lab{position:absolute;left:50%;top:100%;transform:translate(-50%,3px)}
+/* names under the controls: while placing them, and always without the photo (shared mask / eye view) */
+.pr-photo .pr-ctrl:not(.setup) > .pr-lab{display:none}
+.pr-photo.nophoto .pr-ctrl > .pr-lab,.pr-photo.mask .pr-ctrl > .pr-lab{display:flex}
 .pr-photo img{width:100%;height:100%;max-height:none!important;max-width:none!important;object-fit:fill}
 .pr-main{position:relative}
 .pr-photo{flex:none}
@@ -4400,7 +4403,7 @@ function showPhotoRecall(st, tpl, setup) {
     c.r ||= .08;
     const isSel = mode === 'setup' && sel === c.id;
     const el = h('div', { class: 'pr-ctrl t-' + (c.type || 'knob') + (mode === 'setup' ? ' setup' : '') + (isSel ? ' sel' : '') + (c.x < .14 ? ' fl' : '') + (c.x > .86 ? ' fr' : ''), style: `left:${c.x * 100}%;top:${c.y * 100}%;width:${c.r * 100}%`, role: 'button', tabindex: 0, 'aria-label': c.name ? `${c.name}: ${prVal(c, v)}` : prVal(c, v) },
-      face(c, v), mode === 'setup' && c.name ? h('div', { class: 'pr-lab' }, h('b', { class: 'no-i18n' }, c.name)) : null,
+      face(c, v), c.name ? h('div', { class: 'pr-lab' }, h('b', { class: 'no-i18n' }, c.name)) : null,
       isSel ? h('span', { class: 'pr-mv', role: 'button', 'aria-label': 'Verschieben', title: 'Verschieben' }, svg('svg', { viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', 'stroke-width': 2, 'stroke-linecap': 'round', 'stroke-linejoin': 'round' }, svg('path', { d: 'M12 3v18M3 12h18M12 3l-3 3M12 3l3 3M12 21l-3-3M12 21l3-3M3 12l3-3M3 12l3 3M21 12l-3-3M21 12l-3 3' }))) : null,
       isSel ? h('span', { class: 'pr-sz', role: 'button', 'aria-label': 'Größe ändern', title: 'Größe ändern' }, svg('svg', { viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', 'stroke-width': 2, 'stroke-linecap': 'round', 'stroke-linejoin': 'round' }, svg('circle', { cx: 12, cy: 12, r: 9, 'stroke-dasharray': '3 3' }), svg('path', { d: 'M12 7v10M12 7l-2.5 2.5M12 7l2.5 2.5M12 17l-2.5-2.5M12 17l2.5-2.5' }))) : null);
     const refresh = () => { el.replaceChild(face(c, st.photo.vals[c.id] || {}), el.firstChild); };
@@ -8110,7 +8113,7 @@ function pageHelpSlides() {
 /* ================= home-screen app (PWA) ================= */
 const isStandalone = () => window.matchMedia?.('(display-mode: standalone)').matches || window.navigator.standalone === true;
 const isIOS = () => /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-const APP_VERSION = '06.11.2026 (14)';
+const APP_VERSION = '06.11.2026 (15)';
 function registerSW() {
   if (!('serviceWorker' in navigator) || (location.protocol !== 'https:' && location.hostname !== 'localhost') || IN_CLAUDE_HOST()) return;
   navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).then(reg => {
