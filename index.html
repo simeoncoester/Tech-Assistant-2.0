@@ -2331,10 +2331,18 @@ html.ice .res-slots .slot[aria-pressed="true"] em{color:#0f6a3c}
 .pr-push.colored{background:radial-gradient(circle at 40% 32%,color-mix(in srgb,var(--kc) 55%,#fff),var(--kc) 60%,color-mix(in srgb,var(--kc) 55%,#000))}
 .pr-push.in{transform:scale(.86);box-shadow:inset 0 3px 6px rgba(0,0,0,.7),0 0 0 3px rgba(0,0,0,.3);filter:brightness(.8)}
 .pr-push.set{border-color:#3ddc8c}
-.pr-dir{position:relative;box-sizing:border-box;border-radius:22%;border:2px solid rgba(108,155,239,.85);background:linear-gradient(#20252e,#0b0d11);box-shadow:0 0 0 3px rgba(0,0,0,.3)}
-.pr-dir::before,.pr-dir::after{content:"";position:absolute;left:50%;top:50%;background:rgba(255,255,255,.18);transform:translate(-50%,-50%)}
-.pr-dir::before{width:12%;height:70%}.pr-dir::after{width:70%;height:12%}
-.pr-dir i{position:absolute;left:50%;top:50%;width:34%;height:34%;border-radius:50%;background:var(--kc,#e8edf5);box-shadow:0 1px 3px rgba(0,0,0,.6);transform:translate(calc(-50% + var(--dx) * 70%),calc(-50% + var(--dy) * 70%));transition:transform .12s}
+/* 5-way switch drawn like a toggle switch: round nut, lever tilted towards the position (centre = lever straight towards you) */
+.pr-dir{position:relative;box-sizing:border-box;border-radius:50%;border:2px solid rgba(108,155,239,.85);background:radial-gradient(circle at 38% 32%,#f2f4f7,#a9b0ba 45%,#5c636d 75%,#2c3036);box-shadow:0 0 0 3px rgba(0,0,0,.35),inset 0 0 0 18% rgba(0,0,0,.25)}
+.pr-dir::before{content:"";position:absolute;inset:22%;border-radius:50%;background:radial-gradient(circle at 40% 35%,#3a3f47,#0e1013);box-shadow:inset 0 1px 2px rgba(0,0,0,.8)}
+.pr-dir i{position:absolute;left:50%;top:50%;width:30%;height:30%;border-radius:999px;background:linear-gradient(90deg,#8e959f,#f4f6f9 45%,#a6adb7);box-shadow:0 1px 3px rgba(0,0,0,.6);transform:translate(-50%,-50%);transition:transform .14s,height .14s}
+.pr-dir i::after{content:"";position:absolute;left:50%;top:0;width:100%;aspect-ratio:1;border-radius:50%;transform:translateX(-50%);background:radial-gradient(circle at 40% 35%,#fff,#c9ced6 55%,#7d848e);box-shadow:0 1px 2px rgba(0,0,0,.5)}
+.pr-dir.colored i::after{background:radial-gradient(circle at 40% 35%,color-mix(in srgb,var(--kc) 45%,#fff),var(--kc) 60%,color-mix(in srgb,var(--kc) 55%,#000))}
+.pr-dir:not([data-d="c"]) i{height:48%;width:18%;transform-origin:50% 100%}
+.pr-dir:not([data-d="c"]) i::after{width:170%}
+.pr-dir[data-d="u"] i{transform:translate(-50%,-100%) rotate(0deg)}
+.pr-dir[data-d="r"] i{transform:translate(-50%,-100%) rotate(90deg)}
+.pr-dir[data-d="d"] i{transform:translate(-50%,-100%) rotate(180deg)}
+.pr-dir[data-d="l"] i{transform:translate(-50%,-100%) rotate(270deg)}
 .pr-dir.set{border-color:#3ddc8c}
 .pr-colors{display:flex;flex-wrap:wrap;gap:8px}
 .pr-col{all:unset;cursor:pointer;width:30px;height:30px;border-radius:50%;background:var(--sw);border:2px solid rgba(255,255,255,.35);box-sizing:border-box;display:grid;place-items:center;font-size:.9rem;color:var(--muted)}
@@ -4274,7 +4282,7 @@ function showPhotoRecall(st, tpl, setup) {
     const col = c.color ? `--kc:${c.color}` : '';
     if (c.type === 'switch') return h('div', { class: 'pr-sw' + (v.on ? ' on' : ''), style: col }, h('i'));
     if (c.type === 'push') return h('div', { class: 'pr-push' + (v.in ? ' in' : '') + (c.color ? ' colored' : '') + (prHasVal(c, v) ? ' set' : ''), style: col });
-    if (c.type === 'dir') { const [dx, dy] = DIRXY[v.dir || 'c']; return h('div', { class: 'pr-dir' + (prHasVal(c, v) ? ' set' : ''), style: col }, h('i', { style: `--dx:${dx};--dy:${dy}` })); }
+    if (c.type === 'dir') return h('div', { class: 'pr-dir' + (prHasVal(c, v) ? ' set' : '') + (c.color ? ' colored' : ''), style: col, 'data-d': v.dir || 'c' }, h('i'));
     const k = h('div', { class: 'pr-knob' + (prHasVal(c, v) ? ' set' : '') + (c.color ? ' colored' : ''), style: col }, h('i', { class: 'pr-ptr' }));
     k.style.setProperty('--a', (-135 + (v.pos ?? 0) * 270) + 'deg'); return k;
   }
@@ -7948,7 +7956,7 @@ function pageHelpSlides() {
 /* ================= home-screen app (PWA) ================= */
 const isStandalone = () => window.matchMedia?.('(display-mode: standalone)').matches || window.navigator.standalone === true;
 const isIOS = () => /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-const APP_VERSION = '06.11.2026 (7)';
+const APP_VERSION = '06.11.2026 (8)';
 function registerSW() {
   if (!('serviceWorker' in navigator) || (location.protocol !== 'https:' && location.hostname !== 'localhost') || IN_CLAUDE_HOST()) return;
   navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).then(reg => {
