@@ -6896,8 +6896,7 @@ function viewConsole() {
       h('p', { class: 'muted', style: 'margin:0 0 6px;font-size:.9rem' }, name),
       all.length ? wrap : h('div', { class: 'empty' }, 'Noch keine Kanäle. Leg sie in der Recording Recall an, dann erscheinen sie hier als Kanalzüge.'),
       h('div', { class: 'row' },
-        h('button', { class: 'btn nav', type: 'button', onclick: () => nav('chain') }, 'Zur Recording Recall'),
-        all.length ? h('button', { class: 'btn ghost', type: 'button', onclick: () => { all.forEach(c => Object.assign(c.mix, { fader: 0, pan: 0, mute: false, solo: false })); C.master.fader = 0; touch(); draw(); } }, 'Alles auf 0 dB') : null),
+        h('button', { class: 'btn nav', type: 'button', onclick: () => nav('chain') }, 'Zur Recording Recall')),
       null
     ]
   };
@@ -8514,7 +8513,7 @@ function pageHelpSlides() {
 /* ================= home-screen app (PWA) ================= */
 const isStandalone = () => window.matchMedia?.('(display-mode: standalone)').matches || window.navigator.standalone === true;
 const isIOS = () => /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-const APP_VERSION = '07.11.2026 (1)';
+const APP_VERSION = '08.11.2026 (1)';
 function registerSW() {
   if (!('serviceWorker' in navigator) || (location.protocol !== 'https:' && location.hostname !== 'localhost') || IN_CLAUDE_HOST()) return;
   navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).then(reg => {
