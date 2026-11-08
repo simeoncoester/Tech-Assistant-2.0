@@ -6166,7 +6166,7 @@ function viewInst() {
     const C = P().totalChain ||= { channels: [], busses: [] }, n = C.channels.length, nb = C.busses.length;
     const open = () => nav('chain', { chainOwner: 'total', prodId: route.prodId, chainFrom: 'inst' });
     return h('div', { class: 'inst-sets' },
-      h('div', { class: 'inst-sets-hd' }, h('span', {}, 'Total Recall'), h('button', { class: 'linkbtn', type: 'button', onclick: open }, n || nb ? 'Öffnen' : 'Anlegen')),
+      h('div', { class: 'inst-sets-hd' }, h('span', {}, 'Total Recall')),
       h('button', { class: 'mode colored rowcard total-recall', style: '--c:var(--accent)', type: 'button', onclick: open }, h('span', { class: 'rc-ico' }, areaIcon('chain')),
         h('span', { class: 'rc-text' }, h('b', {}, 'Total Recall'), h('small', { class: 'tr-sum' }, n || nb ? [plural(n, 'Kanal', 'Kanäle'), nb ? plural(nb, 'Bus', 'Busse') : ''].filter(Boolean).join(', ') : trText('Alle Kanäle der Produktion, unabhängig vom Instrument')))),
       h('button', { class: 'mode colored rowcard total-mixer', style: '--c:var(--accent)', type: 'button', onclick: () => nav('console', { chainOwner: 'total', prodId: route.prodId, consoleFrom: 'inst' }) }, h('span', { class: 'rc-ico' }, areaIcon('console')),
@@ -8611,7 +8611,7 @@ function pageHelpSlides() {
 /* ================= home-screen app (PWA) ================= */
 const isStandalone = () => window.matchMedia?.('(display-mode: standalone)').matches || window.navigator.standalone === true;
 const isIOS = () => /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-const APP_VERSION = '08.11.2026 (5)';
+const APP_VERSION = '08.11.2026 (6)';
 function registerSW() {
   if (!('serviceWorker' in navigator) || (location.protocol !== 'https:' && location.hostname !== 'localhost') || IN_CLAUDE_HOST()) return;
   navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).then(reg => {
