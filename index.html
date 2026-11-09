@@ -2281,6 +2281,7 @@ html.ice .res-slots .slot[aria-pressed="true"] em{color:#0f6a3c}
 .pr-view > .pr-photo{position:absolute;left:0;top:0;max-width:none!important;max-height:none!important}
 .pr-txt{position:absolute;inset:0;pointer-events:none}.pr-txt svg{display:block;width:100%;height:100%}
 .pr-photo.mask .pr-txt,.pr-photo.nophoto .pr-txt{display:none}
+.pr-view.pr-flip > .pr-photo{animation:prFlip .22s ease-out}@keyframes prFlip{from{opacity:.35}to{opacity:1}}
 .pr-pages{display:flex;flex-wrap:wrap;justify-content:center;gap:4px;margin:6px auto 0;max-width:min(100%,720px)}
 .pr-pages button{flex:1 1 auto;font-size:.82rem;padding:6px 8px}
 .pr-ov.setup .pr-layer{cursor:crosshair;outline:1px dashed rgba(108,155,239,.5);outline-offset:-1px;border-radius:10px}
@@ -5165,11 +5166,18 @@ function showPhotoRecall(st, tpl, setup) {
     prMaskView = !prMaskView; eyeDraw(); });
   eyeDraw();
   // big drawn consoles come in pages: the view shows one region of the panel, enlarged
-  const fpDef = tpl.builtin && FACEPLATES[tpl.builtin], pages = fpDef && fpDef.pages ? [...fpDef.pages, [trText('Alles'), 0, 0, 1, 1]] : null;
+  const fpDef = tpl.builtin && FACEPLATES[tpl.builtin], pages = fpDef && fpDef.pages ? [['Alles', 0, 0, 1, 1], ...fpDef.pages] : null;
   let pg = pages ? Math.min(prPage[tpl.id] ?? 0, pages.length - 1) : 0;
   const region = () => pages ? pages[pg].slice(1) : [0, 0, 1, 1];
   const view = h('div', { class: 'pr-view' }, wrap);
-  const pageBar = pages ? h('div', { class: 'seg pr-pages', role: 'group', 'aria-label': trText('Bereich') }, pages.map((q, i) => h('button', { type: 'button', 'aria-pressed': String(i === pg), onclick: e => { pg = i; prPage[tpl.id] = i; e.currentTarget.parentNode.querySelectorAll('button').forEach((b, j) => b.setAttribute('aria-pressed', String(j === pg))); fit(); } }, trText(q[0])))) : null;
+  const goPage = i => { if (!pages) return; pg = (i + pages.length) % pages.length; prPage[tpl.id] = pg; pageBar.querySelectorAll('button').forEach((b, j) => b.setAttribute('aria-pressed', String(j === pg))); view.classList.remove('pr-flip'); void view.offsetWidth; view.classList.add('pr-flip'); fit(); };
+  const pageBar = pages ? h('div', { class: 'seg pr-pages', role: 'group', 'aria-label': trText('Bereich') }, pages.map((q, i) => h('button', { type: 'button', 'aria-pressed': String(i === pg), onclick: () => goPage(i) }, trText(q[0])))) : null;
+  // view mode: swipe left / right through the sections (captured before the controls see the touch)
+  if (pages) { let sw = null;
+    const up = e => { window.removeEventListener('pointerup', up, true); if (!sw) return; const dx = e.clientX - sw.x, dy = e.clientY - sw.y; sw = null;
+      if (Math.abs(dx) > 45 && Math.abs(dx) > Math.abs(dy) * 1.4) goPage(pg + (dx < 0 ? 1 : -1)); };
+    view.addEventListener('pointerdown', e => { sw = mode === 'view' ? { x: e.clientX, y: e.clientY } : null; if (sw) window.addEventListener('pointerup', up, true); }, true);
+    view.addEventListener('pointercancel', () => { sw = null; }, true); }
   const main = h('div', { class: 'pr-main' }, view);
   // the photo is fitted into the free space; the control layer lies exactly on it
   function fit() { const m = main.getBoundingClientRect(); if (!m.width || !m.height) return; const ar = (img.naturalWidth && img.naturalHeight ? img.naturalWidth / img.naturalHeight : 0) || tpl.ar || 1.5;
@@ -9125,7 +9133,7 @@ function pageHelpSlides() {
 /* ================= home-screen app (PWA) ================= */
 const isStandalone = () => window.matchMedia?.('(display-mode: standalone)').matches || window.navigator.standalone === true;
 const isIOS = () => /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-const APP_VERSION = '09.11.2026 (22)';
+const APP_VERSION = '09.11.2026 (23)';
 function registerSW() {
   if (!('serviceWorker' in navigator) || (location.protocol !== 'https:' && location.hostname !== 'localhost') || IN_CLAUDE_HOST()) return;
   navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).then(reg => {
