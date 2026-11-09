@@ -39,7 +39,7 @@ const { chromium, devices } = require('playwright');
  // one layer: picture, lettering and controls keep exactly the same place on the plate at every zoom, in every mode
  const geo = () => p.evaluate(() => { const ph = document.querySelector('.pr-photo'), w = ph.getBoundingClientRect(); const rel = r => [(r.left - w.left) / w.width, (r.top - w.top) / w.height, r.width / w.width, r.height / w.height].map(v => v.toFixed(3)).join(',');
    return { lay: ph.offsetWidth, parts: [ph.querySelector('img'), ph.querySelector('.pr-txt svg'), ph.querySelector('.pr-layer')].map(e => rel(e.getBoundingClientRect())).join(' '), ctrls: [...ph.querySelectorAll('.pr-layer .pr-ctrl')].map(c => rel(c.getBoundingClientRect())).join(' '), vals: JSON.stringify(window._st.photo.vals) }; });
- for (const [g, kind] of [['Universal Audio 1176LN', 'Kompressor'], ['TL Audio VTC', 'Channel Strip'], ['API 560', 'EQ']]) for (const md of ['Einstellen', 'Regler setzen']) {
+ for (const [g, kind] of [['Universal Audio 1176LN', 'Kompressor'], ['TL Audio VTC', 'Channel Strip'], ['API 560', 'EQ']]) for (const md of ['Einstellen']) {
   await open(g, kind); await p.click(`.pr-seg button:has-text("${md}")`); await p.waitForTimeout(200); const g0 = await geo();
   // pinch that starts on a control: zooms, but changes no value and moves no control
   const kc = await p.evaluate(() => { const r = document.querySelector('.pr-layer .pr-ctrl').getBoundingClientRect(); return [r.left + r.width / 2, r.top + r.height / 2]; });
@@ -58,4 +58,15 @@ const { chromium, devices } = require('playwright');
   ok(g1.lay === g0.lay, `${tag} layout size changed ${g0.lay} -> ${g1.lay}`); ok(g1.parts === '0.000,0.000,1.000,1.000 0.000,0.000,1.000,1.000 0.000,0.000,1.000,1.000', tag + ' layers apart ' + g1.parts);
   ok(g1.ctrls === g0.ctrls, tag + ' controls moved'); ok(g1.vals === g0.vals, `${tag} values changed ${g0.vals} -> ${g1.vals}`);
   ok(await p.locator('.pr-pop-ov, .sheet-ov').count() === 0, tag + ' pop-up opened by the gesture'); }
+ // drawn faceplates are fixed: no "Regler setzen", no rename, menu only resets the values or takes the faceplate off the stage
+ await open('TL Audio VTC Master Section', 'Master Section');
+ ok(!(await p.locator('.pr-seg button:has-text("Regler setzen")').isVisible()), 'faceplate: Regler setzen visible');
+ await p.click('.pr-title'); await p.waitForTimeout(200); ok(await p.locator('.sheet-ov').count() === 0, 'faceplate: rename opened');
+ await p.click('.pr-menu[aria-label="Weitere Aktionen"]'); await p.waitForTimeout(250);
+ const items = await p.locator('.sheet-ov button').allTextContents(); ok(items.join('|') === 'Werte zurücksetzen|Von Stufe entfernen|Abbrechen', 'faceplate menu: ' + items.join('|'));
+ // an own photo keeps every option
+ await p.evaluate(async () => { document.querySelectorAll('.sheet-ov, .pr-ov').forEach(x => x.remove()); const c = document.createElement('canvas'); c.width = 300; c.height = 150; c.getContext('2d').fillRect(0, 0, 300, 150); const t = { id: 'own1', name: 'Mein Gerät', kind: 'EQ', ar: 2, ctrls: [{ id: 'k', name: 'Gain', type: 'knob', x: .5, y: .5, r: .1 }] }; S.devTpls.push(t); await FileStore.put('dev-own1', { data: c.toDataURL('image/png') }); const st = P().chain.channels[0].stages[0]; st.gear = 'Mein Gerät'; st.photo = { tplId: 'own1', vals: {} }; showPhotoRecall(st, t, false); });
+ await p.waitForTimeout(500); ok(await p.locator('.pr-seg button:has-text("Regler setzen")').isVisible(), 'own photo: Regler setzen missing');
+ await p.click('.pr-menu[aria-label="Weitere Aktionen"]'); await p.waitForTimeout(250);
+ const own = await p.locator('.sheet-ov button').allTextContents(); ok(['Gerät umbenennen', 'Zuschneiden', 'Foto ersetzen', 'Werte zurücksetzen', 'Foto löschen', 'Von Stufe entfernen'].every(x => own.includes(x)), 'own photo menu: ' + own.join('|'));
  console.log(fail.join('\n') || 'ZOOM OK', errs.join('|') || 'noerr'); await b.close(); })();
