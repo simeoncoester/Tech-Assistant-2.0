@@ -33,12 +33,18 @@ sed -n '/<script>/,/<\/script>/p' index.html | sed '1d;$d' > /tmp/x.js && node -
 ```
 
 - `tools/fp-check.js`: prüft alle Faceplates auf Überschneidungen (Text/Regler/Skalen/LEDs/Meter/Rand). Optional mit Geräteliste: `node tools/fp-check.js "Manley VOXBOX,Bricasti M7"`. Ziel: „DEVICES WITH ISSUES: 0“. Gewollt sind nur die zwei LINK-Aufkleber bei Link Audio DYNX/SLQ.
+- `tools/fp-legible.js`: misst auf iPhone-Größe die kleinste Schrift- und Reglergröße jedes Faceplates im Foto-Recall (beste Seite, ohne Zoom). Werte unter ca. 5 px sind nur mit Zoom lesbar; solche Geräte bei Gelegenheit in sinnvolle `pages` teilen.
 - `tools/fp-sheet.js <ordner>`: rendert alle Faceplates als Übersichtsbilder.
 - `tools/fp-shots.js <ordner> "Gerät A,Gerät B"`: öffnet Geräte im Foto-Recall und speichert Screenshots.
 - `tools/tests/*.js`: Regressionstests. Im Ordner `tools/tests` ausführen, vorher `mkdir out`:
   - `test.js` (Gesamttest, erwartet „NO ISSUES“), `nullscan.js` („CLEAN“)
   - `swap.js` (Gerätewechsel tauscht Foto), `eye.js` (Auge Foto ↔ Faceplate), `choice.js` (Foto/Faceplate-Tasten, Amps), `fpsync.js`, `attach.js`
-  - `pages.js`, `swipe.js`, `touch.js` (Seiten und Wischen auf iPhone-Größe), `fader.js`, `master.js` (Master Section), `disp.js` (Display-Texteingabe), `ampch.js` (Kanalnamen mehrerer Amps), `mob.js`
+  - `pages.js`, `swipe.js`, `touch.js` (Seiten und Wischen auf iPhone-Größe), `zoom.js` (Lupe, Doppeltipp, Zwei-Finger-Zoom, automatische Seiten; erwartet „ZOOM OK“), `fader.js`, `master.js` (Master Section), `disp.js` (Display-Texteingabe), `ampch.js` (Kanalnamen mehrerer Amps), `mob.js`
+
+## Stand 09.11.2026 (32)
+- Erledigt: Zoom im Foto-Recall, automatische Seiten für breite Geräte, Skalenstriche weichen Nachbarn aus, Rahmen-/Beschriftungsfehler (VTC Master Section, VOXBOX, SPL, DS201, EMT 250, TG2, GML 8200), größere Tippflächen im Mischpult.
+- Noch offen (Lesbarkeit ohne Zoom, siehe `fp-legible.js`): TL Audio VTC und Master Section, EMT 250, Universal Audio 6176 und LA-610 MkII, Manley VOXBOX, Elysia Karacter 500, Fairchild 670, Focusrite ISA One, dbx 904 brauchen feinere Seiten (auch senkrecht geteilt).
+- Im Rahmen des Drawmer DS201 sitzt der LINK-Schalter knapp außerhalb von Kanal 2; Lage am Original unbestätigt (nicht geraten).
 
 ## Offene Punkte vom Nutzer
 - Für Lexicon 480L/PCM96, EMT 140, Eventide H3000, Thermionic Culture Vulture und Elysia Karacter (19") fehlen noch Fotos – nicht raten, nicht anlegen.

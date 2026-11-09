@@ -28,6 +28,9 @@ const { chromium } = require('playwright');
      tb.forEach(a => meters.forEach(m => { if (hit(a, m)) issues.push(`T/M "${a.t}" × meter`); }));
      ctrls.forEach(c => { const hy = c.round ? c.hx : c.hy; if (c.X - c.hx < ear - 2 || c.X + c.hx > W - ear + 2 || c.Y - hy < -1 || c.Y + hy > H + 1) issues.push(`C/EDGE ${c.nm}`);
        meters.forEach(m => { if (hit({ x0: c.X - c.hx, x1: c.X + c.hx, y0: c.Y - hy, y1: c.Y + hy }, m)) issues.push(`C/M ${c.nm} × meter`); }); });
+     // text must not straddle the edge of a section frame or a cut gap (rect deco): fully inside or fully outside
+     const rects = (fp.deco || []).filter(d => d[0] === 'rect').map(d => ({ x0: d[1] * W, y0: d[2] * H, x1: (d[1] + d[3]) * W, y1: (d[2] + d[4]) * H }));
+     tb.forEach(a => rects.forEach(m => { const inside = a.x0 >= m.x0 - 1 && a.x1 <= m.x1 + 1 && a.y0 >= m.y0 - 1 && a.y1 <= m.y1 + 1; if (hit(a, m) && !inside) issues.push(`T/R "${a.t}" × rect ${m.x0.toFixed(0)},${m.y0.toFixed(0)}`); }));
      tb.forEach(a => obst.forEach(c => { if (ovT(a, c)) issues.push(`T/D "${a.t}" × ${c.nm}`); }));
      for (let i = 0; i < tb.length; i++) for (let j = i + 1; j < tb.length; j++) { const a = tb[i], c = tb[j]; const ox = Math.min(a.x1, c.x1) - Math.max(a.x0, c.x0), oy = Math.min(a.y1, c.y1) - Math.max(a.y0, c.y0); if (ox > 1.5 && oy > 1.5) issues.push(`T/T "${a.t}" × "${c.t}"`); }
      for (let i = 0; i < ctrls.length; i++) for (let j = i + 1; j < ctrls.length; j++) { const a = ctrls[i], c = ctrls[j]; if (Math.abs(a.X - c.X) < 1 && Math.abs(a.Y - c.Y) < 1) continue; // concentric pairs are intended
