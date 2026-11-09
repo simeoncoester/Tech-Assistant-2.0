@@ -2814,7 +2814,7 @@ function normalize() {
   if (!S.customHeads || typeof S.customHeads !== 'object') S.customHeads = {};
   if (!Array.isArray(S.devTpls)) S.devTpls = [];
   prCleanNames(S.devTpls);
-  try { S.devTpls.forEach(t => { if (t.builtin) fpSync(t); }); } catch (e) { /* faceplates not defined yet during early boot */ }
+  try { S.devTpls.forEach(t => { if (t.builtin) fpSync(t); }); fpAttachAll(); } catch (e) { /* faceplates not defined yet during early boot */ }
   if (!S.customGear || typeof S.customGear !== 'object') S.customGear = {};
   S.artists.forEach(a => {
     a.productions ||= []; a.setlists ||= []; a.tunings ||= []; a.instruments ||= []; a.instChains ||= {};
@@ -4637,8 +4637,22 @@ function fpSync(t) {
     t.ar = fp.ar; t.kind = fp.kind; delete devPhotoCache[t.id]; }
   t.fpSig = sig;
 }
+// gear names as typed ("Capi LC 40", "capi lc40") still find their faceplate
+const fpNorm = t => String(t || '').toLowerCase().replace(/[^a-z0-9äöü]+/g, '');
+let fpIndex = null;
+function fpKey(gear) { if (!fpIndex) { fpIndex = {}; Object.keys(FACEPLATES).forEach(k => { fpIndex[fpNorm(k)] = k; }); } return FACEPLATES[String(gear || '').trim()] ? String(gear).trim() : fpIndex[fpNorm(gear)] || null; }
+// stages whose gear got a drawn faceplate later (or was typed before): attach it, unless the photo was removed on purpose
+function fpAttachAll() {
+  let n = 0;
+  const each = C => C && [...(C.channels || []), ...(C.busses || [])].forEach(ch => [...(ch.stages || []), ...(ch.stagesR || [])].forEach(st => {
+    if (!st || st.photo || !String(st.gear || '').trim() || st.fpOff === st.gear) return;
+    const t = prTplFor(st) || (fpKey(st.gear) ? prBuiltinFor(st) : null); if (t) { st.photo = { tplId: t.id, vals: {} }; n++; } }));
+  (S.artists || []).forEach(a => { Object.values(a.instChains || {}).forEach(each); (a.productions || []).forEach(p => [p.chain, p.totalChain, ...Object.values(p.instChains || {})].forEach(each)); });
+  if (n) touch();
+  return n;
+}
 function prBuiltinFor(st) {
-  const g = String(st.gear || '').trim(), fp = FACEPLATES[g]; if (!fp) return null;
+  const g = fpKey(st.gear), fp = g && FACEPLATES[g]; if (!fp) return null;
   let t = (S.devTpls || []).find(x => x.builtin === g); if (t) { fpSync(t); if (!t.gear && !(S.devTpls || []).some(x => x.gear === g)) t.gear = g; return t; }
   t = { id: 'fp-' + slugify(g), name: g, kind: fp.kind, gear: g, ar: fp.ar, builtin: g, fpSig: fpSig(fp), usedAt: Date.now(),
     ctrls: fp.c.map((q, i) => ({ ...(q[7] || {}), id: 'c' + i, name: q[1].split('|')[0], type: FP_TYPES[q[0]], x: q[2], y: q[3], r: q[4], color: q[5] !== undefined && q[5] !== '' ? q[5] : q[0] === 'k' ? fp.kc : '' })) };
@@ -4798,7 +4812,7 @@ function cropDialog(src) {
 function devDelete(tpl, after) {
   const uses = []; S.artists.forEach(a => (a.productions || []).forEach(p => [p.chain, p.totalChain, ...Object.values(p.instChains || {})].forEach(C => C && [...(C.channels || []), ...(C.busses || [])].forEach(ch => [...(ch.stages || []), ...(ch.stagesR || [])].forEach(st => { if (st.photo && st.photo.tplId === tpl.id) uses.push(st); })))));
   askDialog({ title: `„${tpl.name || trText('Gerät')}“ ${trText('löschen?')}`, text: (uses.length ? `${trText('Wird an')} ${plural(uses.length, 'Stufe', 'Stufen')} ${trText('benutzt, die Werte dort gehen verloren.')} ` : '') + trText('Das lässt sich nicht rückgängig machen.'), buttons: [
-    { label: 'Löschen', danger: true, onClick: () => { uses.forEach(st => delete st.photo); S.devTpls = S.devTpls.filter(t => t !== tpl); FileStore.del('dev-' + tpl.id); delete devPhotoCache[tpl.id]; delete prPixCache[tpl.id]; touch(); after?.(); if (document.getElementById('app')) render(true); toast(trText('Foto gelöscht')); } },
+    { label: 'Löschen', danger: true, onClick: () => { uses.forEach(st => { delete st.photo; st.fpOff = st.gear; }); S.devTpls = S.devTpls.filter(t => t !== tpl); FileStore.del('dev-' + tpl.id); delete devPhotoCache[tpl.id]; delete prPixCache[tpl.id]; touch(); after?.(); if (document.getElementById('app')) render(true); toast(trText('Foto gelöscht')); } },
     { label: 'Abbrechen' }] });
 }
 function devManager(onDone) {
@@ -4832,7 +4846,7 @@ function photoDialog(st, onDone) {
   askDialog({ title: st.photo ? 'Foto bearbeiten' : 'Foto hinzufügen', text: st.photo ? '' : 'Fotografiere das Gerät von vorne, möglichst gerade. Danach tippst du die Regler im Foto an.', buttons: [
     { label: 'Foto aufnehmen', primary: true, onClick: () => prUpload(st, onDone, true) },
     { label: 'Foto aus der Galerie', onClick: () => prUpload(st, onDone, false) },
-    ...(st.photo ? [{ label: 'Foto von dieser Stufe entfernen', danger: true, onClick: () => { delete st.photo; touch(); onDone(); } }] : []),
+    ...(st.photo ? [{ label: 'Foto von dieser Stufe entfernen', danger: true, onClick: () => { delete st.photo; st.fpOff = st.gear; touch(); onDone(); } }] : []),
     { label: 'Abbrechen' }] });
 }
 const tplHas = c => (S.devTpls || []).some(t => t.ctrls.includes(c));
@@ -5034,7 +5048,7 @@ function showPhotoRecall(st, tpl, setup) {
     { label: 'Werte zurücksetzen', onClick: () => askDialog({ title: 'Alle Werte zurücksetzen?', text: 'Die Regler dieses Geräts werden für diese Stufe auf Null gesetzt.', buttons: [{ label: 'Zurücksetzen', danger: true, onClick: () => { st.photo.vals = {}; changed(); draw(); } }, { label: 'Abbrechen' }] }) },
     tpl.gear ? { label: 'Zuordnung zum Gerät aufheben', onClick: () => askDialog({ title: 'Zuordnung aufheben?', text: `${trText('Das Foto wird bei der Auswahl von')} „${tpl.gear}“ ${trText('nicht mehr automatisch angehängt. Foto und Regler bleiben gespeichert.')}`, buttons: [{ label: 'Aufheben', danger: true, onClick: () => { tpl.gear = ''; changed(); } }, { label: 'Abbrechen' }] }) } : null,
     { label: 'Foto löschen', danger: true, onClick: () => devDelete(tpl, close) },
-    { label: 'Von Stufe entfernen', danger: true, onClick: () => askDialog({ title: 'Foto-Recall entfernen?', text: 'Die Stufe verliert das Foto und die Werte. Das gespeicherte Gerät bleibt für andere Stufen erhalten.', buttons: [{ label: 'Entfernen', danger: true, onClick: () => { delete st.photo; changed(); close(); } }, { label: 'Abbrechen' }] }) },
+    { label: 'Von Stufe entfernen', danger: true, onClick: () => askDialog({ title: 'Foto-Recall entfernen?', text: 'Die Stufe verliert das Foto und die Werte. Das gespeicherte Gerät bleibt für andere Stufen erhalten.', buttons: [{ label: 'Entfernen', danger: true, onClick: () => { delete st.photo; st.fpOff = st.gear; changed(); close(); } }, { label: 'Abbrechen' }] }) },
     { label: 'Abbrechen' }] });
   // eye: switch between the photo and the controls only, as a colleague sees it without the photo
   const eyeBtn = h('button', { class: 'pr-menu pr-eye', type: 'button' });
@@ -5066,6 +5080,7 @@ function showPhotoRecall(st, tpl, setup) {
 // a saved device with the same name as the chosen gear: attach its photo with all controls at zero
 const prTplFor = st => { const g = String(st.gear || '').trim().toLowerCase(); return g ? (S.devTpls || []).find(t => [t.name, t.gear].some(n => String(n || '').trim().toLowerCase() === g)) : null; };
 const prTplForKind = kind => (S.devTpls || []).filter(t => t.kind === kind).sort((a, b) => (b.usedAt || 0) - (a.usedAt || 0))[0] || null;
+setTimeout(() => { if (fpAttachAll() && document.getElementById('app')) render(true); }); // boot: after the whole script ran, faceplates and saved photos exist
 // new stage or other gear: attach the saved device photo right away (all controls at zero); an untouched photo follows the gear
 // the photo belongs to the gear of the stage it was added to: same name, so it comes back whenever that gear is chosen
 // a saved device chosen for a stage: the stage takes over its gear name (shown at the top and in the gear picker)
@@ -5082,6 +5097,7 @@ function prBind(st) {
   t.gear = g; if (auto) t.name = g; touch();
 }
 function prAutoAttach(st, byKind) {
+  if (st.fpOff && st.fpOff !== st.gear) delete st.fpOff;
   const cur = st.photo && S.devTpls.find(t => t.id === st.photo.tplId), untouched = !cur || !Object.keys(st.photo.vals || {}).length;
   const g = String(st.gear || '').trim().toLowerCase(), curGear = cur ? String(cur.gear || cur.builtin || '').trim().toLowerCase() : '';
   // an own photo taken before the gear was chosen wins over a drawn faceplate: it gets bound to the gear
@@ -8985,7 +9001,7 @@ function pageHelpSlides() {
 /* ================= home-screen app (PWA) ================= */
 const isStandalone = () => window.matchMedia?.('(display-mode: standalone)').matches || window.navigator.standalone === true;
 const isIOS = () => /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-const APP_VERSION = '09.11.2026 (11)';
+const APP_VERSION = '09.11.2026 (12)';
 function registerSW() {
   if (!('serviceWorker' in navigator) || (location.protocol !== 'https:' && location.hostname !== 'localhost') || IN_CLAUDE_HOST()) return;
   navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).then(reg => {
