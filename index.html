@@ -5376,7 +5376,7 @@ function viewChain() {
       (d.drums || []).forEach(dr => perMic(dr.name || dr.type, micsOf(dr, 'mic', 'mics2'))); (d.mics || []).forEach(m => { if (m.pos) out.push([m.pos, m.mic]); }); return out; },
     inst: i => { const base = i.name || i.model || trText(i.inst === 'bass' ? 'Bass' : 'Gitarre'), out = [], multi = (i.amps2 || []).length > 0;
       // one channel per microphone; with several amps every channel is named "guitar + amp" (mic number only when an amp has more than one)
-      [{ amp: i.amp, ampMic: i.ampMic, ampMics2: i.ampMics2 }, ...(i.amps2 || [])].forEach((a, k) => { const ms = micsOf(a, 'ampMic', 'ampMics2'), nm = multi ? `${base} ${String(a.amp || '').trim() || `Amp ${k + 1}`}` : base;
+      [{ amp: i.amp, ampMic: i.ampMic, ampMics2: i.ampMics2 }, ...(i.amps2 || [])].forEach((a, k) => { const ms = micsOf(a, 'ampMic', 'ampMics2'), an = String(a.amp || '').trim(), brand = an.split(/\s+/)[0] || '', same = brand && an.includes(' ') && base.toLowerCase().split(/\s+/).includes(brand.toLowerCase()), nm = multi ? `${base} ${(same ? an.slice(brand.length).trim() : an) || `Amp ${k + 1}`}` : base; // same maker as the guitar: name it only once
         if (!k && !multi && !ms.length && String(i.di || '').trim()) return;
         if (ms.length < 2) out.push([nm, ms[0] || '']); else ms.forEach((m, j) => out.push([`${nm} ${j + 1}`, m])); });
       if (String(i.di || '').trim()) out.push([`${base} DI`, i.di]); return out; } };
@@ -9174,7 +9174,7 @@ function pageHelpSlides() {
 /* ================= home-screen app (PWA) ================= */
 const isStandalone = () => window.matchMedia?.('(display-mode: standalone)').matches || window.navigator.standalone === true;
 const isIOS = () => /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-const APP_VERSION = '09.11.2026 (28)';
+const APP_VERSION = '09.11.2026 (29)';
 function registerSW() {
   if (!('serviceWorker' in navigator) || (location.protocol !== 'https:' && location.hostname !== 'localhost') || IN_CLAUDE_HOST()) return;
   navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).then(reg => {
