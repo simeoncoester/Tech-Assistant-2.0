@@ -2539,7 +2539,7 @@ button.ins:focus-visible{outline:2px solid #6c9bef;outline-offset:1px}
 .pr-knob.real.set,.pr-push.real.set{box-shadow:0 0 0 2px rgba(61,220,140,.85),0 0 10px rgba(61,220,140,.5)}
 .pr-push.real.psq{border-radius:14%}.pr-push.real.in::after{display:none}
 .pr-ctrl > .pr-tog{width:100%;height:auto;aspect-ratio:.625;position:relative}
-.pr-photo.fpreal .pr-ctrl{min-width:0}.pr-photo.fpreal .pr-ctrl::before{content:"";position:absolute;inset:-9px}/* drawn faceplate: controls keep their true size (no overlap with the print), the tap area stays finger-sized */
+.pr-photo.fpreal .pr-ctrl{min-width:0}.pr-photo.fpreal .pr-ctrl::before{content:"";position:absolute;inset:calc(-9px / var(--z,1))}/* drawn faceplate: controls keep their true size (no overlap with the print), the tap area stays finger-sized */
 .pr-tog.set svg{filter:drop-shadow(0 0 4px rgba(61,220,140,.95))}
 .pr-sld{position:relative;box-sizing:border-box}
 .pr-sld::before{content:"";position:absolute;left:0;right:0;top:38%;height:24%;border-radius:999px;background:rgba(0,0,0,.55);box-shadow:inset 0 1px 2px rgba(0,0,0,.8),0 0 0 1px rgba(108,155,239,.55)}
@@ -4776,6 +4776,8 @@ const FP_TYPES = { k: 'knob', s: 'switch', p: 'push', d: 'dir', f: 'slider', x: 
 const fpSig = fp => fp.ar + ':' + fp.c.map(q => q[1].split('|')[0] + '@' + q[2] + ',' + q[3] + ',' + q[4] + (q[5] || '') + JSON.stringify(q[7] || '')).join(';');
 function fpSync(t) {
   let fp; try { fp = FACEPLATES[t.builtin]; } catch (e) { return; } if (!fp) return;
+  // one-time repair: controls of a drawn faceplate that were dragged out of place by a zoom gesture go back to their printed position
+  if (t.fpFix !== 1) { t.fpFix = 1; (t.ctrls || []).forEach(c => { const q = fp.c.find(q => q[1].split('|')[0] === c.name && FP_TYPES[q[0]] === c.type); if (q) { c.x = q[2]; c.y = q[3]; c.r = q[4]; } }); }
   const sig = fpSig(fp); if (t.fpSig === sig) return;
   const old = t.ctrls || [], same = !t.fpSig && old.length === fp.c.length && fp.c.every((q, i) => old[i] && old[i].name === q[1].split('|')[0]);
   if (!same) { const used = new Set();
@@ -5190,10 +5192,12 @@ function showPhotoRecall(st, tpl, setup) {
       isSel ? h('span', { class: 'pr-sz', role: 'button', 'aria-label': 'Größe ändern', title: 'Größe ändern' }, svg('svg', { viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', 'stroke-width': 2, 'stroke-linecap': 'round', 'stroke-linejoin': 'round' }, svg('circle', { cx: 12, cy: 12, r: 9, 'stroke-dasharray': '3 3' }), svg('path', { d: 'M12 7v10M12 7l-2.5 2.5M12 7l2.5 2.5M12 17l-2.5-2.5M12 17l2.5-2.5' }))) : null);
     const refresh = () => { el.replaceChild(face(c, st.photo.vals[c.id] || {}), el.firstChild); };
     // drag: turn a knob / point a 5-way switch (set mode) or move it (setup mode); a tap opens the value / settings pop-up
-    let sx = 0, sy = 0, p0 = 0, moved = false, down = false, cx0 = 0, cy0 = 0, wasSel = false, resize = false, editTap = false, sizeTap = false;
+    let sx = 0, sy = 0, p0 = 0, moved = false, down = false, cx0 = 0, cy0 = 0, wasSel = false, resize = false, editTap = false, sizeTap = false, v0 = null, r0 = 0;
     el.addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropagation(); if (mode === 'view') { down = 'view'; return; } down = true; moved = false; sx = e.clientX; sy = e.clientY; p0 = c.type === 'slider' ? sldPos(c, v) : (v.pos ?? 0); cx0 = c.x; cy0 = c.y;
-      wasSel = sel === c.id; resize = false; editTap = false; sizeTap = !!e.target.closest('.pr-sz'); if (mode === 'setup' && !wasSel) { sel = c.id; layer.querySelectorAll('.pr-ctrl.sel').forEach(x => x.classList.remove('sel')); el.classList.add('sel'); } el.setPointerCapture?.(e.pointerId); });
-    el.addEventListener('pointermove', e => { if (!down || down === 'view' || sizeTap || pinch) return; const dx = e.clientX - sx, dy = e.clientY - sy; if (!moved && Math.hypot(dx, dy) < 4) return; moved = true;
+      wasSel = sel === c.id; resize = false; editTap = false; v0 = st.photo.vals[c.id] ? JSON.stringify(st.photo.vals[c.id]) : null; r0 = c.r; sizeTap = !!e.target.closest('.pr-sz'); if (mode === 'setup' && !wasSel) { sel = c.id; layer.querySelectorAll('.pr-ctrl.sel').forEach(x => x.classList.remove('sel')); el.classList.add('sel'); } el.setPointerCapture?.(e.pointerId); });
+    el.addEventListener('pointermove', e => { if (!down || down === 'view' || sizeTap) return;
+      if (pinch) { if (moved) { moved = false; Object.keys(v).forEach(k => delete v[k]); if (v0) { st.photo.vals[c.id] = JSON.parse(v0); Object.assign(v, st.photo.vals[c.id]); } else delete st.photo.vals[c.id];
+          c.x = cx0; c.y = cy0; c.r = r0; el.style.left = c.x * 100 + '%'; el.style.top = c.y * 100 + '%'; el.style.width = c.r * 100 + '%'; refresh(); } return; } const dx = e.clientX - sx, dy = e.clientY - sy; if (!moved && Math.hypot(dx, dy) < 4) return; moved = true;
       if (mode === 'setup' && resize) { const r = wrap.getBoundingClientRect(), cx = r.left + c.x * r.width, cy = r.top + c.y * r.height; c.r = Math.max(.015, Math.min(.45, Math.hypot(e.clientX - cx, e.clientY - cy) * 2 / Math.SQRT2 / r.width)); el.style.width = c.r * 100 + '%'; }
       else if (mode === 'setup') { const r = wrap.getBoundingClientRect(); c.x = Math.max(0, Math.min(1, cx0 + dx / r.width)); c.y = Math.max(0, Math.min(1, cy0 + dy / r.height)); el.style.left = c.x * 100 + '%'; el.style.top = c.y * 100 + '%'; }
       else if (c.type === 'dir') { if (Math.hypot(dx, dy) > 14) { const d = Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? 'r' : 'l') : (dy > 0 ? 'd' : 'u'); st.photo.vals[c.id] = { dir: d }; Object.assign(v, { dir: d }); refresh(); } }
@@ -5292,7 +5296,10 @@ function showPhotoRecall(st, tpl, setup) {
     const vw = Math.min(m.width, w * z), vh = Math.min(m.height, hgt * z); // zoomed in: the view grows up to the free space, the rest is reached by dragging
     panX = Math.max(0, Math.min(w * z - vw, panX)); panY = Math.max(0, Math.min(hgt * z - vh, panY));
     view.style.width = Math.floor(vw) + 'px'; view.style.height = Math.floor(vh) + 'px';
-    const ww = w * z / (x1 - x0), wh = hgt * z / (y1 - y0); wrap.style.width = ww + 'px'; wrap.style.height = wh + 'px'; wrap.style.left = -x0 * ww - panX + 'px'; wrap.style.top = -y0 * wh - panY + 'px'; }
+    // the plate keeps its fitted layout size; zoom and detail are one transform on the whole plate, so picture, lettering and controls
+    // are always scaled and moved together as a single layer and can never drift apart
+    const ww = w / (x1 - x0), wh = hgt / (y1 - y0); wrap.style.width = ww + 'px'; wrap.style.height = wh + 'px'; wrap.style.left = -x0 * ww + 'px'; wrap.style.top = -y0 * wh + 'px';
+    wrap.style.setProperty('--z', z); wrap.style.transformOrigin = '0 0'; wrap.style.transform = z > 1 ? `translate(${-x0 * ww * (z - 1) - panX}px,${-y0 * wh * (z - 1) - panY}px) scale(${z})` : ''; }
   // zoom keeps the touched point in place
   const zoomBtn = h('button', { class: 'pr-menu pr-zoom', type: 'button', onclick: () => z > 1 ? setZoom(1) : setZoom(zoomStep()) });
   function zoomDraw() { const l = trText(z > 1 ? 'Verkleinern' : 'Vergrößern'); zoomBtn.setAttribute('aria-label', l); zoomBtn.title = l; zoomBtn.setAttribute('aria-pressed', String(z > 1));
@@ -9292,7 +9299,7 @@ function pageHelpSlides() {
 /* ================= home-screen app (PWA) ================= */
 const isStandalone = () => window.matchMedia?.('(display-mode: standalone)').matches || window.navigator.standalone === true;
 const isIOS = () => /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-const APP_VERSION = '09.11.2026 (33)';
+const APP_VERSION = '09.11.2026 (34)';
 function registerSW() {
   if (!('serviceWorker' in navigator) || (location.protocol !== 'https:' && location.hostname !== 'localhost') || IN_CLAUDE_HOST()) return;
   navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).then(reg => {

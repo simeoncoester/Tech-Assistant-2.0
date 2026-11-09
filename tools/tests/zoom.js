@@ -36,4 +36,26 @@ const { chromium, devices } = require('playwright');
  await p.mouse.move(kb[0], kb[1]); await p.mouse.down(); await p.mouse.move(kb[0], kb[1] - 60, { steps: 5 }); await p.mouse.up(); await p.waitForTimeout(150);
  ok(await p.evaluate(() => Object.values(window._st.photo.vals).some(v => v.pos > .1)), 'knob turn while zoomed');
  await p.screenshot({ path: 'out/zoom2.png' });
+ // one layer: picture, lettering and controls keep exactly the same place on the plate at every zoom, in every mode
+ const geo = () => p.evaluate(() => { const ph = document.querySelector('.pr-photo'), w = ph.getBoundingClientRect(); const rel = r => [(r.left - w.left) / w.width, (r.top - w.top) / w.height, r.width / w.width, r.height / w.height].map(v => v.toFixed(3)).join(',');
+   return { lay: ph.offsetWidth, parts: [ph.querySelector('img'), ph.querySelector('.pr-txt svg'), ph.querySelector('.pr-layer')].map(e => rel(e.getBoundingClientRect())).join(' '), ctrls: [...ph.querySelectorAll('.pr-layer .pr-ctrl')].map(c => rel(c.getBoundingClientRect())).join(' '), vals: JSON.stringify(window._st.photo.vals) }; });
+ for (const [g, kind] of [['Universal Audio 1176LN', 'Kompressor'], ['TL Audio VTC', 'Channel Strip'], ['API 560', 'EQ']]) for (const md of ['Einstellen', 'Regler setzen']) {
+  await open(g, kind); await p.click(`.pr-seg button:has-text("${md}")`); await p.waitForTimeout(200); const g0 = await geo();
+  // pinch that starts on a control: zooms, but changes no value and moves no control
+  const kc = await p.evaluate(() => { const r = document.querySelector('.pr-layer .pr-ctrl').getBoundingClientRect(); return [r.left + r.width / 2, r.top + r.height / 2]; });
+  await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x: kc[0], y: kc[1], id: 0 }] });
+  await cdp.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ x: kc[0] - 12, y: kc[1] - 12, id: 0 }] });
+  await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x: kc[0] - 12, y: kc[1] - 12, id: 0 }, { x: kc[0] + 60, y: kc[1] + 40, id: 1 }] });
+  for (let i = 1; i <= 6; i++) await cdp.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ x: kc[0] - 12 - i * 10, y: kc[1] - 12 - i * 6, id: 0 }, { x: kc[0] + 60 + i * 12, y: kc[1] + 40 + i * 8, id: 1 }] });
+  await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] }); await p.waitForTimeout(250);
+  // then a one-finger drag beside the controls moves the detail
+  const free = await p.evaluate(() => { const v = document.querySelector('.pr-view').getBoundingClientRect(), rs = [...document.querySelectorAll('.pr-layer .pr-ctrl')].map(c => c.getBoundingClientRect());
+    for (let y = v.top + 14; y < v.bottom - 14; y += 9) for (let x = v.left + 14; x < v.right - 14; x += 9) if (document.elementFromPoint(x, y)?.classList.contains('pr-layer') && rs.every(r => x < r.left - 16 || x > r.right + 16 || y < r.top - 16 || y > r.bottom + 16)) return [x, y]; return null; });
+  if (free) { const before = await p.evaluate(() => document.querySelector('.pr-photo').getBoundingClientRect().left); await p.mouse.move(free[0], free[1]); await p.mouse.down(); await p.mouse.move(free[0] + 70, free[1] + 50, { steps: 5 }); await p.mouse.up(); await p.waitForTimeout(200);
+    const after = await p.evaluate(() => document.querySelector('.pr-photo').getBoundingClientRect().left); ok(Math.abs(after - before) > 20, `${g}/${md} pan did not move the plate`); } else fail.push(`${g}/${md} no free spot found`);
+  const g1 = await geo(), tag = `${g}/${md}`;
+  ok(await p.getAttribute('.pr-zoom', 'aria-pressed') === 'true', tag + ' no zoom');
+  ok(g1.lay === g0.lay, `${tag} layout size changed ${g0.lay} -> ${g1.lay}`); ok(g1.parts === '0.000,0.000,1.000,1.000 0.000,0.000,1.000,1.000 0.000,0.000,1.000,1.000', tag + ' layers apart ' + g1.parts);
+  ok(g1.ctrls === g0.ctrls, tag + ' controls moved'); ok(g1.vals === g0.vals, `${tag} values changed ${g0.vals} -> ${g1.vals}`);
+  ok(await p.locator('.pr-pop-ov, .sheet-ov').count() === 0, tag + ' pop-up opened by the gesture'); }
  console.log(fail.join('\n') || 'ZOOM OK', errs.join('|') || 'noerr'); await b.close(); })();
