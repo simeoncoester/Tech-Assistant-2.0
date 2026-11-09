@@ -5374,8 +5374,11 @@ function viewChain() {
   // channels from instruments: one channel per microphone ("BD 1", "BD 2" – the names can be changed afterwards)
   const chPlan = { kit: d => { const out = [], perMic = (base, ms) => { if (ms.length < 2) out.push([base, ms[0] || '']); else ms.forEach((m, k) => out.push([`${base} ${k + 1}`, m])); };
       (d.drums || []).forEach(dr => perMic(dr.name || dr.type, micsOf(dr, 'mic', 'mics2'))); (d.mics || []).forEach(m => { if (m.pos) out.push([m.pos, m.mic]); }); return out; },
-    inst: i => { const base = i.name || i.model || trText(i.inst === 'bass' ? 'Bass' : 'Gitarre'), ms = micsOf(i, 'ampMic', 'ampMics2'), out = ms.length < 2 ? (ms.length || !String(i.di || '').trim() ? [[base, ms[0] || '']] : []) : ms.map((m, k) => [`${base} ${k + 1}`, m]);
-      (i.amps2 || []).forEach((a, k) => { const am = micsOf(a, 'ampMic', 'ampMics2'), nm = `${base} Amp ${k + 2}`; if (am.length < 2) out.push([nm, am[0] || '']); else am.forEach((m, j) => out.push([`${nm}.${j + 1}`, m])); });
+    inst: i => { const base = i.name || i.model || trText(i.inst === 'bass' ? 'Bass' : 'Gitarre'), out = [], multi = (i.amps2 || []).length > 0;
+      // one channel per microphone; with several amps every channel is named "guitar + amp" (mic number only when an amp has more than one)
+      [{ amp: i.amp, ampMic: i.ampMic, ampMics2: i.ampMics2 }, ...(i.amps2 || [])].forEach((a, k) => { const ms = micsOf(a, 'ampMic', 'ampMics2'), nm = multi ? `${base} ${String(a.amp || '').trim() || `Amp ${k + 1}`}` : base;
+        if (!k && !multi && !ms.length && String(i.di || '').trim()) return;
+        if (ms.length < 2) out.push([nm, ms[0] || '']); else ms.forEach((m, j) => out.push([`${nm} ${j + 1}`, m])); });
       if (String(i.di || '').trim()) out.push([`${base} DI`, i.di]); return out; } };
   // a recording chain comes along with its devices and settings: channels and busses get new ids, bus sources follow the new channels
   const copyChain = (src, only) => { const cl = o => JSON.parse(JSON.stringify(o)), map = {}; let n = 0;
@@ -9171,7 +9174,7 @@ function pageHelpSlides() {
 /* ================= home-screen app (PWA) ================= */
 const isStandalone = () => window.matchMedia?.('(display-mode: standalone)').matches || window.navigator.standalone === true;
 const isIOS = () => /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-const APP_VERSION = '09.11.2026 (27)';
+const APP_VERSION = '09.11.2026 (28)';
 function registerSW() {
   if (!('serviceWorker' in navigator) || (location.protocol !== 'https:' && location.hostname !== 'localhost') || IN_CLAUDE_HOST()) return;
   navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).then(reg => {
