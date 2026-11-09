@@ -1,0 +1,11 @@
+const { chromium } = require('playwright');
+(async () => { const b = await chromium.launch(); const errs = []; const p = await (await b.newContext({ serviceWorkers: 'block' })).newPage(); p.on('pageerror', e => errs.push(e.message));
+ await p.addInitScript(() => { localStorage.setItem('drumtech-onboarded','1'); sessionStorage.setItem('drumtech-nosplash','1'); });
+ await p.goto('http://localhost:8765/index.html'); await p.waitForTimeout(300);
+ await p.evaluate(() => { const a = { id: 'A', name: 'Band', productions: [] }; const pr = newProduction('studio'); pr.id = 'P';
+   const s1 = newStage('EQ'); s1.gear = 'Capi LC 40'; const s2 = newStage('Kompressor'); s2.gear = 'CAPI FC526'; const s3 = newStage('EQ'); s3.gear = 'CAPI BT50'; s3.fpOff = 'CAPI BT50';
+   pr.chain.channels = [{ id: 'c1', name: 'Vox', source: '', stages: [s1, s2], stagesR: [s3], notes: '' }]; a.productions.push(pr); S.artists = [a]; S.devTpls = [];
+   localStorage.setItem(LS_KEY, JSON.stringify(S)); });
+ await p.reload(); await p.waitForTimeout(500);
+ const r = await p.evaluate(() => { const ch = S.artists[0].productions[0].chain.channels[0]; const nm = st => st.photo && S.devTpls.find(t => t.id === st.photo.tplId).builtin; return [nm(ch.stages[0]), nm(ch.stages[1]), ch.stagesR[0].photo || 'none']; });
+ console.log(r, errs.join('|') || 'noerr'); await b.close(); })();

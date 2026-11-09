@@ -1,0 +1,11 @@
+const { chromium } = require('playwright');
+(async () => { const b = await chromium.launch(); const errs = []; const p = await (await b.newContext({ viewport: { width: 900, height: 1400 }, serviceWorkers: 'block' })).newPage(); p.on('pageerror', e => errs.push(e.message));
+ await p.addInitScript(() => { localStorage.setItem('drumtech-onboarded','1'); sessionStorage.setItem('drumtech-nosplash','1'); });
+ await p.goto('http://localhost:8765/index.html'); await p.waitForTimeout(300);
+ await p.evaluate(() => { const a = { id: 'A', name: 'Band', productions: [] }; const pr = newProduction('studio'); pr.id = 'P'; a.productions.push(pr); S.artists = [a]; normalize(); route.artistId = 'A'; route.mode = 'studio'; route.prodId = 'P';
+   P().instruments = [{ id: 'g1', inst: 'guitar', name: 'Fender Strat', model: '', amp: 'Fender Twin Reverb', ampMic: 'Shure SM57', ampMics2: ['Royer R-121'], amps2: [{ id: 'x', amp: 'Marshall JCM800 2203', ampMic: 'Sennheiser MD 421', ampMics2: [] }], di: 'Radial J48', notes: '' }];
+   nav('chain', { artistId: 'A', mode: 'studio', prodId: 'P', inst: 'guitar', chainOwner: 'inst' }); });
+ await p.waitForTimeout(400);
+ await p.click('button:has-text("Kanäle aus Instrumenten übernehmen")'); await p.waitForTimeout(300);
+ await p.locator('.pop-btns button').last().click(); await p.waitForTimeout(300);
+ console.log(await p.evaluate(() => P().instChains.guitar.channels.map(c => c.name)), errs.join('|') || 'noerr'); await b.close(); })();

@@ -1,0 +1,15 @@
+const { chromium } = require('playwright');
+(async () => { const b = await chromium.launch(); const errs = []; const p = await (await b.newContext({ viewport: { width: 1200, height: 1400 }, serviceWorkers: 'block' })).newPage(); p.on('pageerror', e => errs.push(e.message));
+ await p.addInitScript(() => { localStorage.setItem('drumtech-onboarded','1'); sessionStorage.setItem('drumtech-nosplash','1'); });
+ await p.goto('http://localhost:8765/index.html'); await p.waitForTimeout(300);
+ await p.evaluate(() => { const a = { id: 'A', name: 'Band', productions: [] }; const pr = newProduction('studio'); pr.id = 'P'; pr.chain.channels = [{ id: 'c1', name: 'Vox', source: '', stages: [newStage('Preamp')], notes: '' }]; a.productions.push(pr); S.artists = [a]; normalize();
+   nav('chain', { artistId: 'A', mode: 'studio', prodId: 'P', inst: 'drums', chainOwner: 'prod' }); });
+ await p.waitForTimeout(300);
+ const hasStageOpt = await p.evaluate(() => [...document.querySelectorAll('select option')].some(o => o.value === 'Master Section'));
+ await p.click('button:has-text("Master Section hinzufügen")'); await p.waitForTimeout(300);
+ const r1 = await p.evaluate(() => [P().chain.masters.length, P().chain.masters[0].kind, !!document.querySelector('.master-card input')]);
+ await p.evaluate(() => { const st = P().chain.masters[0]; st.gear = 'TL Audio VTC Master Section'; prAutoAttach(st); render(true); });
+ await p.waitForTimeout(400);
+ const r2 = await p.evaluate(() => { const st = P().chain.masters[0], t = S.devTpls.find(x => x.id === st.photo.tplId), f = t.ctrls.find(c => c.name === 'Master Fader'); return [t.builtin, f.vert, f.color, prVal(f, {}), prVal(f, { pos: 0 }), prVal(f, { pos: 1 }), prVal(f, { pos: .5 })]; });
+ await p.screenshot({ path: 'out/mastercard.png', fullPage: false });
+ console.log(hasStageOpt, r1, r2, errs.join('|') || 'noerr'); await b.close(); })();

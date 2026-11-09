@@ -1,0 +1,13 @@
+const { chromium, devices } = require('playwright');
+(async () => { const b = await chromium.launch(); const errs = []; const p = await (await b.newContext({ ...devices['iPhone 13'], serviceWorkers: 'block' })).newPage(); p.on('pageerror', e => errs.push(e.message));
+ await p.addInitScript(() => { localStorage.setItem('drumtech-onboarded','1'); sessionStorage.setItem('drumtech-nosplash','1'); });
+ await p.goto('http://localhost:8765/index.html'); await p.waitForTimeout(300);
+ await p.evaluate(() => { const a = { id: 'A', name: 'Band', productions: [] }; const pr = newProduction('studio'); pr.id = 'P'; const st = newStage('Master Section'); st.gear = 'TL Audio VTC Master Section'; pr.chain.channels = []; pr.chain.masters = [st]; a.productions.push(pr); S.artists = [a]; normalize(); prAutoAttach(st);
+   nav('chain', { artistId: 'A', mode: 'studio', prodId: 'P', inst: 'drums', chainOwner: 'prod' }); showPhotoRecall(st, S.devTpls.find(t => t.id === st.photo.tplId), false); });
+ await p.waitForTimeout(600);
+ const cur = () => p.evaluate(() => [...document.querySelectorAll('.pr-pages button')].findIndex(b => b.getAttribute('aria-pressed') === 'true'));
+ const start = await cur();
+ const sw = async dir => { const bb = await p.locator('.pr-view').boundingBox(); const y = bb.y + bb.height / 2, x0 = bb.x + bb.width / 2; await p.mouse.move(x0, y); await p.mouse.down(); await p.mouse.move(x0 + dir * 120, y + 5, { steps: 6 }); await p.mouse.up(); await p.waitForTimeout(350); };
+ await sw(-1); const a1 = await cur(); await sw(-1); const a2 = await cur(); await sw(1); const a3 = await cur(); await sw(1); await sw(1); const a4 = await cur();
+ await p.screenshot({ path: 'out/swipe.png' });
+ console.log(start, a1, a2, a3, a4, errs.join('|') || 'noerr'); await b.close(); })();

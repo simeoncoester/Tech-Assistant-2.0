@@ -1,0 +1,12 @@
+const { chromium, devices } = require('playwright');
+(async () => { const b = await chromium.launch(); const errs = []; const p = await (await b.newContext({ ...devices['iPhone 13'], serviceWorkers: 'block' })).newPage(); p.on('pageerror', e => errs.push(e.message));
+ await p.addInitScript(() => { localStorage.setItem('drumtech-onboarded','1'); sessionStorage.setItem('drumtech-nosplash','1'); });
+ await p.goto('http://localhost:8765/index.html'); await p.waitForTimeout(300);
+ await p.evaluate(() => { const a = { id: 'A', name: 'Band', productions: [] }; const pr = newProduction('studio'); pr.id = 'P'; const st = newStage('Hall'); st.gear = 'Bricasti M7'; pr.chain.busses = [{ id: 'b1', name: 'Hall', source: '', srcIds: [], stages: [st], notes: '' }]; a.productions.push(pr); S.artists = [a]; normalize(); prAutoAttach(st); window._st = st;
+   nav('chain', { artistId: 'A', mode: 'studio', prodId: 'P', inst: 'drums', chainOwner: 'prod' }); showPhotoRecall(st, S.devTpls.find(t => t.id === st.photo.tplId), false); });
+ await p.waitForTimeout(500); await p.click('.pr-seg button:has-text("Einstellen")'); await p.waitForTimeout(200);
+ await p.locator('.pr-ctrl.t-display').click(); await p.waitForTimeout(300);
+ const ins = p.locator('.pop input'); await ins.nth(0).fill('Vocal Plate'); await ins.nth(1).fill('Dark Plate 2.1s'); await p.click('.pop button:has-text("Speichern")'); await p.waitForTimeout(300);
+ const r = await p.evaluate(() => { const st = window._st, t = S.devTpls.find(x => x.id === st.photo.tplId), c = t.ctrls.find(c => c.type === 'display'); return [prVal(c, st.photo.vals[c.id]), document.querySelector('.pr-disp').textContent]; });
+ await p.locator('.pr-pages button').nth(1).click(); await p.waitForTimeout(300); await p.screenshot({ path: 'out/disp.png' });
+ console.log(r, errs.join('|') || 'noerr'); await b.close(); })();

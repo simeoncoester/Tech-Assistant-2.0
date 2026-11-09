@@ -1,0 +1,12 @@
+const { chromium } = require('playwright');
+(async () => { const b = await chromium.launch(); const errs = []; const p = await (await b.newContext({ viewport: { width: 900, height: 1900 }, serviceWorkers: 'block' })).newPage(); p.on('pageerror', e => errs.push(e.message));
+ await p.addInitScript(() => { localStorage.setItem('drumtech-onboarded','1'); sessionStorage.setItem('drumtech-nosplash','1'); });
+ await p.goto('http://localhost:8765/index.html'); await p.waitForTimeout(300);
+ await p.evaluate(() => { const a = { id: 'A', name: 'Band', productions: [] }; const pr = newProduction('studio'); pr.id = 'P'; const st = newStage('Channel Strip'); st.gear = 'TL Audio VTC';
+   pr.chain.channels = [{ id: 'c1', name: 'Vox', source: '', stages: [st], notes: '' }]; a.productions.push(pr); S.artists = [a]; normalize(); prAutoAttach(st); window._st = st;
+   nav('chain', { artistId: 'A', mode: 'studio', prodId: 'P', inst: 'drums', chainOwner: 'prod' }); showPhotoRecall(st, S.devTpls.find(t => t.id === st.photo.tplId), false); });
+ await p.waitForTimeout(500); await p.click('.pr-seg button:has-text("Einstellen")'); await p.waitForTimeout(200);
+ const f = p.locator('.pr-ctrl.t-slider').first(); const bb = await f.boundingBox();
+ await p.mouse.move(bb.x + bb.width / 2, bb.y + bb.height * .2); await p.mouse.down(); await p.mouse.move(bb.x + bb.width / 2, bb.y + bb.height * .05, { steps: 8 }); await p.mouse.up(); await p.waitForTimeout(200);
+ const r = await p.evaluate(() => { const st = window._st, t = S.devTpls.find(x => x.id === st.photo.tplId), c = t.ctrls.find(x => x.type === 'slider'); return [c.name, c.vert, prVal(c, st.photo.vals[c.id]), STAGE_UI['Channel Strip'], Object.keys(STAGES).includes('Channel Strip')]; });
+ console.log(r, errs.join('|') || 'noerr'); await p.screenshot({ path: 'out/fader.png', clip: { x: bb.x - 60, y: bb.y - 20, width: bb.width + 120, height: bb.height + 40 } }); await b.close(); })();
