@@ -5429,7 +5429,7 @@ function photoRecallRow(st, ch) {
   return h('div', {}, h('button', { class: 'pr-row', type: 'button', onclick: () => showPhotoRecall(st, tpl, false) }, thumb,
     h('span', { class: 'pr-row-t' }, h('b', { class: 'no-i18n' }, tpl.name || trText('Gerät')),
       h('span', { class: 'no-i18n' }, vals.length ? vals.map(([c, v]) => { const val = c.type && c.type !== 'knob' ? prVal(c, v) : v.text; return c.name && val ? `${c.name}: ${val}` : c.name || val || ''; }).filter(Boolean).join(' · ') : trText('Antippen zum Einstellen')))),
-    h('div', { class: 'row', style: 'margin-top:8px' }, prFaceChoice(st, tpl), h('button', { class: 'btn small nav', type: 'button', onclick: () => photoDialog(st, () => render(true)) }, stOwnTpl(st) ? 'Foto bearbeiten' : 'Foto hochladen')));
+    h('div', { class: 'row', style: 'margin-top:8px' }, prFaceChoice(st, tpl), stOwnTpl(st) ? null : h('button', { class: 'btn small nav', type: 'button', onclick: () => photoDialog(st, () => render(true)) }, 'Foto hochladen')));
 }
 // a device with an own photo and a drawn faceplate: two buttons choose which one the stage shows (settings move along)
 function prFaceChoice(st, tpl) {
@@ -9325,7 +9325,7 @@ function pageHelpSlides() {
 /* ================= home-screen app (PWA) ================= */
 const isStandalone = () => window.matchMedia?.('(display-mode: standalone)').matches || window.navigator.standalone === true;
 const isIOS = () => /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-const APP_VERSION = '10.11.2026 (8)';
+const APP_VERSION = '10.11.2026 (9)';
 function registerSW() {
   if (!('serviceWorker' in navigator) || (location.protocol !== 'https:' && location.hostname !== 'localhost') || IN_CLAUDE_HOST()) return;
   navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).then(reg => {
