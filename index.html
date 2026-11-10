@@ -5574,11 +5574,10 @@ function viewChain() {
         h('button', { class: 'btn', type: 'button', onclick: () => { const c = { id: newId(), name: '', source: '', stages: [newStage('Preamp')], notes: '' }; C.channels.push(c); openSet.add(c.id); touch(); render(true); } }, 'Kanal hinzufügen')),
       // instrument chains are only the channel chain of that instrument: no busses, no master section
       instOwned ? null : h('h2', { id: 'sec-busses' }, 'Busse und Effekte'),
-      instOwned ? null : (C.busses.length ? C.busses.map(b => chainCard(b, C.busses, true, C.channels)) : h('div', { class: 'empty' }, 'Noch keine Busse. Leg zum Beispiel einen Drum-Bus oder einen Hall-Send an.')),
+      instOwned ? null : (C.busses.length ? C.busses.map(b => chainCard(b, C.busses, true, C.channels)) : null),
       instOwned ? null : busSel,
       !total ? null : h('h2', { id: 'sec-master' }, 'Master Section'), (C.masters ||= []) && null,
-      !total ? null : (C.masters.length ? h('div', { class: 'card master-card' }, h('div', { class: 'flow' }, C.masters.map(st => stageBlock(st, C.masters, null))))
-        : h('div', { class: 'empty' }, 'Noch keine Master Section. Trag einfach den Master-Fader ein oder wähle ein Pult mit gespeicherter Master Section.')),
+      !total || !C.masters.length ? null : h('div', { class: 'card master-card' }, h('div', { class: 'flow' }, C.masters.map(st => stageBlock(st, C.masters, null)))),
       !total || C.masters.length ? null : h('div', { class: 'row' }, h('button', { class: 'btn', type: 'button', onclick: () => { C.masters.push(newStage('Master Section')); touch(); render(true); } }, 'Master Section hinzufügen'))
     ]
   };
@@ -9317,7 +9316,7 @@ function pageHelpSlides() {
 /* ================= home-screen app (PWA) ================= */
 const isStandalone = () => window.matchMedia?.('(display-mode: standalone)').matches || window.navigator.standalone === true;
 const isIOS = () => /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-const APP_VERSION = '10.11.2026 (6)';
+const APP_VERSION = '10.11.2026 (7)';
 function registerSW() {
   if (!('serviceWorker' in navigator) || (location.protocol !== 'https:' && location.hostname !== 'localhost') || IN_CLAUDE_HOST()) return;
   navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).then(reg => {
