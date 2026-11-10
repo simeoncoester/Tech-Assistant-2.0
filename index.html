@@ -4966,11 +4966,20 @@ function cropDialog(src) {
   });
 }
 // delete a saved device photo everywhere: template, file and every stage that uses it
+// own photo vs. drawn faceplate at a stage: the faceplate belongs to the app and stays; only an uploaded photo can be taken off
+const stOwnTpl = st => { const t = st.photo && (S.devTpls || []).find(x => x.id === st.photo.tplId); if (!t) return null; if (!t.builtin) return t; const a = st.photoAlt && (S.devTpls || []).find(x => x.id === st.photoAlt.tplId && !x.builtin); return a || null; };
+function prDropOwn(st, own) {
+  const cur = st.photo && (S.devTpls || []).find(x => x.id === st.photo.tplId);
+  if (cur && cur.builtin) { if (st.photoAlt && (!own || st.photoAlt.tplId === own.id)) delete st.photoAlt; return; } // faceplate shown: only forget the own photo behind it
+  const key = fpKey(st.gear) || (cur && fpKey(cur.gear || cur.name)), fp = key ? prBuiltinFor({ gear: key }) : null;
+  if (fp) { const keep = st.photoAlt && st.photoAlt.tplId === fp.id ? st.photoAlt.vals || {} : {}; st.photo = { tplId: fp.id, vals: cur ? { ...prMapVals(cur, st.photo.vals || {}, fp), ...keep } : keep }; delete st.photoAlt; }
+  else { delete st.photo; delete st.photoAlt; st.fpOff = st.gear; }
+}
 function devDelete(tpl, after) {
   if (tpl.builtin) return; // drawn faceplates belong to the app and cannot be deleted
-  const uses = []; S.artists.forEach(a => (a.productions || []).forEach(p => [p.chain, p.totalChain, ...Object.values(p.instChains || {})].forEach(C => C && [...(C.channels || []), ...(C.busses || [])].forEach(ch => [...(ch.stages || []), ...(ch.stagesR || [])].forEach(st => { if (st.photo && st.photo.tplId === tpl.id) uses.push(st); })))));
+  const uses = []; S.artists.forEach(a => (a.productions || []).forEach(p => [p.chain, p.totalChain, ...Object.values(p.instChains || {})].forEach(C => C && [...(C.channels || []), ...(C.busses || [])].forEach(ch => [...(ch.stages || []), ...(ch.stagesR || [])].forEach(st => { if ((st.photo && st.photo.tplId === tpl.id) || (st.photoAlt && st.photoAlt.tplId === tpl.id)) uses.push(st); })))));
   askDialog({ title: `„${tpl.name || trText('Gerät')}“ ${trText('löschen?')}`, text: (uses.length ? `${trText('Wird an')} ${plural(uses.length, 'Stufe', 'Stufen')} ${trText('benutzt, die Werte dort gehen verloren.')} ` : '') + trText('Das lässt sich nicht rückgängig machen.'), buttons: [
-    { label: 'Löschen', danger: true, onClick: () => { uses.forEach(st => { delete st.photo; st.fpOff = st.gear; }); S.devTpls = S.devTpls.filter(t => t !== tpl); FileStore.del('dev-' + tpl.id); delete devPhotoCache[tpl.id]; delete prPixCache[tpl.id]; touch(); after?.(); if (document.getElementById('app')) render(true); toast(trText('Foto gelöscht')); } },
+    { label: 'Löschen', danger: true, onClick: () => { uses.forEach(st => prDropOwn(st, tpl)); S.devTpls = S.devTpls.filter(t => t !== tpl); FileStore.del('dev-' + tpl.id); delete devPhotoCache[tpl.id]; delete prPixCache[tpl.id]; touch(); after?.(); if (document.getElementById('app')) render(true); toast(trText('Foto gelöscht')); } },
     { label: 'Abbrechen' }] });
 }
 function devManager(onDone) {
@@ -5001,10 +5010,11 @@ function prUpload(st, onDone, capture) {
 }
 // per stage: add or change the device photo (camera / gallery), or take it off this stage
 function photoDialog(st, onDone) {
-  askDialog({ title: st.photo ? 'Foto bearbeiten' : 'Foto hinzufügen', text: st.photo ? '' : 'Fotografiere das Gerät von vorne, möglichst gerade. Danach tippst du die Regler im Foto an.', buttons: [
+  const own = stOwnTpl(st);
+  askDialog({ title: own ? 'Foto bearbeiten' : st.photo ? 'Foto hochladen' : 'Foto hinzufügen', text: own ? '' : 'Fotografiere das Gerät von vorne, möglichst gerade. Danach tippst du die Regler im Foto an.', buttons: [
     { label: 'Foto aufnehmen', primary: true, onClick: () => prUpload(st, onDone, true) },
     { label: 'Foto aus der Galerie', onClick: () => prUpload(st, onDone, false) },
-    ...(st.photo ? [{ label: 'Foto von dieser Stufe entfernen', danger: true, onClick: () => { delete st.photo; st.fpOff = st.gear; touch(); onDone(); } }] : []),
+    ...(own ? [{ label: 'Foto von dieser Stufe entfernen', danger: true, onClick: () => { prDropOwn(st, own); touch(); onDone(); } }] : []),
     { label: 'Abbrechen' }] });
 }
 const tplHas = c => (S.devTpls || []).some(t => t.ctrls.includes(c));
@@ -5257,15 +5267,14 @@ function showPhotoRecall(st, tpl, setup) {
     tpl.ctrls = tpl.ctrls.map(c => ({ ...c, x: (c.x - r.l) / r.w, y: (c.y - r.t) / r.h, r: Math.min(.4, (c.r || .08) / r.w) })).filter(c => c.x >= 0 && c.x <= 1 && c.y >= 0 && c.y <= 1);
     await FileStore.put('dev-' + tpl.id, { data: cr.data }); devPhotoCache[tpl.id] = cr.data; delete prPixCache[tpl.id]; tpl.ar = await imgRatio(cr.data); img.src = cr.data; changed(); draw(); fit(); };
   const resetVals = { label: 'Werte zurücksetzen', onClick: () => askDialog({ title: 'Alle Werte zurücksetzen?', text: 'Die Regler dieses Geräts werden für diese Stufe auf Null gesetzt.', buttons: [{ label: 'Zurücksetzen', danger: true, onClick: () => { st.photo.vals = {}; changed(); draw(); } }, { label: 'Abbrechen' }] }) };
-  const unStage = { label: 'Von Stufe entfernen', danger: true, onClick: () => askDialog({ title: 'Foto-Recall entfernen?', text: 'Die Stufe verliert das Foto und die Werte. Das gespeicherte Gerät bleibt für andere Stufen erhalten.', buttons: [{ label: 'Entfernen', danger: true, onClick: () => { delete st.photo; st.fpOff = st.gear; changed(); close(); } }, { label: 'Abbrechen' }] }) };
-  // a drawn faceplate is ready-made and cannot be edited: only its values can be reset or the faceplate taken off the stage
-  const menu = () => realFp ? askDialog({ title: tpl.name || trText('Gerät'), text: trText('Vorgefertigte Faceplate'), buttons: [resetVals, unStage, { label: 'Abbrechen' }] }) : askDialog({ title: tpl.name || trText('Gerät'), text: tpl.gear ? `${trText('Zugeordnet zu')} ${tpl.gear}` : '', buttons: [
+  // a drawn faceplate is ready-made: it cannot be edited or taken off the stage, only its values can be reset
+  const menu = () => realFp ? askDialog({ title: tpl.name || trText('Gerät'), text: trText('Vorgefertigte Faceplate'), buttons: [resetVals, { label: 'Abbrechen' }] }) : askDialog({ title: tpl.name || trText('Gerät'), text: tpl.gear ? `${trText('Zugeordnet zu')} ${tpl.gear}` : '', buttons: [
     { label: 'Gerät umbenennen', onClick: () => namePop('Gerät umbenennen', tpl.name || '', v => { tpl.name = v; title.textContent = v; changed(); }) },
     { label: 'Zuschneiden', onClick: recrop }, { label: 'Foto ersetzen', onClick: newPhoto },
     { label: 'Werte zurücksetzen', onClick: () => askDialog({ title: 'Alle Werte zurücksetzen?', text: 'Die Regler dieses Geräts werden für diese Stufe auf Null gesetzt.', buttons: [{ label: 'Zurücksetzen', danger: true, onClick: () => { st.photo.vals = {}; changed(); draw(); } }, { label: 'Abbrechen' }] }) },
     tpl.gear ? { label: 'Zuordnung zum Gerät aufheben', onClick: () => askDialog({ title: 'Zuordnung aufheben?', text: `${trText('Das Foto wird bei der Auswahl von')} „${tpl.gear}“ ${trText('nicht mehr automatisch angehängt. Foto und Regler bleiben gespeichert.')}`, buttons: [{ label: 'Aufheben', danger: true, onClick: () => { tpl.gear = ''; changed(); } }, { label: 'Abbrechen' }] }) } : null,
     { label: 'Foto löschen', danger: true, onClick: () => devDelete(tpl, close) },
-    { label: 'Von Stufe entfernen', danger: true, onClick: () => askDialog({ title: 'Foto-Recall entfernen?', text: 'Die Stufe verliert das Foto und die Werte. Das gespeicherte Gerät bleibt für andere Stufen erhalten.', buttons: [{ label: 'Entfernen', danger: true, onClick: () => { delete st.photo; st.fpOff = st.gear; changed(); close(); } }, { label: 'Abbrechen' }] }) },
+    { label: 'Von Stufe entfernen', danger: true, onClick: () => askDialog({ title: 'Foto-Recall entfernen?', text: 'Die Stufe verliert das Foto und die Werte. Das gespeicherte Gerät bleibt für andere Stufen erhalten.', buttons: [{ label: 'Entfernen', danger: true, onClick: () => { prDropOwn(st, tpl); changed(); close(); } }, { label: 'Abbrechen' }] }) },
     { label: 'Abbrechen' }] });
   // eye: switch between the photo and the controls only, as a colleague sees it without the photo
   const eyeBtn = h('button', { class: 'pr-menu pr-eye', type: 'button' });
@@ -5420,7 +5429,7 @@ function photoRecallRow(st, ch) {
   return h('div', {}, h('button', { class: 'pr-row', type: 'button', onclick: () => showPhotoRecall(st, tpl, false) }, thumb,
     h('span', { class: 'pr-row-t' }, h('b', { class: 'no-i18n' }, tpl.name || trText('Gerät')),
       h('span', { class: 'no-i18n' }, vals.length ? vals.map(([c, v]) => { const val = c.type && c.type !== 'knob' ? prVal(c, v) : v.text; return c.name && val ? `${c.name}: ${val}` : c.name || val || ''; }).filter(Boolean).join(' · ') : trText('Antippen zum Einstellen')))),
-    h('div', { class: 'row', style: 'margin-top:8px' }, prFaceChoice(st, tpl), h('button', { class: 'btn small nav', type: 'button', onclick: () => photoDialog(st, () => render(true)) }, 'Foto bearbeiten')));
+    h('div', { class: 'row', style: 'margin-top:8px' }, prFaceChoice(st, tpl), h('button', { class: 'btn small nav', type: 'button', onclick: () => photoDialog(st, () => render(true)) }, stOwnTpl(st) ? 'Foto bearbeiten' : 'Foto hochladen')));
 }
 // a device with an own photo and a drawn faceplate: two buttons choose which one the stage shows (settings move along)
 function prFaceChoice(st, tpl) {
@@ -9316,7 +9325,7 @@ function pageHelpSlides() {
 /* ================= home-screen app (PWA) ================= */
 const isStandalone = () => window.matchMedia?.('(display-mode: standalone)').matches || window.navigator.standalone === true;
 const isIOS = () => /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-const APP_VERSION = '10.11.2026 (7)';
+const APP_VERSION = '10.11.2026 (8)';
 function registerSW() {
   if (!('serviceWorker' in navigator) || (location.protocol !== 'https:' && location.hostname !== 'localhost') || IN_CLAUDE_HOST()) return;
   navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).then(reg => {
