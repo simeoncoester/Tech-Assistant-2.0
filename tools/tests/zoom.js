@@ -63,7 +63,7 @@ const { chromium, devices } = require('playwright');
  ok(await p.locator('.pr-seg button:has-text("Regler setzen")').isVisible(), 'faceplate: Regler setzen missing');
  await p.click('.pr-title'); await p.waitForTimeout(200); ok(await p.locator('.sheet-ov').count() === 0, 'faceplate: rename opened');
  await p.click('.pr-menu[aria-label="Weitere Aktionen"]'); await p.waitForTimeout(250);
- const items = await p.locator('.sheet-ov button').allTextContents(); ok(items.join('|') === 'Werte zurücksetzen|Von Stufe entfernen|Abbrechen', 'faceplate menu: ' + items.join('|'));
+ const items = await p.locator('.sheet-ov button').allTextContents(); ok(items.join('|') === 'Werte zurücksetzen|Abbrechen', 'faceplate menu: ' + items.join('|')); // a faceplate cannot be taken off the stage (only replaced by an own photo)
  // an own photo keeps every option
  await p.evaluate(async () => { document.querySelectorAll('.sheet-ov, .pr-ov').forEach(x => x.remove()); const c = document.createElement('canvas'); c.width = 300; c.height = 150; c.getContext('2d').fillRect(0, 0, 300, 150); const t = { id: 'own1', name: 'Mein Gerät', kind: 'EQ', ar: 2, ctrls: [{ id: 'k', name: 'Gain', type: 'knob', x: .5, y: .5, r: .1 }] }; S.devTpls.push(t); await FileStore.put('dev-own1', { data: c.toDataURL('image/png') }); const st = P().chain.channels[0].stages[0]; st.gear = 'Mein Gerät'; st.photo = { tplId: 'own1', vals: {} }; showPhotoRecall(st, t, false); });
  await p.waitForTimeout(500); ok(await p.locator('.pr-seg button:has-text("Regler setzen")').isVisible(), 'own photo: Regler setzen missing');

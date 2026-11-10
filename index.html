@@ -2556,7 +2556,7 @@ button.ins:focus-visible{outline:2px solid #6c9bef;outline-offset:1px}
 .pr-sld.vsld.real.set i{box-shadow:0 0 0 2px rgba(61,220,140,.85),0 6px 10px rgba(0,0,0,.65)}
 .pr-knob.real,.pr-push.real{border:0!important;background:none!important;box-shadow:none;border-radius:50%;transform:none;filter:none}
 .pr-knob.real svg,.pr-push.real svg,.pr-tog svg{width:100%;height:100%;display:block;overflow:visible}
-.pr-knob.real svg{filter:drop-shadow(0 1px 1px rgba(0,0,0,.6))}
+.pr-knob.real svg{filter:drop-shadow(0 2px 2.5px rgba(0,0,0,.7))}
 .pr-knob.real .rot{transform:rotate(var(--a));transition:transform .12s}
 .pr-knob.real.set,.pr-push.real.set{box-shadow:0 0 0 2px rgba(61,220,140,.85),0 0 10px rgba(61,220,140,.5)}
 .pr-push.real.psq{border-radius:14%}.pr-push.real.in::after{display:none}
@@ -4284,7 +4284,7 @@ const GEAR_DB = {
     'TL Audio': [['VTC', 'hw']], 'Chandler': [['TG Passive Channel', 'hw']], 'Universal Audio': [['6176', 'hw'], ['LA-610 MkII', 'hw']], 'Manley': [['VOXBOX', 'hw']], 'Avalon': [['VT-737sp', 'hw']], 'Rupert Neve Designs': [['Shelford Channel', 'hw']]
   },
   'Kompressor': {
-    'Universal Audio': [['1176LN', 'hw'], ['Teletronix LA-2A', 'hw'], ['175B', 'hw']], 'Empirical Labs': [['Distressor EL8', 'hw'], ['Distressor EL8-X', 'hw'], ['FATSO', 'hw']], 'dbx': [['160A', 'hw'], ['165A', 'hw']], 'SSL': [['G-Series Bus Compressor', 'hw']], 'API': [['2500', 'hw'], ['527', 'hw']], 'Neve': [['33609', 'hw'], ['2254', 'hw']], 'Fairchild': [['660', 'hw'], ['670', 'hw']], 'Chandler': [['TG1', 'hw'], ['Zener Limiter', 'hw']], 'Tube-Tech': [['CL 1B', 'hw']], 'Manley': [['Variable Mu', 'hw']], 'Shadow Hills': [['Mastering Compressor', 'hw']], 'CAPI': [['FC526', 'hw']], 'Klark Teknik': [['2A-KT', 'hw']], 'Sound Skulptor': [['CP4500', 'hw']], 'Link Audio': [['DYNX', 'hw']]
+    'Universal Audio': [['1176LN', 'hw'], ['Teletronix LA-2A', 'hw'], ['175B', 'hw']], 'Empirical Labs': [['Distressor EL8', 'hw'], ['Distressor EL8-X', 'hw'], ['FATSO', 'hw']], 'dbx': [['160A', 'hw'], ['165A', 'hw']], 'SSL': [['G-Series Bus Compressor', 'hw']], 'API': [['2500', 'hw'], ['527', 'hw']], 'Neve': [['33609', 'hw'], ['2254', 'hw']], 'Fairchild': [['660', 'hw'], ['670', 'hw']], 'Chandler': [['TG1', 'hw'], ['Zener Limiter', 'hw']], 'Tube-Tech': [['CL 1B', 'hw']], 'Manley': [['Variable Mu', 'hw']], 'Shadow Hills': [['Mastering Compressor', 'hw']], 'CAPI': [['FC526', 'hw']], 'Klark Teknik': [['2A-KT', 'hw'], ['76-KT', 'hw']], 'Behringer': [['369-KT', 'hw']], 'Sound Skulptor': [['CP4500', 'hw']], 'Link Audio': [['DYNX', 'hw']]
   },
   'Gate / Expander': {
     'Drawmer': [['DS201', 'hw']], 'dbx': [['904', 'hw']], 'SSL': [['E-Series Gate', 'hw']]
@@ -4542,6 +4542,42 @@ const FACEPLATES = {
   'AML ez1073-pre Addon EQ': { kind: 'EQ', ks: 'neve', ar: 0.286, bare: true, bg: '#2f3a40', bg2: '#273036', ink: '#e8dfb8', kc: '#7d7f84', fs: 50, brand: '', model: '', tx: 0.5, ty: 0.03,
     deco: [['screw', 0.486, 0.02, 0.07], ['screw', 0.486, 0.98, 0.07], ['txt', 0.78, 0.03, 'ez1073pre', 0.75], ['txt', 0.78, 0.048, '"addon" eq', 0.75], ['led', 0.165, 0.334, 0.04, '#ff3b30', true], ['txt', 0.62, 0.322, '−', 1.2], ['txt', 0.9, 0.322, '+', 1.2], ['txt', 0.62, 0.508, '−', 1.2], ['txt', 0.9, 0.508, '+', 1.2], ['txt', 0.62, 0.714, '−', 1.2], ['txt', 0.9, 0.714, '+', 1.2], ['scale', 0.294, 0.523, 0.24, ['OFF', '.36', '.7', '1.6', '3.2', '4.8', '7.2'], 0.8, '#e8dfb8', -110, 110], ['txt', 0.56, 0.566, 'KHz', 0.8], ['scale', 0.286, 0.741, 0.24, ['OFF', '35', '60', '110', '220'], 0.8, '#e8dfb8', -100, 60], ['txt', 0.53, 0.7, 'Hz', 0.8], ['scale', 0.734, 0.849, 0.24, ['OFF', '50', '80', '160', '300'], 0.8, '#e8dfb8', -100, 60], ['txt', 0.95, 0.81, 'Hz', 0.8], ['txt', 0.17, 0.842, 'EQ', 1], ['txt', 0.17, 0.882, 'IN', 1], ['txt', 0.82, 0.965, 'AML-UK', 0.8]],
     c: [['k', 'HF Gain|', 0.761, 0.236, 0.34, '#7d7f84', 'n'], ['k', 'MF Gain|', 0.761, 0.422, 0.34, '#7d7f84', 'n'], ['k', 'MF Freq|', 0.294, 0.523, 0.3, '#8e2420', 'n'], ['k', 'LF Gain|', 0.743, 0.628, 0.34, '#7d7f84', 'n'], ['k', 'LF Freq|', 0.286, 0.741, 0.3, '#8e2420', 'n'], ['k', 'HPF|', 0.734, 0.849, 0.3, '#8e2420', 'n'], ['s', 'EQ In|', 0.297, 0.864, 0.07, '', 'n']] },
+  'Klark Teknik 76-KT': { kind: 'Kompressor', ks: 'urei', ps: 'sq', ar: 5.34, bg: '#2c2d2f', bg2: '#1e1f21', ink: '#f2f2f2', kc: '#1a1a1a', fs: 11, brand: '', model: '', tx: .5, ty: .1, noTicks: true,
+    deco: [['screw', 0.077, 0.2, 0.011], ['screw', 0.077, 0.78, 0.011], ['screw', 0.923, 0.2, 0.011], ['screw', 0.923, 0.78, 0.011],
+      ['pdots', 0.1535, 0.5, 0.0515, 17, 0.004], ['scale', 0.1535, 0.5, 0.064, ['∞', '48', '36', '30', '24', '18', '12', '6', '0'], 0.95], ['txt', 0.1535, 0.875, 'INPUT', 1],
+      ['pdots', 0.3265, 0.5, 0.0515, 17, 0.004], ['scale', 0.3265, 0.5, 0.064, ['∞', '48', '36', '30', '24', '18', '12', '6', '0'], 0.95], ['txt', 0.3265, 0.875, 'OUTPUT', 1],
+      ['pdots', 0.4606, 0.23, 0.0225, 7, 0.0032], ['scale', 0.4606, 0.23, 0.031, ['1', '3', '5', '7'], 0.9], ['txt', 0.4606, 0.468, 'ATTACK', 1],
+      ['pdots', 0.4606, 0.69, 0.0225, 7, 0.0032], ['scale', 0.4606, 0.69, 0.031, ['1', '3', '5', '7'], 0.9], ['txt', 0.4606, 0.93, 'RELEASE', 1],
+      ['txt', 0.556, 0.09, 'RATIO', 1], ['txt', 0.533, 0.262, '20', 0.9], ['txt', 0.533, 0.427, '12', 0.9], ['txt', 0.533, 0.59, '8', 0.9], ['txt', 0.533, 0.757, '4', 0.9],
+      ['vu', 0.5937, 0.19, 0.172, 0.47, { face: '#e9c85a', label: 'VU' }], ['txt', 0.68, 0.757, '76-KT LIMITING AMPLIFIER', 0.9],
+      ['txt', 0.8025, 0.09, 'METER', 1], ['txt', 0.826, 0.262, 'GR', 0.9], ['txt', 0.826, 0.427, '+8', 0.9], ['txt', 0.826, 0.59, '+6', 0.9], ['txt', 0.826, 0.757, '+4', 0.9],
+      ['lamp', 0.881, 0.24, 0.03, '#ff9a1a'], ['txt', 0.881, 0.49, 'KLARK TEKNIK', 1.05], ['txt', 0.881, 0.905, 'POWER', 0.9]],
+    c: [['k', 'Input|', 0.1535, 0.5, 0.088, '#1a1a1a', 'n'], ['k', 'Output|', 0.3265, 0.5, 0.088, '#1a1a1a', 'n'], ['k', 'Attack|', 0.4606, 0.23, 0.033, '#1a1a1a', 'n', { ks: 'spun' }], ['k', 'Release|', 0.4606, 0.69, 0.033, '#1a1a1a', 'n', { ks: 'spun' }],
+      ['p', 'Ratio 20|', 0.556, 0.235, 0.02, '#1c1c1e', 'n'], ['p', 'Ratio 12|', 0.556, 0.4, 0.02, '#1c1c1e', 'n'], ['p', 'Ratio 8|', 0.556, 0.563, 0.02, '#1c1c1e', 'n'], ['p', 'Ratio 4|', 0.556, 0.73, 0.02, '#1c1c1e', 'n'],
+      ['p', 'Meter GR|', 0.8025, 0.235, 0.02, '#1c1c1e', 'n'], ['p', 'Meter +8|', 0.8025, 0.4, 0.02, '#1c1c1e', 'n'], ['p', 'Meter +6|', 0.8025, 0.563, 0.02, '#1c1c1e', 'n'], ['p', 'Meter +4|', 0.8025, 0.73, 0.02, '#1c1c1e', 'n'],
+      ['s', 'Power|', 0.881, 0.7, 0.02, '', 'n']] },
+  'Behringer 369-KT': (() => { // 2 x limiter + 2 x compressor, drawn after the user's photo (369-KT)
+    const INK = '#e9eef3', deco = [['rect', 0.091, 0.033, 0.168, 0.455], ['rect', 0.091, 0.512, 0.168, 0.455], ['rect', 0.2645, 0.033, 0.288, 0.455], ['rect', 0.2645, 0.512, 0.288, 0.455], ['rect', 0.5577, 0.033, 0.08, 0.934], ['rect', 0.6427, 0.033, 0.214, 0.934],
+      ['txt', 0.047, 0.435, '369-KT', 0.78], ['txt', 0.047, 0.487, 'DISCRETE PRECISION', 0.6], ['txt', 0.047, 0.539, 'STEREO LIMITER', 0.6], ['txt', 0.047, 0.591, 'COMPRESSOR', 0.6],
+      ['screw', 0.079, 0.21, 0.011], ['screw', 0.079, 0.78, 0.011], ['screw', 0.92, 0.21, 0.011], ['screw', 0.92, 0.78, 0.011],
+      ['vu', 0.6496, 0.166, 0.0954, 0.46, { dark: true, gr: true }], ['vu', 0.7554, 0.379, 0.0954, 0.469, { dark: true, gr: true }], ['txt', 0.697, 0.118, 'GAIN REDUCTION 1', 0.62], ['txt', 0.803, 0.335, 'GAIN REDUCTION 2', 0.62],
+      ['lamp', 0.8794, 0.256, 0.034, '#ff7a1a'], ['rect', 0.874, 0.462, 0.079, 0.075, '#15171a', '#000', 3], ['txt', 0.9135, 0.518, 'behringer', 0.8, '#e6e6e6'], ['txt', 0.8786, 0.905, 'POWER', 0.66]], c = [];
+    const knob = (nm, x, y, labs, ticks) => { c.push(['k', nm + '|', x, y, 0.033, '#2f5fd0', 'n', { ks: 'nevecap' }]); deco.push(['ticks', x, y, 0.02, ticks, INK], ['scale', x, y, 0.0248, labs, 0.42, INK]); };
+    const sw = (nm, x, y, up, dn) => { c.push(['s', nm + '|', x, y, 0.015, '', 'n']); if (up) deco.push(['txt', x, y - 0.088, up, 0.55]); if (dn) deco.push(['txt', x, y + 0.118, dn, 0.55]); };
+    [[1, 0.29, 0.284, 0.105, 0.465], [2, 0.764, 0.758, 0.582, 0.942]].forEach(([n, ky, sy, hy, by]) => {
+      [['THRESHOLD', 0.1162], ['RECOVERY', 0.1743], ['LIMIT', 0.2134], ['ATTACK', 0.2428], ['THRESHOLD', 0.2931], ['RECOVERY', 0.3504], ['GAIN', 0.4094], ['RATIO', 0.4666], ['COMP', 0.5065], ['ATTACK', 0.536]].forEach(([t, x]) => deco.push(['txt', x, hy, t, 0.55]));
+      knob(`Limit ${n} Threshold`, 0.1162, ky, ['5', '6', '7', '8', '9', '10', '11', '12', '13', '14'], 19); deco.push(['txt', 0.1035, ky + 0.19, '+4', 0.45], ['txt', 0.129, ky + 0.19, '+15', 0.45]);
+      knob(`Limit ${n} Recovery`, 0.1743, ky, ['50', '100', '200', '800', 'a1', 'a2'], 6);
+      sw(`Limit ${n} In`, 0.2134, sy, 'IN', ''); sw(`Limit ${n} Attack Fast / Slow`, 0.2428, sy, 'FAST', 'SLOW'); deco.push(['txt', 0.1743, by, 'LIMIT ' + n, 0.75]);
+      knob(`Comp ${n} Threshold`, 0.2931, ky, ['-20', '16', '12', '8', '4', '0', '4', '8', '+10'], 16);
+      knob(`Comp ${n} Recovery`, 0.3504, ky, ['100', '400', '800', '1500', 'a1', 'a2'], 6);
+      knob(`Comp ${n} Gain`, 0.4094, ky, ['0', '4', '8', '12', '16', '20'], 11);
+      knob(`Comp ${n} Ratio`, 0.4666, ky, ['1.5:1', '2:1', '3:1', '4:1', '6:1'], 5);
+      sw(`Comp ${n} In`, 0.5065, sy, 'IN', ''); sw(`Comp ${n} Attack Fast / Slow`, 0.536, sy, 'FAST', 'SLOW'); deco.push(['txt', 0.4094, by, 'COMPRESS ' + n, 0.75]);
+      sw(`Bypass ${n}`, 0.5733, sy, 'IN', 'BYPASS'); sw(n === 1 ? 'Mono / Stereo' : 'Control Internal / External', 0.6106, sy, n === 1 ? 'MONO' : 'INTERNAL', n === 1 ? 'STEREO' : 'EXTERNAL');
+      deco.push(['led', 0.5912, sy - 0.05, 0.0075, '#3ee08a', true], ['led', 0.5912, sy + 0.035, 0.006, '#9aa3ad', false], ['led', 0.6292, sy - 0.05, 0.006, '#9aa3ad', false], ['led', 0.6292, sy + 0.035, 0.0075, '#ff3b30', true]); });
+    deco.push(['txt', 0.6106, 0.582, 'CONTROL', 0.55]); c.push(['s', 'Power|', 0.8786, 0.735, 0.02, '', 'n']);
+    return { pages: [['Limiter', 0, 0, 0.27, 1], ['Kompressor', 0.255, 0, 0.56, 1], ['Schalter & Meter', 0.55, 0, 1, 1]], kind: 'Kompressor', ks: 'nevecap', ar: 5.46, noEars: true, noTicks: true, bg: '#2f4a63', bg2: '#243b51', ink: INK, kc: '#2f5fd0', fs: 11, brand: '', model: '', tx: .5, ty: .1, deco, c }; })(),
   'Klark Teknik 2A-KT': { kind: 'Kompressor', ks: 'marconi', ar: 5.0, noEars: true, bg: '#c6c7c3', bg2: '#b3b4b0', ink: '#1d1f22', kc: '#161616', fs: 14, brand: '', model: '', tx: 0.5, ty: 0.1,
     deco: [['txt', 0.1, 0.57, 'LIMIT', 0.9], ['txt', 0.1, 0.87, 'COMPRESS', 0.8], ['txt', 0.178, 0.88, 'PRE-EMPHASIS', 0.7], ['scale', 0.275, 0.495, 0.056, ['0', '10', '20', '30', '40', '50', '60', '70', '80', '90', '100'], 0.95, '#1d1f22'], ['txt', 0.282, 0.9, 'OUTPUT GAIN', 1], ['vu', 0.392, 0.24, 0.18, 0.47, { face: '#f6d6a0', label: 'VU' }], ['txt', 0.481, 0.8, '2A-KT LEVELING AMPLIFIER', 1], ['scale', 0.678, 0.537, 0.056, ['0', '10', '20', '30', '40', '50', '60', '70', '80', '90', '100'], 0.95, '#1d1f22'], ['txt', 0.678, 0.93, 'PEAK REDUCTION', 1], ['txt', 0.792, 0.135, 'GAIN REDUCTION', 0.95], ['txt', 0.735, 0.215, 'OUTPUT +10', 0.75], ['txt', 0.852, 0.215, 'OUTPUT +4', 0.75], ['txt', 0.793, 0.73, 'METER', 1], ['lamp', 0.87, 0.325, 0.016, '#ff9a1a'], ['txt', 0.905, 0.6, 'KLARK TEKNIK', 1.4], ['txt', 0.874, 0.93, 'POWER', 1]],
     c: [['s', 'Limit / Compress|', 0.1, 0.71, 0.022, '', 'n'], ['k', 'Pre-Emphasis|', 0.172, 0.7, 0.024, '', 'n', { ks: 'trim' }], ['k', 'Output Gain|', 0.275, 0.495, 0.072, '', 'n'], ['k', 'Peak Reduction|', 0.678, 0.537, 0.072, '', 'n'], ['k', 'Meter Gain Reduction / +10 / +4|', 0.793, 0.43, 0.055, '', 'n', { ks: 'chicken' }], ['s', 'Power|', 0.873, 0.77, 0.022, '', 'n']] },
@@ -4737,11 +4773,16 @@ function fpSvg(fp, mode) {
     }
     if (d[0] === 'screw') out.push(screw(d[1] * W, d[2] * H, d[3] * W / 2, d[4] !== false)); // [x, y, diameter, phillips]
     if (d[0] === 'jack') { const X = d[1] * W, Y = d[2] * H, R = d[3] * W / 2; out.push(`<circle cx="${X + R * .1}" cy="${Y + R * .2}" r="${R * 1.05}" fill="#000" opacity=".5" filter="url(#blur2)"/><polygon points="${[0, 1, 2, 3, 4, 5].map(i => (X + R * Math.cos(i * Math.PI / 3)).toFixed(1) + ',' + (Y + R * Math.sin(i * Math.PI / 3)).toFixed(1)).join(' ')}" fill="url(#scr)" stroke="rgba(0,0,0,.5)"/><circle cx="${X}" cy="${Y}" r="${R * .72}" fill="url(#scr)"/><circle cx="${X}" cy="${Y}" r="${R * .5}" fill="#050505"/><circle cx="${X}" cy="${Y}" r="${R * .5}" fill="none" stroke="rgba(255,255,255,.25)" stroke-width="1"/>`); } // [x, y, diameter] chrome jack socket
-    if (d[0] === 'scale') { const [, x, y, rad, labs, sz = .7, col = fp.ink, a0 = -135, a1 = 135] = d, X = x * W, Y = y * H, R = rad * W, f = Math.max(6, fs * sz); // numbers round a knob
+    if (d[0] === 'scale') { const [, x, y, rad, labs, sz = .7, col = fp.ink, a0 = -135, a1 = 135] = d, X = x * W, Y = y * H, R = rad * W, f = Math.max(sz < .5 ? 4.6 : 6, fs * sz); // numbers round a knob
       labs.forEach((t, i) => { const a = (a0 + (a1 - a0) * i / Math.max(1, labs.length - 1)) * Math.PI / 180; if (t !== '') out.push(`<text x="${(X + R * Math.sin(a)).toFixed(1)}" y="${(Y - R * Math.cos(a) + f * .36).toFixed(1)}" fill="${col}" font-size="${f}" font-weight="600" text-anchor="middle">${fpEsc(t)}</text>`); }); }
     if (d[0] === 'vtxt') { const [, x, y0, t, sz = .9, col = fp.ink, step = .03] = d, f = fs * sz; [...String(t)].forEach((ch, i) => out.push(`<text x="${x * W}" y="${(y0 + i * step) * H}" fill="${col}" font-size="${f}" font-weight="700" text-anchor="middle">${fpEsc(ch)}</text>`)); } // stacked vertical lettering
     if (d[0] === 'dots') { const [, x, y, rad, n, dd, c1 = '#e8e8e8', c2 = '#d8322a', a0 = -150, a1 = 150] = d, X = x * W, Y = y * H, R = rad * W; // SSL-style ring of printed dots, alternating colours
       for (let i = 0; i < n; i++) { const a = (a0 + (a1 - a0) * i / (n - 1)) * Math.PI / 180, red = i % 2; out.push(red ? `<rect x="${(X + R * Math.sin(a) - dd * W * .18).toFixed(1)}" y="${(Y - R * Math.cos(a) - dd * W * .5).toFixed(1)}" width="${(dd * W * .36).toFixed(1)}" height="${(dd * W).toFixed(1)}" fill="${c2}" transform="rotate(${(a * 180 / Math.PI).toFixed(1)} ${(X + R * Math.sin(a)).toFixed(1)} ${(Y - R * Math.cos(a)).toFixed(1)})"/>` : `<circle cx="${(X + R * Math.sin(a)).toFixed(1)}" cy="${(Y - R * Math.cos(a)).toFixed(1)}" r="${(dd * W * .5).toFixed(1)}" fill="${c1}"/>`); } }
+    if (d[0] === 'pdots') { const [, x, y, rad, n, dd, c1 = fp.ink, a0 = -135, a1 = 135] = d, X = x * W, Y = y * H, R = rad * W; // ring of printed dots round a knob
+      for (let i = 0; i < n; i++) { const a = (a0 + (a1 - a0) * i / (n - 1)) * Math.PI / 180; out.push(`<circle cx="${(X + R * Math.sin(a)).toFixed(1)}" cy="${(Y - R * Math.cos(a)).toFixed(1)}" r="${(dd * W * .5).toFixed(2)}" fill="${c1}"/>`); } }
+    if (d[0] === 'ticks') { const [, x, y, rad, n, c1 = fp.ink, a0 = -135, a1 = 135, len = .2] = d, X = x * W, Y = y * H, R = rad * W, P = (a, r) => [(X + r * Math.sin(a * Math.PI / 180)).toFixed(1), (Y - r * Math.cos(a * Math.PI / 180)).toFixed(1)]; // printed arc with short ticks round a knob
+      out.push(`<path d="M${P(a0, R).join(' ')}A${R} ${R} 0 ${a1 - a0 > 180 ? 1 : 0} 1 ${P(a1, R).join(' ')}" fill="none" stroke="${c1}" stroke-width="1.3" opacity=".9"/>`);
+      for (let i = 0; i < n; i++) { const a = a0 + (a1 - a0) * i / (n - 1); out.push(`<line x1="${P(a, R)[0]}" y1="${P(a, R)[1]}" x2="${P(a, R * (1 - len))[0]}" y2="${P(a, R * (1 - len))[1]}" stroke="${c1}" stroke-width="1.3" opacity=".9"/>`); } }
     if (d[0] === 'led') { const [, x, y, r, c = '#3ee08a', on = true] = d; out.push(fpLed(x * W, y * H, r * W / 2, c, on)); } // [x, y, diameter, colour, lit]
     if (d[0] === 'leds') { const [, x0, y0, x1, y1, n, r, c = '#3ee08a', lit = 0, c2] = d, R = r * W / 2; // a row / column of LEDs, the first `lit` ones glowing, c2 = colour of the last two
       for (let i = 0; i < n; i++) { const X = (x0 + (x1 - x0) * i / Math.max(1, n - 1)) * W, Y = (y0 + (y1 - y0) * i / Math.max(1, n - 1)) * H; out.push(fpLed(X, Y, R, c2 && i >= n - 2 ? c2 : c, i < lit)); }
@@ -4767,7 +4808,8 @@ function fpSvg(fp, mode) {
         out.push(`<line x1="${X + r0 * Math.sin(a)}" y1="${Y - r0 * Math.cos(a)}" x2="${X + r1 * Math.sin(a)}" y2="${Y - r1 * Math.cos(a)}" stroke="${fp.ink}" stroke-width="${Math.max(1.5, R * .045)}" opacity=".8"/>`); }
     }
     const shadow = (rr2, dx = .1, dy = .22) => `<circle cx="${X + R * dx}" cy="${Y + R * dy}" r="${rr2}" fill="#000" opacity=".55" filter="url(#blur)"/>`;
-    if (t === 'k') { const ks = ext && ext.ks || fp.ks; out.push(ks === 'chicken' ? `<ellipse cx="${X + R * .1}" cy="${Y + R * .2}" rx="${R * .5}" ry="${R * .7}" fill="#000" opacity=".4" filter="url(#blur)"/>` : shadow(R * 1.02)); }
+    if (t === 'k') { const ks = ext && ext.ks || fp.ks; out.push(ks === 'chicken' ? `<ellipse cx="${X + R * .1}" cy="${Y + R * .2}" rx="${R * .5}" ry="${R * .7}" fill="#000" opacity=".4" filter="url(#blur)"/>` : shadow(R * 1.02));
+      if (!mode && !['chicken', 'marconi', 'api', 'apiring'].includes(ks)) out.push(prKnobSvg(ks || 'round', col !== undefined && col !== '' ? col : fp.kc).replace('<svg ', `<svg x="${X - R}" y="${Y - R}" width="${R * 2}" height="${R * 2}" `).replace(/class="rot"/g, 'transform="rotate(-135)"')); }
     if (t === 'p') { const sq = (ext && ext.ps || fp.ps) === 'sq'; out.push(sq ? `<rect x="${X - R * 1.2 + R * .12}" y="${Y - R * 1.2 + R * .25}" width="${R * 2.4}" height="${R * 2.4}" rx="${R * .3}" fill="#000" opacity=".55" filter="url(#blur)"/><rect x="${X - R * 1.22}" y="${Y - R * 1.22}" width="${R * 2.44}" height="${R * 2.44}" rx="${R * .3}" fill="url(#scr)" stroke="rgba(0,0,0,.6)" stroke-width="1.2"/><rect x="${X - R * 1.06}" y="${Y - R * 1.06}" width="${R * 2.12}" height="${R * 2.12}" rx="${R * .22}" fill="#050505"/>`
       : shadow(R * 1.3) + `<circle cx="${X}" cy="${Y}" r="${R * 1.28}" fill="url(#scr)" stroke="rgba(0,0,0,.6)" stroke-width="1.2"/><circle cx="${X}" cy="${Y}" r="${R * 1.1}" fill="#050505"/>`); }
     if (t === 's') out.push(shadow(R * .9, .12, .35), `<circle cx="${X}" cy="${Y}" r="${R * .95}" fill="url(#scr)" stroke="rgba(0,0,0,.55)" stroke-width="1.2"/>`);
@@ -5123,18 +5165,31 @@ function prKnobSvg(ks, col) {
     + `<linearGradient id="${id}s" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fdfdfd"/><stop offset=".3" stop-color="#b9bec4"/><stop offset=".5" stop-color="#f1f3f5"/><stop offset=".78" stop-color="#7d838a"/><stop offset="1" stop-color="#c4c8cd"/></linearGradient>`
     + `<radialGradient id="${id}g" cx="34%" cy="24%" r="42%"><stop offset="0" stop-color="#fff" stop-opacity=".6"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient>`
     + `<linearGradient id="${id}e" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".55"/><stop offset=".5" stop-color="#fff" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".45"/></linearGradient></defs>`;
-  const knurl = (r, w, k, n) => `<circle r="${r}" fill="none" stroke="${k}" stroke-width="${w}" stroke-dasharray="${(Math.PI * r / n).toFixed(2)}"/>`;
+  // knurled rim: dark grooves and lit ridges side by side
+  const knurl = (r, w, k, n) => { const d = (Math.PI * r / n).toFixed(2); return `<circle r="${r}" fill="none" stroke="${k}" stroke-width="${w}" stroke-dasharray="${d}"/><circle r="${r}" fill="none" stroke="rgba(255,255,255,.2)" stroke-width="${w}" stroke-dasharray="${(d * .35).toFixed(2)} ${(d * 1.65).toFixed(2)}" stroke-dashoffset="${(-d * .1).toFixed(2)}"/>`; };
+  // spun (lathe-turned) metal: the sheen runs round the centre in light and dark sectors, like on real aluminium caps and skirts
+  const spun = (r, base = 196, tint = [0, 2, 5]) => { let o = ''; const n = 40; for (let i = 0; i < n; i++) { const a0 = i * 2 * Math.PI / n, a1 = (i + 1.08) * 2 * Math.PI / n, am = (a0 + a1) / 2, l = Math.round(Math.max(70, Math.min(252, base + 46 * Math.cos(2 * (am - .95)) + 13 * Math.cos(6 * am + 1.2))));
+      o += `<path d="M0 0L${(r * Math.sin(a0)).toFixed(2)} ${(-r * Math.cos(a0)).toFixed(2)}A${r} ${r} 0 0 1 ${(r * Math.sin(a1)).toFixed(2)} ${(-r * Math.cos(a1)).toFixed(2)}Z" fill="rgb(${l + tint[0]},${l + tint[1]},${l + tint[2]})"/>`; } return o; };
   const flutes = (r0, r1, n) => { let d = ''; for (let i = 0; i < n * 2; i++) { const a = i * Math.PI / n, r = i % 2 ? r0 : r1; d += (i ? 'L' : 'M') + (r * Math.sin(a)).toFixed(2) + ' ' + (-r * Math.cos(a)).toFixed(2); } return d + 'Z'; };
   const line = (r0, r1, w, k) => `<rect x="${-w / 2}" y="${-r1}" width="${w}" height="${r1 - r0}" rx="${w / 2}" fill="${k}"/>`;
   let g = '';
   if (ks === 'alu') { let rings = ''; for (let r = 6; r < 46; r += 2.6) rings += `<circle r="${r}" fill="none" stroke="${r % 5 < 2.6 ? 'rgba(255,255,255,.22)' : 'rgba(0,0,0,.07)'}" stroke-width="1"/>`;
-    g = `<circle r="48" fill="#5d6268"/><circle r="47" fill="url(#${id}s)"/>${rings}<circle r="47" fill="none" stroke="url(#${id}e)" stroke-width="3"/><g class="rot"><circle cy="-35" r="4.2" fill="#1b1b1b"/><circle cy="-35.6" r="4.2" fill="none" stroke="rgba(255,255,255,.5)" stroke-width=".8"/></g>`; }
+    g = `<circle r="48" fill="#5d6268"/>${spun(47)}${rings}<circle r="47" fill="none" stroke="url(#${id}e)" stroke-width="3"/><g class="rot"><circle cy="-35" r="4.2" fill="#1b1b1b"/><circle cy="-35.6" r="4.2" fill="none" stroke="rgba(255,255,255,.5)" stroke-width=".8"/></g>`; }
   else if (ks === 'bakelite') g = `<g class="rot"><path d="${flutes(43, 48, 18)}" fill="${lo}"/><path d="${flutes(41, 46, 18)}" fill="url(#${id}d)"/><circle r="34" fill="url(#${id}d)" stroke="rgba(0,0,0,.5)" stroke-width="1"/>${line(8, 44, 4.5, '#f2f2f2')}</g><circle r="34" fill="url(#${id}g)"/>`;
   else if (ks === 'skirt' || ks === 'neve') { const cap = ks === 'neve' ? c : '#1c1c1c', id2 = id + 'c';
     g = `<defs><radialGradient id="${id2}" cx="36%" cy="28%" r="80%"><stop offset="0" stop-color="${cMix(cap, '#ffffff', .45)}"/><stop offset=".5" stop-color="${cap}"/><stop offset="1" stop-color="${cMix(cap, '#000000', .55)}"/></radialGradient></defs>`
-      + `<circle r="48" fill="#4b5056"/><circle r="47" fill="url(#${id}s)"/><circle r="47" fill="none" stroke="url(#${id}e)" stroke-width="2.5"/><g class="rot">${line(33, 46, 3.6, ks === 'neve' ? '#f6f6f6' : '#151515')}</g>`
+      + `<circle r="48" fill="#4b5056"/>${spun(47, 188)}<circle r="47" fill="none" stroke="url(#${id}e)" stroke-width="2.5"/><g class="rot">${line(33, 46, 3.6, ks === 'neve' ? '#f6f6f6' : '#151515')}</g>`
       + `<circle r="33" fill="#000" opacity=".35" cy="2"/>${knurl(31.5, 3, cMix(cap, '#000000', .5), 40)}<circle r="30" fill="url(#${id2})"/><circle r="30" fill="url(#${id}g)"/>`
       + (ks === 'skirt' ? `<g class="rot">${line(10, 29, 3.5, '#f2f2f2')}</g>` : ''); }
+  else if (ks === 'urei') // 1176 style: wide black cone skirt with the white index line, knurled grip, spun aluminium cap
+    g = `<defs><radialGradient id="${id}k" cx="50%" cy="50%" r="50%"><stop offset=".5" stop-color="#48484b"/><stop offset=".72" stop-color="#222224"/><stop offset="1" stop-color="#0b0b0c"/></radialGradient><linearGradient id="${id}l" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".32"/><stop offset=".5" stop-color="#fff" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".4"/></linearGradient></defs>`
+      + `<circle r="48" fill="url(#${id}k)"/><circle r="48" fill="url(#${id}l)"/><circle r="47.4" fill="none" stroke="rgba(255,255,255,.14)" stroke-width="1"/><g class="rot">${line(29, 47, 2.4, '#f6f6f6')}</g>`
+      + `<circle r="29" fill="#000" opacity=".5" cy="2.5"/><circle r="27" fill="#0d0d0e"/>${knurl(25.5, 4, '#3d3d40', 34)}<circle r="22.6" fill="#101011"/>${spun(21.6, 178)}<circle r="21.6" fill="url(#${id}g)"/><circle r="21.6" fill="none" stroke="rgba(0,0,0,.5)" stroke-width="1"/>`;
+  else if (ks === 'spun') // small black knurled knob with a spun aluminium face and a dot as index
+    g = `<circle r="48" fill="#0c0c0d"/>${knurl(45, 6, '#414144', 30)}<circle r="40" fill="#111"/>${spun(38.5, 172)}<circle r="38.5" fill="url(#${id}g)"/><circle r="38.5" fill="none" stroke="rgba(0,0,0,.55)" stroke-width="1.2"/><g class="rot"><circle cy="-25" r="4.6" fill="none" stroke="#2c2e31" stroke-width="2.2"/><circle cy="-25" r="2" fill="#2c2e31"/></g>`;
+  else if (ks === 'nevecap') { const id2 = id + 'c'; // coloured cap with a white index line on a knurled metal skirt
+    g = `<defs><radialGradient id="${id2}" cx="36%" cy="28%" r="80%"><stop offset="0" stop-color="${cMix(c, '#ffffff', .4)}"/><stop offset=".5" stop-color="${c}"/><stop offset="1" stop-color="${cMix(c, '#000000', .5)}"/></radialGradient></defs>`
+      + `<circle r="48" fill="#3f4348"/>${spun(47, 186)}${knurl(44.5, 5, 'rgba(40,44,50,.75)', 44)}<circle r="47" fill="none" stroke="url(#${id}e)" stroke-width="2"/><circle r="39" fill="#000" opacity=".4" cy="2.5"/><circle r="37.5" fill="url(#${id2})"/><circle r="37.5" fill="url(#${id}g)"/><circle r="37.5" fill="none" stroke="rgba(0,0,0,.35)" stroke-width="1"/><g class="rot">${line(6, 36, 4.6, '#f7f7f7')}</g>`; }
   else if (ks === 'chicken') g = `<circle r="24" fill="#000" opacity=".3" cy="3"/><g class="rot"><path d="M0 -49L11 -21C22 -9 22 11 14 22L9 40Q0 45 -9 40L-14 22C-22 11 -22 -9 -11 -21Z" fill="url(#${id}d)" stroke="${lo}" stroke-width="1.2"/>`
       + `<path d="M0 -46L8 -22C15 -12 15 0 10 8" fill="none" stroke="rgba(255,255,255,.35)" stroke-width="2.5"/>${line(18, 44, 3.4, ptr)}<circle r="13" fill="${cMix(c, '#000000', .25)}" stroke="rgba(255,255,255,.18)"/></g>`;
   else if (ks === 'api') { const gr = id + 'a';
@@ -5165,7 +5220,9 @@ function prRealFace(c, v, fp) {
     const capC = lamp ? (on ? cMix(col, '#ffffff', .25) : cMix(col, '#000000', .45)) : col ? (on ? cMix(col, '#000000', .18) : col) : (on ? '#2b2e33' : '#3a3e44'), s0 = on ? 33 : 37;
     const cap = sq ? `<rect x="${-s0}" y="${-s0}" width="${s0 * 2}" height="${s0 * 2}" rx="7" fill="url(#${id})"/><rect x="${-s0}" y="${-s0}" width="${s0 * 2}" height="${s0 * 2}" rx="7" fill="url(#${id}g)"/>` : `<circle r="${s0}" fill="url(#${id})"/><circle r="${s0}" fill="url(#${id}g)"/>`;
     el.innerHTML = `<svg viewBox="-50 -50 100 100" aria-hidden="true"><defs><radialGradient id="${id}" cx="40%" cy="32%" r="80%"><stop offset="0" stop-color="${cMix(capC, '#ffffff', on && lamp ? .6 : .35)}"/><stop offset=".55" stop-color="${capC}"/><stop offset="1" stop-color="${cMix(capC, '#000000', .45)}"/></radialGradient><linearGradient id="${id}g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".45"/><stop offset=".45" stop-color="#fff" stop-opacity="0"/></linearGradient></defs>`
-      + (on && lamp ? `<circle r="48" fill="${col}" opacity=".45" style="filter:blur(6px)"/>` : '') + cap
+      + (on && lamp ? `<circle r="48" fill="${col}" opacity=".45" style="filter:blur(6px)"/>` : '')
+      + (on ? '' : sq ? `<rect x="${-s0}" y="${-s0 + 5}" width="${s0 * 2}" height="${s0 * 2}" rx="7" fill="${cMix(capC, '#000000', .7)}"/>` : `<circle r="${s0}" cy="5" fill="${cMix(capC, '#000000', .7)}"/>`) + cap
+      + (sq ? `<rect x="${-s0 + 1.5}" y="${-s0 + 1.5}" width="${s0 * 2 - 3}" height="${s0 * 2 - 3}" rx="6" fill="none" stroke="rgba(255,255,255,${on ? .1 : .28})" stroke-width="1.6"/>` : `<circle r="${s0 - 1.5}" fill="none" stroke="rgba(255,255,255,${on ? .1 : .28})" stroke-width="1.6"/>`)
       + (on && !lamp ? (sq ? `<rect x="-12" y="-4" width="24" height="8" rx="4" fill="#3ddc8c"/>` : `<circle r="7" fill="#3ddc8c"/>`) : '') + `</svg>`;
     return el; }
   return null;
@@ -9385,7 +9442,7 @@ function pageHelpSlides() {
 /* ================= home-screen app (PWA) ================= */
 const isStandalone = () => window.matchMedia?.('(display-mode: standalone)').matches || window.navigator.standalone === true;
 const isIOS = () => /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-const APP_VERSION = '10.11.2026 (17)';
+const APP_VERSION = '10.11.2026 (18)';
 function registerSW() {
   if (!('serviceWorker' in navigator) || (location.protocol !== 'https:' && location.hostname !== 'localhost') || IN_CLAUDE_HOST()) return;
   navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).then(reg => {
