@@ -2401,7 +2401,7 @@ html.ice .res-slots .slot[aria-pressed="true"] em{color:#0f6a3c}
 .pr-thumb.nophoto{background:linear-gradient(160deg,#2a2f38,#15181d)}
 .pr-row-big{padding:6px;gap:0;flex-direction:column;align-items:stretch;cursor:default}
 .pr-row-main{all:unset;cursor:pointer;display:block;width:100%}
-.pr-row-big .pr-thumb{display:block;width:100%!important;height:auto!important;max-height:none!important;object-fit:contain;background:transparent;border-radius:6px}
+.pr-row-big .pr-thumb{display:block;width:100%!important;height:64px!important;max-height:64px!important;object-fit:contain;object-position:center;background:transparent;border-radius:6px} /* fixed height like the old photo button: wide devices fill the width, tall ones never grow */
 .pr-row-swap{all:unset;box-sizing:border-box;cursor:pointer;display:flex;align-items:center;gap:8px;width:100%;padding:8px 6px 4px;color:var(--ink)}
 .pr-row-n{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px}.pr-row-n b{font:600 1.05rem Barlow,sans-serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .pr-row-n small{font-size:.78rem;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.pr-row-swap i{font-style:normal;color:var(--blue-hi);font-size:1rem}
@@ -9351,7 +9351,7 @@ function pageHelpSlides() {
 /* ================= home-screen app (PWA) ================= */
 const isStandalone = () => window.matchMedia?.('(display-mode: standalone)').matches || window.navigator.standalone === true;
 const isIOS = () => /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-const APP_VERSION = '10.11.2026 (12)';
+const APP_VERSION = '10.11.2026 (13)';
 function registerSW() {
   if (!('serviceWorker' in navigator) || (location.protocol !== 'https:' && location.hostname !== 'localhost') || IN_CLAUDE_HOST()) return;
   navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).then(reg => {
