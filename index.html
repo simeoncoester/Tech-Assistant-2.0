@@ -2399,12 +2399,13 @@ html.ice .res-slots .slot[aria-pressed="true"] em{color:#0f6a3c}
 .pr-pop-ov.top{align-items:flex-start!important}
 .pr-pop-ov.top .pr-pop{margin-top:calc(env(safe-area-inset-top,0px) + 10px)}
 .pr-thumb.nophoto{background:linear-gradient(160deg,#2a2f38,#15181d)}
-.pr-row-big{padding:6px;gap:0;flex-direction:column;align-items:stretch;cursor:default}
-.pr-row-main{all:unset;cursor:pointer;display:block;width:100%}
-.pr-row-big .pr-thumb{display:block;width:100%!important;height:64px!important;max-height:64px!important;object-fit:contain;object-position:center;background:transparent;border-radius:6px} /* fixed height like the old photo button: wide devices fill the width, tall ones never grow */
-.pr-row-swap{all:unset;box-sizing:border-box;cursor:pointer;display:flex;align-items:center;gap:8px;width:100%;padding:8px 6px 4px;color:var(--ink)}
-.pr-row-n{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px}.pr-row-n b{font:600 1.05rem Barlow,sans-serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.pr-row-n small{font-size:.78rem;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.pr-row-swap i{font-style:normal;color:var(--blue-hi);font-size:1rem}
+/* compact device card: picture left (cropped, as large as the card height allows), maker over model right, ▾ to change the device */
+.pr-row-big{padding:5px;gap:0;flex-direction:row;align-items:stretch;cursor:default;min-height:0}
+.pr-row-main{all:unset;cursor:pointer;display:block;flex:0 0 52%;min-width:0;height:58px;border-radius:7px;overflow:hidden;background:#0b0b0d}
+.pr-row-big .pr-thumb{display:block;width:100%!important;height:100%!important;max-height:none!important;object-fit:cover;object-position:center;border-radius:0}
+.pr-row-swap{all:unset;box-sizing:border-box;cursor:pointer;flex:1;min-width:0;display:flex;align-items:center;gap:6px;padding:0 6px 0 10px;color:var(--ink)}
+.pr-row-n{flex:1;min-width:0;display:flex;flex-direction:column;gap:0;line-height:1.15}.pr-row-n b{font:600 1rem Barlow,sans-serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pr-row-n small{font:500 .74rem Barlow,sans-serif;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-transform:uppercase;letter-spacing:.04em}.pr-row-swap i{font-style:normal;color:var(--blue-hi);font-size:1rem}
 .gp-merged .field > .pick-btn{display:none}
 .gp-merged .field{margin:0}
 
@@ -5434,6 +5435,13 @@ function recButton(st, ch) {
   return h('div', { class: 'row rec-row' }, h('button', { class: 'btn small solid rec-btn', type: 'button', title: trText(rec.mine ? 'Am häufigsten für diesen Kanal benutzt' : 'Am häufigsten benutzt'), onclick: () => { st.gear = rec.gear; prAutoAttach(st); touch(); render(true); } },
     h('span', { 'aria-hidden': 'true' }, '★ '), h('span', { class: 'no-i18n' }, rec.gear), ' ', trText('übernehmen')), h('small', { class: 'muted rec-why' }, trText(rec.mine ? 'Am häufigsten für diesen Kanal benutzt' : 'Am häufigsten benutzt')));
 }
+// "Universal Audio 1176LN" → ["Universal Audio", "1176LN"]: known makers of this kind first, otherwise the first word
+function gearSplit(kind, name) {
+  const n = String(name || '').trim(), makers = [...Object.keys(GEAR_DB[kind] || {}), ...Object.keys((S.customGear || {})[kind] || {}), ...Object.values(GEAR_DB).flatMap(d => Object.keys(d))].sort((a, b) => b.length - a.length);
+  const m = makers.find(b => n.toLowerCase().startsWith(b.toLowerCase() + ' '));
+  if (m) return [n.slice(0, m.length), n.slice(m.length).trim()];
+  const i = n.indexOf(' '); return i > 0 ? [n.slice(0, i), n.slice(i + 1)] : ['', n];
+}
 function photoRecallRow(st, ch, extra) {
   const tpl = st.photo && S.devTpls.find(t => t.id === st.photo.tplId);
   if (!tpl) { const g = String(st.gear || '').trim(), saved = g ? prTplFor(st) : null, fpg = g && !saved ? FACEPLATES[g] : null;
@@ -5449,7 +5457,7 @@ function photoRecallRow(st, ch, extra) {
     h('button', { class: 'pr-row-main', type: 'button', 'aria-label': `${st.gear || tpl.name || trText('Gerät')}: ${trText('Antippen zum Einstellen')}`, onclick: () => showPhotoRecall(st, tpl, false) }, thumb),
     // the device name once, on the line of the picker arrow (tap the name or the arrow to change the device)
     h('button', { class: 'pr-row-swap', type: 'button', 'aria-label': trText('Gerät wechseln'), title: trText('Gerät wechseln'), onclick: swap },
-      h('span', { class: 'pr-row-n no-i18n' }, h('b', {}, st.gear || tpl.name || trText('Gerät')), sum ? h('small', {}, sum) : null), h('i', { 'aria-hidden': 'true' }, '▾'))),
+      (() => { const [maker, model] = gearSplit(st.kind, st.gear || tpl.name || trText('Gerät')); return h('span', { class: 'pr-row-n no-i18n' }, maker ? h('small', {}, maker) : null, h('b', {}, model)); })(), h('i', { 'aria-hidden': 'true' }, '▾'))),
     h('div', { class: 'row', style: 'margin-top:8px;align-items:center' }, prFaceChoice(st, tpl), stOwnTpl(st) ? null : h('button', { class: 'btn small nav', type: 'button', onclick: () => photoDialog(st, () => render(true)) }, 'Foto hochladen'), extra || null));
 }
 // a device with an own photo and a drawn faceplate: two buttons choose which one the stage shows (settings move along)
@@ -9351,7 +9359,7 @@ function pageHelpSlides() {
 /* ================= home-screen app (PWA) ================= */
 const isStandalone = () => window.matchMedia?.('(display-mode: standalone)').matches || window.navigator.standalone === true;
 const isIOS = () => /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-const APP_VERSION = '10.11.2026 (13)';
+const APP_VERSION = '10.11.2026 (14)';
 function registerSW() {
   if (!('serviceWorker' in navigator) || (location.protocol !== 'https:' && location.hostname !== 'localhost') || IN_CLAUDE_HOST()) return;
   navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).then(reg => {
