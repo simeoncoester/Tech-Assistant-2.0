@@ -5304,8 +5304,10 @@ function showPhotoRecall(st, tpl, setup) {
     view.style.width = Math.floor(vw) + 'px'; view.style.height = Math.floor(vh) + 'px';
     // the plate keeps its fitted layout size; zoom and detail are one transform on the whole plate, so picture, lettering and controls
     // are always scaled and moved together as a single layer and can never drift apart
-    const ww = w / (x1 - x0), wh = hgt / (y1 - y0); wrap.style.width = ww + 'px'; wrap.style.height = wh + 'px'; wrap.style.left = -x0 * ww + 'px'; wrap.style.top = -y0 * wh + 'px';
-    wrap.style.setProperty('--z', z); wrap.style.transformOrigin = '0 0'; wrap.style.transform = z > 1 ? `translate(${-x0 * ww * (z - 1) - panX}px,${-y0 * wh * (z - 1) - panY}px) scale(${z})` : ''; }
+    // zoom is layout, not a CSS transform: iOS Safari did not always move the picture with a transformed parent, so the controls drifted off their print.
+    // picture, lettering and controls all size in % of the plate, so they stay one layer at every zoom
+    const ww = w * z / (x1 - x0), wh = hgt * z / (y1 - y0); wrap.style.width = ww + 'px'; wrap.style.height = wh + 'px'; wrap.style.left = (-x0 * ww - panX) + 'px'; wrap.style.top = (-y0 * wh - panY) + 'px';
+    wrap.style.setProperty('--z', 1); wrap.style.transform = ''; }
   // zoom keeps the touched point in place
   const zoomBtn = h('button', { class: 'pr-menu pr-zoom', type: 'button', onclick: () => z > 1 ? setZoom(1) : setZoom(zoomStep()) });
   function zoomDraw() { const l = trText(z > 1 ? 'Verkleinern' : 'Vergrößern'); zoomBtn.setAttribute('aria-label', l); zoomBtn.title = l; zoomBtn.setAttribute('aria-pressed', String(z > 1));
@@ -9305,7 +9307,7 @@ function pageHelpSlides() {
 /* ================= home-screen app (PWA) ================= */
 const isStandalone = () => window.matchMedia?.('(display-mode: standalone)').matches || window.navigator.standalone === true;
 const isIOS = () => /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-const APP_VERSION = '10.11.2026 (3)';
+const APP_VERSION = '10.11.2026 (4)';
 function registerSW() {
   if (!('serviceWorker' in navigator) || (location.protocol !== 'https:' && location.hostname !== 'localhost') || IN_CLAUDE_HOST()) return;
   navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).then(reg => {
