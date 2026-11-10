@@ -2387,7 +2387,6 @@ html.ice .res-slots .slot[aria-pressed="true"] em{color:#0f6a3c}
 .pr-eye{font-size:0}.pr-eye svg{width:22px;height:22px}.pr-eye[aria-pressed="true"]{color:#7fb2ff;border-color:#4d8cf0;background:rgba(77,140,240,.16)}
 .pr-menu{all:unset;cursor:pointer;flex:none;width:42px;height:42px;border-radius:50%;display:grid;place-items:center;font:700 1.3rem/1 Barlow,sans-serif;color:#cfd5de;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.05)}
 .pr-menu:focus-visible{outline:2px solid #6c9bef;outline-offset:2px}
-.pr-ov.fp-locked .pr-seg button:nth-child(3){display:none}@media (max-width:560px){.pr-ov.fp-locked .pr-seg{grid-template-columns:repeat(2,minmax(0,1fr))}}/* drawn faceplates are fixed: no "Regler setzen" */
 .pr-zoom svg{width:22px;height:22px}.pr-zoom[aria-pressed=true]{border-color:#6c9bef;color:#fff;background:rgba(108,155,239,.16)}
 .pr-pop-ov.top{align-items:flex-start!important}
 .pr-pop-ov.top .pr-pop{margin-top:calc(env(safe-area-inset-top,0px) + 10px)}
@@ -5341,7 +5340,7 @@ function showPhotoRecall(st, tpl, setup) {
     ...(pageBar ? [pageBar] : []), main);
   document.body.append(ov); darkWhile(ov); ro?.observe(main);
   devPhoto(tpl).then(d => { if (d) img.src = d; else { wrap.classList.add('nophoto'); fit(); }
-    if (d && tpl.builtin && FACEPLATES[tpl.builtin] && d.startsWith('data:image/svg')) { realFp = true; wrap.classList.add('fpreal'); ov.classList.add('fp-locked'); title.style.cursor = 'default'; if (mode === 'setup') mode = 'view';
+    if (d && tpl.builtin && FACEPLATES[tpl.builtin] && d.startsWith('data:image/svg')) { realFp = true; wrap.classList.add('fpreal'); ov.classList.add('fp-locked'); title.style.cursor = 'default';
       // lettering is drawn as live vector text above the panel picture, so it stays razor sharp at any zoom
       const fp = FACEPLATES[tpl.builtin]; img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(fpSvg(fp, 'notext'));
       const tl = h('div', { class: 'pr-txt', 'aria-hidden': 'true' }); tl.innerHTML = fpSvg(fp, 'text'); wrap.insertBefore(tl, layer); draw(); } });
@@ -9303,7 +9302,7 @@ function pageHelpSlides() {
 /* ================= home-screen app (PWA) ================= */
 const isStandalone = () => window.matchMedia?.('(display-mode: standalone)').matches || window.navigator.standalone === true;
 const isIOS = () => /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-const APP_VERSION = '09.11.2026 (35)';
+const APP_VERSION = '10.11.2026 (1)';
 function registerSW() {
   if (!('serviceWorker' in navigator) || (location.protocol !== 'https:' && location.hostname !== 'localhost') || IN_CLAUDE_HOST()) return;
   navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).then(reg => {
