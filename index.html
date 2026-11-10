@@ -138,6 +138,9 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue);bo
 
 details.chain{background:var(--surface);border:1px solid var(--line);border-radius:14px;margin-bottom:10px}
 details.chain[open]{border-color:var(--line-strong)}
+details.chain.has-cat{position:relative}details.chain.has-cat::after{content:"";position:absolute;right:-1px;top:10px;bottom:10px;width:4px;border-radius:4px 0 0 4px;background:var(--catc);pointer-events:none}
+.scribble.has-cat{background:var(--catc)!important;color:#111!important}
+
 details.chain summary{list-style:none;cursor:pointer;padding:14px 16px;display:flex;flex-direction:column;gap:2px}
 details.chain summary::-webkit-details-marker{display:none}
 .ch-name{font:600 1.2rem "Barlow Condensed",sans-serif;display:flex;justify-content:space-between}
@@ -5506,6 +5509,14 @@ function chInstField(ch) {
     h('select', { onchange: e => { ch.instId = e.target.value || '-'; touch(); } }, h('option', { value: '' }, trText('Kein Instrument')),
       insts.map(i => h('option', { value: i.id, selected: cur === i, class: 'no-i18n' }, i.name || i.model || trText('Unbenanntes Instrument')))));
 }
+// instrument group of a channel (drums / guitar / bass): one colour per group marks the channels in the chain and the console
+const CH_CAT_COLORS = { drums: '#f0a33a', guitar: '#3fb6ff', bass: '#b07cff' };
+function chCat(ch, owner) {
+  if (!ch) return null; if (ch.cat) return ch.cat;
+  if (owner === 'prod') return 'drums'; if (owner === 'inst') return route.inst === 'bass' ? 'bass' : 'guitar';
+  const i = ch.instId && ch.instId !== '-' && (P()?.instruments || []).find(x => x.id === ch.instId); return i ? (i.inst === 'bass' ? 'bass' : 'guitar') : null;
+}
+const chCatColor = (ch, owner) => CH_CAT_COLORS[chCat(ch, owner)] || '';
 function chainCard(ch, arr, isBus, chans = []) {
   const w = chWidth(ch), dual = w === 'dual';
   if (dual) ensureRight(ch);
@@ -5526,7 +5537,8 @@ function chainCard(ch, arr, isBus, chans = []) {
     const tabs = h('div', { class: 'dual-tabs' }, tab('L'), tab('R'));
     chainPart = [tabs, box];
   } else chainPart = [flowOf(ch.stages), h('div', { style: 'margin-top:12px' }, addSel(ch.stages))];
-  return h('details', { class: 'chain', open: openSet.has(ch.id), ontoggle: e => e.target.open ? openSet.add(ch.id) : openSet.delete(ch.id) },
+  const cc = isBus ? '' : chCatColor(ch, route.chainOwner);
+  return h('details', { class: 'chain' + (cc ? ' has-cat' : ''), style: cc ? `--catc:${cc}` : null, open: openSet.has(ch.id), ontoggle: e => e.target.open ? openSet.add(ch.id) : openSet.delete(ch.id) },
     // open: the title itself is the name field; only the +/– folds the channel (one name instead of title + field)
     h('summary', { onclick: e => { if (e.currentTarget.parentNode.open && !e.target.closest('.ch-tog')) e.preventDefault(); } },
       h('span', { class: 'ch-name' }, isBus ? h('i', { class: 'bus-dot', style: `--bc:${busColor(ch, arr)}`, 'aria-hidden': 'true' }) : null,
@@ -5559,13 +5571,13 @@ function viewChain() {
         if (ms.length < 2) out.push([nm, ms[0] || '']); else ms.forEach((m, j) => out.push([`${nm} ${j + 1}`, m])); });
       if (String(i.di || '').trim()) out.push([`${base} DI`, i.di]); return out; } };
   // a recording chain comes along with its devices and settings: channels and busses get new ids, bus sources follow the new channels
-  const copyChain = (src, only) => { const cl = o => JSON.parse(JSON.stringify(o)), map = {}; let n = 0;
-    (only || src.channels || []).forEach(ch => { if (C.channels.some(c => c.name && c.name === ch.name)) return; const c = cl(ch); c.id = newId(); map[ch.id] = c.id; [c.stages, c.stagesR].forEach(l => (l || []).forEach(st => { st.id = newId(); })); delete c.mix; C.channels.push(c); n++; });
+  const copyChain = (src, only) => { const srcCat = src === (p && p.chain) ? 'drums' : (Object.entries(P().instChains || {}).find(([, v]) => v === src) || [])[0] || null; const cl = o => JSON.parse(JSON.stringify(o)), map = {}; let n = 0;
+    (only || src.channels || []).forEach(ch => { if (C.channels.some(c => c.name && c.name === ch.name)) return; const c = cl(ch); c.id = newId(); map[ch.id] = c.id; [c.stages, c.stagesR].forEach(l => (l || []).forEach(st => { st.id = newId(); })); delete c.mix; c.cat ||= srcCat; C.channels.push(c); n++; });
     (src.busses || []).forEach(b => { if (C.busses.some(x => x.name && x.name === b.name)) return; if (only && !(b.srcIds || []).some(id => map[id])) return; const c = cl(b); c.id = newId(); c.srcIds = (b.srcIds || []).map(id => map[id]).filter(Boolean); (c.stages || []).forEach(st => { st.id = newId(); }); delete c.mix; busSyncSource(c, C.channels); C.busses.push(c); });
     return n; };
-  const addChannels = (list, pre = 0) => { let n = pre; list.forEach(([name, source, instId]) => { if (!name || C.channels.some(c => c.name === name)) return; C.channels.push({ id: newId(), name, source: source || '', stages: [newStage('Preamp')], notes: '', ...(instId ? { instId } : {}) }); n++; });
+  const addChannels = (list, pre = 0) => { let n = pre; list.forEach(([name, source, instId, cat]) => { if (!name || C.channels.some(c => c.name === name)) return; C.channels.push({ id: newId(), name, source: source || '', stages: [newStage('Preamp')], notes: '', ...(instId ? { instId } : {}), ...(cat ? { cat } : {}) }); n++; });
     touch(); toast(n ? `${plural(n, 'Kanal', 'Kanäle')} übernommen` : 'Alle Kanäle sind schon vorhanden'); render(true); };
-  const fromKit = () => total ? pickInstruments() : addChannels(chPlan.kit(p));
+  const fromKit = () => total ? pickInstruments() : addChannels(chPlan.kit(p).map(x => [x[0], x[1], '', 'drums']));
   // total recall: choose with checkboxes which kits and instruments become channels
   function pickInstruments(onlyCat) {
     const items = onlyCat ? (P().instruments || []).filter(i => i.inst === onlyCat).map(i => ({ label: i.name || i.model || trText('Unbenanntes Instrument'), plan: chPlan.inst(i).map(x => [...x, i.id]), cat: i.inst })) : [...kitsOf(p).map(k => ({ label: `${trText('Drumkit')}: ${kitLabel(p, k)}${kitData(p, k).kit ? ' (' + kitData(p, k).kit + ')' : ''}`, plan: chPlan.kit(kitData(p, k)), cat: 'drums' })).filter(x => x.plan.length),
@@ -5588,7 +5600,7 @@ function viewChain() {
     const subs = items.map(it => it.chain && !it.chainOnly ? h('input', { type: 'checkbox', checked: true }) : null);
     const go = h('button', { class: 'btn small solid', type: 'button', onclick: () => {
       const on = items.filter((it, k) => boxes[k].checked), parts = items.filter((it, k) => boxes[k].checked && it.chain && (it.chainOnly || (subs[k] && subs[k].checked)));
-      close(); const nc = parts.reduce((t, it) => t + copyChain(it.chain, it.chainCh), 0); addChannels(on.flatMap(it => it.plan), nc); } }, 'Übernehmen');
+      close(); const nc = parts.reduce((t, it) => t + copyChain(it.chain, it.chainCh), 0); addChannels(on.flatMap(it => it.plan.map(x => [x[0], x[1], x[2], it.cat === 'bass' ? 'bass' : it.cat === 'drums' ? 'drums' : 'guitar'])), nc); } }, 'Übernehmen');
     const sync = () => { go.disabled = !boxes.some(b => b.checked); subs.forEach((sb, k) => { if (sb) { sb.disabled = !boxes[k].checked; sb.closest('.pick-sub')?.classList.toggle('off', !boxes[k].checked); } }); };
     boxes.forEach(b => b.addEventListener('change', sync));
     ov.append(h('div', { class: 'pop pop-pick' }, h('h3', {}, 'Kanäle aus Instrumenten übernehmen'),
@@ -7716,7 +7728,7 @@ function viewConsole() {
       ins, kind === 'ch' ? gainKnob(ch) : h('div', { class: 'knob-wrap', style: 'visibility:hidden' }, 'GAIN', h('div', { class: 'knob ro' }), h('span', { class: 'kval' }, '–')),
       panKnob(m), sendRows(ch, kind), h('div', { class: 'ms' }, toggle('mute', 'm', 'Stumm'), toggle('solo', 's', 'Solo')),
       colorFader(faderEl(m, ch.name || 'Kanal'), kind === 'ch' ? null : busColor(ch, C.busses)),
-      h('button', { class: 'scribble', type: 'button', title: 'Signalkette öffnen', onclick: () => { openSet.add(ch.id); nav('chain'); } }, ch.name || (kind === 'bus' ? 'Bus' : 'Kanal')),
+      h('button', { class: 'scribble' + (kind === 'ch' && chCatColor(ch, route.chainOwner) ? ' has-cat' : ''), style: kind === 'ch' && chCatColor(ch, route.chainOwner) ? `--catc:${chCatColor(ch, route.chainOwner)}` : null, type: 'button', title: 'Signalkette öffnen', onclick: () => { openSet.add(ch.id); nav('chain'); } }, ch.name || (kind === 'bus' ? 'Bus' : 'Kanal')),
       h('div', { class: 'src' }, chWidth(ch) === 'stereo' ? h('b', { class: 'src-w' }, 'ST ') : chWidth(ch) === 'dual' ? h('b', { class: 'src-w' }, 'L/R ') : null, kind === 'bus' ? (ch.source || 'Bus') : kind === 'send' ? (ch.source || 'Send') : (ch.source || '')));
   };
   const draw = () => {
@@ -9359,7 +9371,7 @@ function pageHelpSlides() {
 /* ================= home-screen app (PWA) ================= */
 const isStandalone = () => window.matchMedia?.('(display-mode: standalone)').matches || window.navigator.standalone === true;
 const isIOS = () => /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-const APP_VERSION = '10.11.2026 (14)';
+const APP_VERSION = '10.11.2026 (15)';
 function registerSW() {
   if (!('serviceWorker' in navigator) || (location.protocol !== 'https:' && location.hostname !== 'localhost') || IN_CLAUDE_HOST()) return;
   navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).then(reg => {
