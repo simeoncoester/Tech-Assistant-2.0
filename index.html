@@ -4654,7 +4654,7 @@ function fpSvg(fp, mode) {
   const vert = fp.ar < 1, rr = vert ? 14 : 8;
   let uid = 0;
   // brushed aluminium: noise stretched along the grain, a soft studio-light sheen, bevelled edges, real screws
-  out.push(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" width="${Math.round(W * fpScale(fp))}" height="${Math.round(H * fpScale(fp))}" font-family="Helvetica,Arial,sans-serif">`,
+  out.push(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" width="${Math.round(W * fpScale(fp))}" height="${Math.round(H * fpScale(fp))}" preserveAspectRatio="none" font-family="Helvetica,Arial,sans-serif">`,
     `<defs><linearGradient id="g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${fp.bg}"/><stop offset="1" stop-color="${fp.bg2 || fp.bg}"/></linearGradient>`,
     `<linearGradient id="sh" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".16"/><stop offset=".35" stop-color="#fff" stop-opacity=".03"/><stop offset=".6" stop-color="#000" stop-opacity=".0"/><stop offset="1" stop-color="#000" stop-opacity=".22"/></linearGradient>`,
     `<filter id="n" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency="${vert ? '.9 .0025' : '.0025 .9'}" numOctaves="3" seed="7"/><feColorMatrix values="0 0 0 0 .5 0 0 0 0 .5 0 0 0 0 .5 0 0 0 .16 0"/><feComposite in2="SourceGraphic" operator="in"/></filter>`,
@@ -5295,7 +5295,8 @@ function showPhotoRecall(st, tpl, setup) {
     ov.addEventListener('pointerdown', e => { sw = mode === 'view' && !e.target.closest('.pr-pop, .sheet-ov') ? { x: e.clientX, y: e.clientY } : null; if (sw) window.addEventListener('pointerup', up, true); }, true);
     ov.addEventListener('pointercancel', () => { sw = null; }, true); }
   // the photo is fitted into the free space; the control layer lies exactly on it
-  function fit() { const m = main.getBoundingClientRect(); if (!m.width || !m.height) return; const ar = (img.naturalWidth && img.naturalHeight ? img.naturalWidth / img.naturalHeight : 0) || tpl.ar || 1.5;
+  function fit() { const m = main.getBoundingClientRect(); if (!m.width || !m.height) return; // drawn faceplates: their own proportions (Safari reports odd natural sizes for large SVG images)
+    const fpAr = tpl.builtin && FACEPLATES[tpl.builtin] && FACEPLATES[tpl.builtin].ar, ar = fpAr || (img.naturalWidth && img.naturalHeight ? img.naturalWidth / img.naturalHeight : 0) || tpl.ar || 1.5;
     const [x0, y0, x1, y1] = region(), rar = ar * (x1 - x0) / (y1 - y0);
     let w = m.width, hgt = w / rar; if (hgt > m.height) { hgt = m.height; w = hgt * rar; }
     fitW = w; fitH = hgt;
@@ -9307,7 +9308,7 @@ function pageHelpSlides() {
 /* ================= home-screen app (PWA) ================= */
 const isStandalone = () => window.matchMedia?.('(display-mode: standalone)').matches || window.navigator.standalone === true;
 const isIOS = () => /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-const APP_VERSION = '10.11.2026 (4)';
+const APP_VERSION = '10.11.2026 (5)';
 function registerSW() {
   if (!('serviceWorker' in navigator) || (location.protocol !== 'https:' && location.hostname !== 'localhost') || IN_CLAUDE_HOST()) return;
   navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).then(reg => {

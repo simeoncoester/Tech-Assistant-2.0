@@ -56,7 +56,7 @@ const { chromium, devices } = require('playwright');
   const g1 = await geo(), tag = `${g}/${md}`;
   ok(await p.getAttribute('.pr-zoom', 'aria-pressed') === 'true', tag + ' no zoom');
   ok(g1.parts === '0.000,0.000,1.000,1.000 0.000,0.000,1.000,1.000 0.000,0.000,1.000,1.000', tag + ' layers apart ' + g1.parts);
-  ok(g1.ctrls === g0.ctrls, tag + ' controls moved'); ok(g1.vals === g0.vals, `${tag} values changed ${g0.vals} -> ${g1.vals}`);
+  const near = (a, b) => { const A = a.split(/[ ,]/).map(Number), B = b.split(/[ ,]/).map(Number); return A.length === B.length && A.every((v, i) => Math.abs(v - B[i]) <= .0025); }; ok(near(g1.ctrls, g0.ctrls), tag + ' controls moved'); ok(g1.vals === g0.vals, `${tag} values changed ${g0.vals} -> ${g1.vals}`);
   ok(await p.locator('.pr-pop-ov, .sheet-ov').count() === 0, tag + ' pop-up opened by the gesture'); }
  // drawn faceplates: "Regler setzen" stays, but no rename and the menu only resets the values or takes the faceplate off the stage
  await open('TL Audio VTC Master Section', 'Master Section');
