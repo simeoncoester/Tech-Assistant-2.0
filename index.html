@@ -5029,6 +5029,9 @@ const PR_COLORS = ['#e53935', '#fb8c00', '#fdd835', '#43a047', '#1e88e5', '#8e24
 const prVal = (c, v) => c.type === 'display' ? (v && v.text ? v.text.replace(/\n/g, ' / ') : '–') : c.type === 'slider' ? (v && v.text ? v.text : sldVal(c, sldPos(c, v))) : c.type === 'switch' ? trText(v && v.on ? 'An' : 'Aus') : c.type === 'push' ? trText(v && v.in ? 'Gedrückt' : 'Raus') : c.type === 'dir' ? trText(PR_DIRS[(v && v.dir) || 'c']) : v && v.text ? v.text : v && v.pos != null ? Math.round(v.pos * 100) + ' %' : '0 %';
 // knobs turn all the way round: pos 0 = 7 o'clock (zero), 1 = 5 o'clock, the range runs on to straight down on both sides
 const PR_PMIN = -45 / 270, PR_PMAX = 1 + 45 / 270;
+// how far a knob may turn: always a full circle. A knob whose values are printed on a shorter arc (sweep) reads 0..1 on that arc and may be turned on past both ends
+const prSpan = c => c && c.sweep ? Math.max(1, Math.abs(c.sweep[1] - c.sweep[0])) : 270;
+const prPLim = c => { const ex = (360 - prSpan(c)) / 2 / prSpan(c); return [-ex, 1 + ex]; };
 const prHasVal = (c, v) => !!v && (c.type === 'slider' ? (!!v.text || Math.abs(sldPos(c, v) - sldZero(c)) > .01) : c.type === 'switch' ? v.on : c.type === 'push' ? v.in : c.type === 'dir' ? v.dir && v.dir !== 'c' : (v.text || Math.abs(v.pos || 0) > .004));
 // colour detection: the most saturated colour around the tapped point (caps of coloured knobs)
 const prPixCache = {};
@@ -5219,8 +5222,8 @@ function prControlPop(c, v, setup, onSave, onDelete, onLive) {
   const live = () => onLive && onLive({ color, r: size });
   const nameInp = h('input', { value: c.name || '', placeholder: 'z. B. Threshold', 'aria-label': 'Name des Reglers' });
   const knob = h('div', { class: 'pr-knob big' }, h('i', { class: 'pr-ptr' }));
-  const draw = () => { knob.style.setProperty('--a', (-135 + pos * 270) + 'deg'); knob.style.setProperty('--kc', color || ''); knob.classList.toggle('colored', !!color); };
-  const range = h('input', { type: 'range', min: Math.round(PR_PMIN * 100), max: Math.round(PR_PMAX * 100), step: 1, value: Math.round(pos * 100), 'aria-label': 'Stellung', oninput: e => { pos = +e.target.value / 100; draw(); } });
+  const draw = () => { knob.style.setProperty('--a', prAng(c, pos) + 'deg'); knob.style.setProperty('--kc', color || ''); knob.classList.toggle('colored', !!color); };
+  const range = h('input', { type: 'range', min: Math.round(prPLim(c)[0] * 100), max: Math.round(prPLim(c)[1] * 100), step: 1, value: Math.round(pos * 100), 'aria-label': 'Stellung', oninput: e => { pos = +e.target.value / 100; draw(); } });
   const txt = h('input', { value: v.text || '', placeholder: 'z. B. −12 dB, 4:1, 30 ms', 'aria-label': 'Genauer Wert' });
   const chips = (opts, cur, set) => { const g = h('div', { class: 'chips' }, opts.map(([k, l]) => h('button', { class: 'chip', type: 'button', 'aria-pressed': String(cur === k), onclick: e => { set(k); g.querySelectorAll('.chip').forEach(x => x.setAttribute('aria-pressed', String(x === e.currentTarget))); } }, l))); return g; };
   const cross = () => h('div', { class: 'pr-cross', role: 'group', 'aria-label': 'Stellung' }, ['u', 'l', 'c', 'r', 'd'].map(k => h('button', { type: 'button', class: 'pr-cr ' + k, 'aria-pressed': String(dir === k), onclick: e => { dir = k; e.currentTarget.parentElement.querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', String(x === e.currentTarget))); } }, trText(PR_DIRS[k]))));
@@ -5441,7 +5444,7 @@ function showPhotoRecall(st, tpl, setup) {
       else if (mode === 'setup') { const r = wrap.getBoundingClientRect(); c.x = Math.max(0, Math.min(1, cx0 + dx / r.width)); c.y = Math.max(0, Math.min(1, cy0 + dy / r.height)); el.style.left = c.x * 100 + '%'; el.style.top = c.y * 100 + '%'; }
       else if (c.type === 'dir') { if (Math.hypot(dx, dy) > 14) { const d = Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? 'r' : 'l') : (dy > 0 ? 'd' : 'u'); st.photo.vals[c.id] = { dir: d }; Object.assign(v, { dir: d }); refresh(); } }
       else if (c.type === 'slider') { const bb = el.getBoundingClientRect(), np = Math.max(0, Math.min(1, c.vert ? p0 - dy / Math.max(40, bb.height * .88) : p0 + dx / Math.max(40, bb.width * .88))); st.photo.vals[c.id] = { ...v, pos: np, text: '' }; Object.assign(v, st.photo.vals[c.id]); refresh(); }
-      else if (!c.type || c.type === 'knob') { const np = Math.max(PR_PMIN, Math.min(PR_PMAX, p0 + (-dy + dx) / 220)); st.photo.vals[c.id] = { ...v, pos: np, text: '' }; Object.assign(v, st.photo.vals[c.id]); refresh(); } });
+      else if (!c.type || c.type === 'knob') { const lim = prPLim(c), np = Math.max(lim[0], Math.min(lim[1], p0 + (-dy + dx) / 220 * 270 / prSpan(c))); st.photo.vals[c.id] = { ...v, pos: np, text: '' }; Object.assign(v, st.photo.vals[c.id]); refresh(); } });
     const pop = () => prControlPop(c, st.photo.vals[c.id] || {}, mode === 'setup', nv => { st.photo.vals[c.id] = nv; changed(); draw(); },
       () => { tpl.ctrls = tpl.ctrls.filter(x => x !== c); delete st.photo.vals[c.id]; changed(); draw(); },
       lv => { c.color = lv.color; c.r = lv.r; el.style.width = c.r * 100 + '%'; refresh(); });
@@ -9591,7 +9594,7 @@ function pageHelpSlides() {
 /* ================= home-screen app (PWA) ================= */
 const isStandalone = () => window.matchMedia?.('(display-mode: standalone)').matches || window.navigator.standalone === true;
 const isIOS = () => /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-const APP_VERSION = '11.11.2026 (4)';
+const APP_VERSION = '11.11.2026 (5)';
 function registerSW() {
   if (!('serviceWorker' in navigator) || (location.protocol !== 'https:' && location.hostname !== 'localhost') || IN_CLAUDE_HOST()) return;
   navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).then(reg => {

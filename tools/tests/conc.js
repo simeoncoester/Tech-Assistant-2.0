@@ -17,5 +17,10 @@ const { chromium, devices } = require('playwright');
   const rr = (geo.Ro + geo.Ri) / 2; await drag(geo.cx - rr * .7, geo.cy + rr * .7); const i2 = await val(geo.idi), o2 = await val(geo.ido); ok(o2 > 0 && i2 === i1, `${g}: drag on the ring -> ring ${o2}, inner ${i1} -> ${i2}`);
   const ang = await p.evaluate(([ido]) => { const t = S.devTpls.find(x => x.id === window._st.photo.tplId), c = t.ctrls.find(c => c.id === ido); return [prAng(c, 0), prAng(c, 1), prAng({}, 0), prAng({}, 1)]; }, [geo.ido]);
   ok(ang[0] === geo.sweep[0] && ang[1] === geo.sweep[1] && ang[2] === -135 && ang[3] === 135, g + ': angles ' + ang);
+  // every knob can be turned a full circle, also when its values are printed on a short arc
+  const full = await p.evaluate(() => S.devTpls.find(x => x.id === window._st.photo.tplId).ctrls.filter(c => c.type === 'knob').map(c => { const l = prPLim(c); return Math.round(Math.abs(prAng(c, l[1]) - prAng(c, l[0]))); }));
+  ok(full.every(a => a === 360), g + ': turn range ' + full.join(','));
+  for (let k = 0; k < 6; k++) await drag(geo.cx - rr * .7, geo.cy + rr * .7); const top = await val(geo.ido), lim = await p.evaluate(id => prPLim(S.devTpls.find(x => x.id === window._st.photo.tplId).ctrls.find(c => c.id === id)), geo.ido);
+  ok(Math.abs(top - lim[1]) < .01, `${g}: ring stops at ${top}, limit ${lim[1]}`);
   await p.screenshot({ path: `out/conc-${g.replace(/\W/g, '')}.png` }); }
  console.log(fail.join('\n') || 'CONC OK', errs.join('|') || 'noerr'); await b.close(); })();
