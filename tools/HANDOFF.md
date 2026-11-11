@@ -41,12 +41,13 @@ sed -n '/<script>/,/<\/script>/p' index.html | sed '1d;$d' > /tmp/x.js && node -
   - `swap.js` (Gerätewechsel tauscht Foto), `eye.js` (Auge Foto ↔ Faceplate), `choice.js` (Foto/Faceplate-Tasten, Amps), `fpsync.js`, `attach.js`
   - `pages.js`, `swipe.js`, `touch.js` (Seiten und Wischen auf iPhone-Größe), `zoom.js` (Lupe, Doppeltipp, Zwei-Finger-Zoom, automatische Seiten; erwartet „ZOOM OK“), `conc.js` (Doppelknöpfe getrennt drehbar, erwartet „CONC OK“), `fader.js`, `master.js` (Master Section), `disp.js` (Display-Texteingabe), `ampch.js` (Kanalnamen mehrerer Amps), `mob.js`
 
-## Stand 11.11.2026 (1)
+## Stand 11.11.2026 (2)
 - Erledigt: Zoom im Foto-Recall, automatische Seiten für breite Geräte, Skalenstriche weichen Nachbarn aus, Rahmen-/Beschriftungsfehler (VTC Master Section, VOXBOX, SPL, DS201, EMT 250, TG2, GML 8200), größere Tippflächen im Mischpult.
 - Zoom-Fehler vom iPhone behoben (34): Platte und Regler werden nur noch als eine Ebene skaliert; eine Zoom-Geste verstellt oder verschiebt keinen Regler mehr; verschobene Faceplate-Regler werden einmalig zurückgesetzt. Auf einem echten iPhone gegenprüfen (hier nur Chromium).
 - Faceplate-Menü eingeschränkt (10.11. (1)): nur „Werte zurücksetzen“/„Von Stufe entfernen“, kein Umbenennen; „Regler setzen“ bleibt auch bei Faceplates; eigene Fotos behalten alle Optionen.
 - Neu (10.11.): Klark Teknik 76-KT und Behringer 369-KT; Knöpfe plastischer (gedrehtes Metall, Rändel, Familien `urei`/`spun`/`nevecap`), Knöpfe auch in Vorschaubildern. Offen: übrige Knopf-Familien (`chicken`, `api`, `ssl`, `bakelite`, `marconi`) einzeln gegen Originalfotos nachschärfen; Behringer 369-KT hat im Foto Langlöcher statt Eckschrauben.
 - Neu (11.11.): Doppelknöpfe mit Sweep, API 512c/550A und Neve 1073/1084/1073LB nach Fotos neu gebaut. Unbestätigt: beim Neve 1084 ist HPF dem äußeren Ring und LPF dem inneren Knopf zugeordnet; `Neve 1073` ist jetzt quer (wie Nutzerfoto) statt hochkant.
+- Neu (11.11., Teil 2): Pultec EQP-1A/MEQ-5, Maag EQ4 und SSL E/G-Series EQ nach Fotos; SSL E- und G-Series EQ zusammengelegt (`fpRename`).
 - Automatische Seiten teilen jetzt auch hohe Module (Oben/Unten) und kompakte Geräte nach Lesbarkeit.
 - Noch offen (Lesbarkeit ohne Zoom, siehe `fp-legible.js`): Geräte mit eigenen `pages`, deren Bereiche auf dem iPhone noch zu klein sind – TL Audio VTC und Master Section, Universal Audio 6176 und LA-610 MkII, Manley VOXBOX, Shelford Channel, SPL Transient Designer, Drawmer DS201, Bricasti M7 – sowie Elysia Karacter 500 (sehr kleine Skalenzahlen). Dort hilft bisher der Zoom; feinere Seiten wären besser.
 - Im Rahmen des Drawmer DS201 sitzt der LINK-Schalter knapp außerhalb von Kanal 2; Lage am Original unbestätigt (nicht geraten).
