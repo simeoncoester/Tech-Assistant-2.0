@@ -4407,6 +4407,25 @@ const stFieldsOpen = st => st.open != null ? st.open : stHasManual(st);
 // c: [type k=knob s=switch p=push, 'Name|LEGEND', x, y, r (diameter rel. to width), colour, legend position a/b/l/r/n]
 // deco: ['vu', x, y, w, h] meter, ['txt', x, y, text] printed text; all coordinates relative to the panel
 const R560 = { range: [-12, 12], unit: ' dB', zero: .5 };
+const mkDistressor = x => { const INK = '#f2f2f2', A = '#e8b23a', deco = [['txt', 0.125, 0.55, 'Distressor', 2.1], ['txt', 0.23, 0.31, 'GAIN REDUCTION', 0.9],
+    ['rect', 0.181, 0.37, 0.03, 0.2, '#3a3d42', '#5a5e64', 2], ['txt', 0.2305, 0.52, 'BY', 0.8], ['txt', 0.259, 0.52, 'PASS', 0.8],
+    ['poly', [[0.277, 0.44], [0.282, 0.44], [0.285, 0.33], [0.291, 0.33], [0.294, 0.55], [0.3, 0.55], [0.303, 0.44], [0.308, 0.44]], INK, 1.3], ['led', 0.316, 0.31, 0.007, '#ff3b30', false], ['txt', 0.336, 0.35, 'REDLINE', 0.65], ['led', 0.316, 0.46, 0.007, '#ffb020', false], ['txt', 0.335, 0.5, '1% THD', 0.65],
+    ['txt', 0.215, 0.96, 'RATIO', 0.95], ['txt', 0.253, 0.9, 'Opto', 0.6], ['rect', 0.325, 0.56, 0.026, 0.2, '#b9bcc2', '#6a6e75', 2], ['txt', 0.338, 0.9, 'RATIO', 0.85],
+    ['txt', 0.386, 0.21, 'HP', 0.7], ['txt', 0.386, 0.5, 'Link', 0.7], ['poly', [[0.376, 0.37], [0.381, 0.37], [0.385, 0.27], [0.389, 0.37], [0.394, 0.37]], INK, 1.2], ['rect', 0.375, 0.56, 0.026, 0.2, '#b9bcc2', '#6a6e75', 2], ['txt', 0.388, 0.9, 'DETECTOR', 0.8],
+    ['txt', 0.438, 0.21, 'HP', 0.7], ['txt', 0.436, 0.36, 'Dist 2', 0.7], ['txt', 0.436, 0.5, 'Dist 3', 0.7], ['rect', 0.428, 0.56, 0.026, 0.2, '#b9bcc2', '#6a6e75', 2], ['txt', 0.441, 0.9, 'AUDIO', 0.85],
+    ['txt', 0.484, 0.1, 'INPUT', 1], ['txt', 0.586, 0.1, 'ATTACK', 1], ['txt', 0.693, 0.1, 'RELEASE', 1], ['txt', 0.803, 0.1, 'OUTPUT', 1], ['txt', 0.907, 0.1, 'POWER', 1], ['txt', 0.667, 0.93, 'Opto(10)', 0.6], ['txt', 0.776, 0.93, 'Opto(0)', 0.6],
+    ['rect', 0.893, 0.3, 0.024, 0.42, '#1d1f22', '#3b3e43', 3], ['txt', 0.965, 0.4, 'Empirical', 0.7], ['txt', 0.965, 0.52, 'Labs', 0.7], ['txt', 0.965, 0.72, x ? 'EL8-X' : 'EL8', 1.1, A]], c = [];
+  const GR = ['26', '23', '20', '17', '14', '12', '10', '9', '8', '7', '6', '5', '4', '3', '2', '1'];
+  GR.forEach((t, i) => { const X = 0.1105 + i * 0.01585; deco.push(['txt', X, 0.105, t, 0.62], ['led', X, 0.19, 0.0085, i < 6 ? '#ff3b30' : i < 10 ? '#ffb020' : '#c8f03a', false]); });
+  const led = (nm, X, Y, col) => c.push(['p', nm + '|', X, Y, 0.0075, col, 'n']);
+  led('Bypass', 0.2445, 0.47, '#ff3b30');
+  [['1:1', '#ff3b30'], ['2:1', '#3ee08a'], ['3:1', '#3ee08a'], ['4:1', '#3ee08a'], ['6:1', '#ffb020'], ['10:1', '#ff3b30'], ['20:1', '#ff3b30'], ['Nuke', '#3a8cff']].forEach(([t, col], i) => { const X = 0.134 + i * 0.0237; deco.push(['txt', X, 0.7, t === 'Nuke' ? 'NUKE' : t, 0.6]); led('Ratio ' + t, X, 0.8, col); });
+  led('Detector HP', 0.402, 0.17, '#c8f03a'); led('Band Emphasis', 0.402, 0.32, '#ffb020'); led('Detector Link', 0.402, 0.46, '#ff3b30'); led('Audio HP', 0.456, 0.17, '#c8f03a'); led('Dist 2', 0.456, 0.32, '#ffb020'); led('Dist 3', 0.456, 0.46, '#ff3b30');
+  [['Input', 0.518], ['Attack', 0.626], ['Release', 0.733], ['Output', 0.842]].forEach(([nm, X]) => c.push(['k', nm + '|', X, 0.55, 0.082, '#f1f1ec', 'n']));
+  if (x) { deco.push(['txt', 0.572, 0.21, 'Stereo', 0.6, A], ['txt', 0.572, 0.31, 'Image Link', 0.6, A], ['led', 0.572, 0.42, 0.008, '#ff3b30', true], ['txt', 0.679, 0.21, 'British', 0.6, A], ['txt', 0.679, 0.31, 'Mode (1:1)', 0.6, A], ['led', 0.679, 0.42, 0.008, '#ff3b30', true]);
+    c.push(['s', 'Stereo Image Link|', 0.572, 0.68, 0.011, '', 'n'], ['s', 'British Mode|', 0.679, 0.68, 0.011, '', 'n']); }
+  c.push(['p', 'Power|', 0.905, 0.51, 0.016, '#2a2d31', 'n', { ps: 'sq' }]);
+  return { pages: [['Anzeige & Ratio', 0, 0, 0.49, 1], ['Regler', 0.465, 0, 1, 1]], kind: 'Kompressor', ks: 'dial', ar: 10.92, noEars: true, noTicks: true, bg: '#17181a', bg2: '#0c0d0e', ink: INK, kc: '#f1f1ec', fs: 8, brand: '', model: '', tx: .5, ty: .1, deco, c }; };
 const FACEPLATES = {
   'Universal Audio 1176LN': { kind: 'Kompressor', ks: 'skirt', ps: 'sq', ar: 4, bg: '#17181b', bg2: '#0c0d0f', ink: '#ececec', kc: '#c9cdd3', fs: 17, brand: 'UNIVERSAL AUDIO', model: '1176LN', tx: .06, ty: .15,
     deco: [['vu', .76, .14, .19, .72], ['txt', .62, .075, 'RATIO'], ['txt', .69, .075, 'METER']],
@@ -4522,14 +4541,31 @@ const FACEPLATES = {
     deco: [['vu', .06, .18, .2, .64, { gr: true }], ['lamp', .92, .3, .02, '#e8382b']],
     c: [['k', 'Threshold|THRESHOLD', .36, .62, .09, '#c9cdd3'], ['k', 'Ratio|RATIO', .48, .62, .065, '#2c3e8f'], ['k', 'Attack|ATTACK', .58, .62, .065, '#2c3e8f'], ['k', 'Release|RELEASE', .68, .62, .065, '#2c3e8f'],
       ['k', 'Make Up|MAKE UP', .8, .62, .09, '#c9cdd3'], ['s', 'Comp In|IN', .92, .62, .035]] },
-  'API 2500': { kind: 'Kompressor', ks: 'api', ps: 'sq', ar: 5, bg: '#26323f', bg2: '#18212a', ink: '#e8eef5', kc: '#151515', fs: 14, brand: 'API', model: '2500 BUS COMPRESSOR', tx: .06, ty: .14,
-    deco: [['vu', .85, .18, .11, .64]],
-    c: [['k', 'Threshold|THRESHOLD', .14, .62, .075], ['k', 'Attack|ATTACK', .26, .62, .075], ['k', 'Ratio|RATIO', .38, .62, .075], ['k', 'Release|RELEASE', .5, .62, .075], ['k', 'Make Up|MAKE UP', .62, .62, .075],
-      ['k', 'Knee|KNEE', .72, .37, .04], ['k', 'Thrust|THRUST', .72, .82, .04], ['s', 'Type New / Old|TYPE', .8, .37, .028], ['p', 'Comp In|IN', .8, .82, .03]] },
-  'Empirical Labs Distressor EL8': { kind: 'Kompressor', ks: 'round', ar: 4.5, bg: '#161616', bg2: '#0b0b0b', ink: '#f0f0f0', kc: '#262626', fs: 15, brand: 'EMPIRICAL LABS', model: 'DISTRESSOR EL8', tx: .06, ty: .14,
-    deco: [['txt', .67, .2, 'GAIN REDUCTION', .6], ['leds', .58, .3, .76, .3, 10, .012, '#ff4a3d', 3, '#ffd23d'], ['txt', .67, .43, 'INPUT', .6], ['leds', .58, .55, .76, .55, 10, .012, '#3ee08a', 6, '#ff4a3d']],
-    c: [['k', 'Input|INPUT', .12, .62, .085], ['k', 'Attack|ATTACK', .26, .62, .07], ['k', 'Release|RELEASE', .38, .62, .07], ['k', 'Ratio|RATIO', .5, .4, .045],
-      ['p', 'Detector HP|HP', .46, .78, .028], ['p', 'Band Emphasis|BAND', .53, .78, .028], ['p', 'Dist 2|DIST 2', .6, .78, .028], ['p', 'Dist 3|DIST 3', .67, .78, .028], ['k', 'Output|OUTPUT', .85, .62, .085]] },
+  'API 2500': (() => { // after the user's photo; the LEDs of knee, thrust, type, shape, in / byp / make-up and meter are tappable to note the state
+    const INK = '#f2f2f2', BL = '#4fb4ea', deco = [['rect', 0.046, 0.07, 0.2745, 0.89, 'none', '#4a4d52', 5], ['rect', 0.322, 0.07, 0.09, 0.89, 'none', '#4a4d52', 5], ['rect', 0.416, 0.07, 0.082, 0.89, 'none', '#4a4d52', 5], ['rect', 0.502, 0.07, 0.1085, 0.89, 'none', '#4a4d52', 5], ['rect', 0.808, 0.07, 0.033, 0.89, 'none', '#4a4d52', 5],
+      ['txt', 0.183, 0.2, 'COMPRESSOR', 1.45], ['txt', 0.367, 0.2, 'TONE', 1.45], ['txt', 0.457, 0.2, 'LINK', 1.45], ['txt', 0.555, 0.2, 'OUTPUT', 1.45], ['txt', 0.8245, 0.2, 'VU', 1.3],
+      ['vu', 0.6145, 0.08, 0.091, 0.5, { label: 'VU' }], ['vu', 0.7105, 0.08, 0.091, 0.5, { label: 'VU' }], ['txt', 0.9, 0.42, 'API', 2.6, BL], ['txt', 0.9, 0.8, '2500', 2.2], ['txt', 0.9, 0.95, 'BUS COMPRESSOR', 0.8], ['txt', 0.862, 0.44, '±2dB', 0.62, BL], ['txt', 0.862, 0.84, 'L/R tilt', 0.62, BL],
+      ['screw', 0.047, 0.3, 0.009], ['screw', 0.047, 0.72, 0.009], ['screw', 0.953, 0.3, 0.009], ['screw', 0.953, 0.72, 0.009], ['poly', [[0.2655, 0.62], [0.2655, 0.9], [0.273, 0.9]], BL, 1.6], ['poly', [[0.544, 0.36], [0.57, 0.36]], BL, 1.3], ['txt', 0.538, 0.4, 'man', 0.62, BL]], c = [];
+    const knob = (nm, x, r, col, labs, a0, a1, unit, lab, rad, sub) => { c.push(['k', nm + '|', x, 0.56, r, col, 'n', { sweep: [a0, a1] }]); deco.push(['scale', x, 0.56, rad, labs, 0.49, INK, a0, a1], ['txt', x, 0.845, unit, 0.62, BL], ['txt', x, 0.93, lab, 0.8]); if (sub) deco.push(['txt', x, 0.985, sub, 0.55, BL]); };
+    knob('Threshold', 0.0805, 0.028, '#a9b6c6', ['+10', '+8', '+4', '0', '-4', '-8', '-12', '-20'], -150, 150, 'dB', 'THRESH', 0.0205);
+    knob('Attack', 0.133, 0.036, '#141414', ['.03', '.1', '.3', '1', '3', '10', '30'], -100, 100, 'm/sec', 'ATTACK', 0.0235);
+    knob('Ratio', 0.186, 0.036, '#141414', ['1.5', '2', '3', '4', '6', '10', '∞'], -100, 100, 'x:1', 'RATIO', 0.0235);
+    knob('Release', 0.239, 0.036, '#141414', ['.05', '.1', '.2', '.5', '1', '2', ''], -100, 100, 'sec', 'RELEASE', 0.0235);
+    knob('Release Variable', 0.2915, 0.028, '#a9b6c6', ['50m', '.15s', '.25s', '.75s', '1.5s', '3s'], -150, 150, 'sec', 'RELEASE', 0.0205);
+    knob('Link', 0.447, 0.036, '#141414', ['IND', '50', '60', '70', '80', '90', '100'], -100, 100, 'percent', 'L/R LINK', 0.0235);
+    knob('Make Up', 0.583, 0.03, '#e2412f', ['0', '3', '6', '9', '12', '18', '+24'], -150, 150, 'dB', 'GAIN', 0.0205);
+    const led = (nm, x, y, col, t, tx) => { c.push(['p', nm + '|', x, y, 0.0062, col, 'n']); if (t) deco.push(['txt', tx || x + 0.0165, y + 0.035, t, 0.62]); };
+    const btn = (x, col, unit, lab) => { deco.push(['rect', x - 0.0075, 0.6, 0.015, 0.17, col, '#000', 1.5], ['txt', x, 0.93, lab, 0.8]); if (unit) deco.push(['txt', x, 0.845, unit, 0.62, BL]); };
+    led('Knee Hard', 0.3335, 0.28, '#ff3b30', 'HARD'); led('Knee Med', 0.3335, 0.4, '#ffb020', 'MED', 0.348); led('Knee Soft', 0.3335, 0.52, '#3ee08a', 'SOFT'); btn(0.337, '#f1f1ee', 'thresh', 'KNEE');
+    led('Thrust Loud', 0.362, 0.28, '#ff3b30', 'LOUD'); led('Thrust Med', 0.362, 0.4, '#ffb020', 'MED', 0.3765); led('Thrust Norm', 0.362, 0.52, '#3ee08a', 'NORM'); btn(0.3655, '#f2d21a', 'detector', 'THRUST');
+    led('Type New', 0.3915, 0.4, '#ffb020', 'NEW', 0.4035); led('Type Old', 0.3915, 0.52, '#3ee08a', 'OLD', 0.4035); btn(0.3945, '#b9bec6', 'tone', 'TYPE');
+    led('Shape HP', 0.4845, 0.38, '#3ee08a'); led('Shape LP', 0.4845, 0.5, '#3ee08a'); deco.push(['txt', 0.4765, 0.33, 'BP', 0.6], ['txt', 0.4925, 0.33, 'HP', 0.6], ['txt', 0.4925, 0.535, 'LP', 0.6]); btn(0.4845, '#2f9d5a', 'filter', 'SHAPE');
+    led('Comp In', 0.513, 0.5, '#3ee08a'); btn(0.513, '#f1f1ee', '', 'IN'); led('Bypass', 0.5325, 0.5, '#ffb020'); btn(0.5325, '#f1f1ee', '', 'BYP'); led('Make Up Manual', 0.552, 0.5, '#ff3b30'); btn(0.552, '#e8532f', 'make-up', 'GAIN');
+    led('Meter GR', 0.8155, 0.31, '#ff3b30', 'GR', 0.8285); led('Meter Out', 0.8155, 0.43, '#ffb020', 'OUT', 0.8295); led('Meter In', 0.8155, 0.55, '#3ee08a', 'IN', 0.8285); deco.push(['rect', 0.8155, 0.63, 0.014, 0.16, '#b9bec6', '#000', 1.5], ['txt', 0.8245, 0.875, 'source', 0.62, BL], ['txt', 0.8245, 0.95, 'METER', 0.75]);
+    c.push(['k', 'L/R Tilt|', 0.862, 0.62, 0.014, '', 'n', { ks: 'trim' }]);
+    return { pages: [['Kompressor', 0, 0, 0.325, 1], ['Tone & Link', 0.315, 0, 0.612, 1], ['Meter', 0.6, 0, 1, 1]], kind: 'Kompressor', ks: 'api', ar: 11.157, noTicks: true, bg: '#1d1e21', bg2: '#101113', ink: INK, kc: '#141414', fs: 7, brand: '', model: '', tx: .5, ty: .1, deco, c }; })(),
+  'Empirical Labs Distressor EL8': mkDistressor(false),
+  'Empirical Labs Distressor EL8-X': mkDistressor(true),
   'Tube-Tech CL 1B': { kind: 'Kompressor', ks: 'bakelite', ar: 4, bg: '#8fa1af', bg2: '#728594', ink: '#121416', kc: '#151515', fs: 15, brand: 'TUBE-TECH', model: 'OPTO COMPRESSOR CL 1B', tx: .3, ty: .15,
     deco: [['vu', .06, .18, .2, .64]],
     c: [['k', 'Threshold|THRESHOLD', .34, .62, .08], ['k', 'Ratio|RATIO', .45, .62, .08], ['k', 'Attack|ATTACK', .56, .62, .08], ['k', 'Release|RELEASE', .67, .62, .08], ['k', 'Gain|GAIN', .8, .62, .08],
@@ -4890,7 +4926,7 @@ function fpSvg(fp, mode) {
     }
     const shadow = (rr2, dx = .1, dy = .22) => `<circle cx="${X + R * dx}" cy="${Y + R * dy}" r="${rr2}" fill="#000" opacity=".55" filter="url(#blur)"/>`;
     if (t === 'k') { const ks = ext && ext.ks || fp.ks; out.push(ks === 'chicken' ? `<ellipse cx="${X + R * .1}" cy="${Y + R * .2}" rx="${R * .5}" ry="${R * .7}" fill="#000" opacity=".4" filter="url(#blur)"/>` : shadow(R * 1.02));
-      if (!mode && !['chicken', 'marconi', 'api', 'apiring'].includes(ks)) out.push(prKnobSvg(ks || 'round', col !== undefined && col !== '' ? col : fp.kc).replace('<svg ', `<svg x="${X - R}" y="${Y - R}" width="${R * 2}" height="${R * 2}" `).replace(/class="rot"/g, `transform="rotate(${ext && ext.sweep ? ext.sweep[0] : -135})"`)); }
+      if (!mode && !['chicken', 'marconi', 'api', 'apiring'].includes(ks)) out.push(prKnobSvg(ks || 'round', col !== undefined && col !== '' ? col : fp.kc).replace('<svg ', `<svg x="${X - R}" y="${Y - R}" width="${R * 2}" height="${R * 2}" `).replace(/class="rot"/g, `transform="rotate(${ext && ext.sweep ? ext.sweep[0] : -135})"`).replace(/<text[\s\S]*?<\/text>/g, '')); }
     if (t === 'p') { const sq = (ext && ext.ps || fp.ps) === 'sq'; out.push(sq ? `<rect x="${X - R * 1.2 + R * .12}" y="${Y - R * 1.2 + R * .25}" width="${R * 2.4}" height="${R * 2.4}" rx="${R * .3}" fill="#000" opacity=".55" filter="url(#blur)"/><rect x="${X - R * 1.22}" y="${Y - R * 1.22}" width="${R * 2.44}" height="${R * 2.44}" rx="${R * .3}" fill="url(#scr)" stroke="rgba(0,0,0,.6)" stroke-width="1.2"/><rect x="${X - R * 1.06}" y="${Y - R * 1.06}" width="${R * 2.12}" height="${R * 2.12}" rx="${R * .22}" fill="#050505"/>`
       : shadow(R * 1.3) + `<circle cx="${X}" cy="${Y}" r="${R * 1.28}" fill="url(#scr)" stroke="rgba(0,0,0,.6)" stroke-width="1.2"/><circle cx="${X}" cy="${Y}" r="${R * 1.1}" fill="#050505"/>`); }
     if (t === 's') out.push(shadow(R * .9, .12, .35), `<circle cx="${X}" cy="${Y}" r="${R * .95}" fill="url(#scr)" stroke="rgba(0,0,0,.55)" stroke-width="1.2"/>`);
@@ -5299,6 +5335,11 @@ function prKnobSvg(ks, col) {
   else if (ks === 'apiring') { const gr = id + 'r'; // outer ring of an API dual concentric: coloured lobed ring, the lobe with the white bar is its index (the knob with the nose sits on top)
     g = `<defs><radialGradient id="${gr}" cx="38%" cy="30%" r="80%"><stop offset="0" stop-color="${hi}"/><stop offset=".6" stop-color="${c}"/><stop offset="1" stop-color="${lo}"/></radialGradient></defs><g class="rot">` + [0, 90, 180, 270].map(a => `<ellipse cx="${(34 * Math.sin(a * Math.PI / 180)).toFixed(1)}" cy="${(-34 * Math.cos(a * Math.PI / 180)).toFixed(1)}" rx="14" ry="14" fill="url(#${gr})" stroke="rgba(0,0,0,.35)" stroke-width=".8"/>`).join('')
       + `<circle r="38" fill="url(#${gr})"/><circle r="38" fill="url(#${id}g)" opacity=".5"/><rect x="-2.6" y="-48.5" width="5.2" height="15" rx="1.4" fill="#fbfbfb" stroke="rgba(0,0,0,.45)" stroke-width=".7"/></g>`; }
+  else if (ks === 'dial') { let nums = '', tk = ''; // white dial knob: numbers 0-10 and fine ticks are printed on the turning skirt, a fixed black index at the top shows the value
+    for (let v = 0; v <= 10; v++) nums += `<text transform="rotate(${135 - 27 * v}) translate(0 -34)" text-anchor="middle" font-size="9" font-weight="700" font-family="Helvetica,Arial,sans-serif" fill="#1b1d20">${v}</text>`;
+    for (let i = 0; i <= 50; i++) tk += `<line transform="rotate(${135 - 5.4 * i})" x1="0" y1="-47" x2="0" y2="${i % 5 ? -44.5 : -43.5}" stroke="#2a2c30" stroke-width="${i % 5 ? .7 : 1.1}"/>`;
+    g = `<defs><radialGradient id="${id}w" cx="38%" cy="30%" r="85%"><stop offset="0" stop-color="#ffffff"/><stop offset=".6" stop-color="#e9e9e4"/><stop offset="1" stop-color="#a9aaa4"/></radialGradient></defs><circle r="48.5" fill="#6f716d"/><g class="rot"><circle r="47.5" fill="url(#${id}w)"/>${tk}${nums}</g>`
+      + `<circle r="27" fill="#000" opacity=".35" cy="1.5"/><circle r="26" fill="#17191c"/><circle r="22.5" fill="url(#${id}w)"/><circle r="22.5" fill="url(#${id}g)" opacity=".5"/><path d="M0 -40L-5.5 -49.5H5.5Z" fill="#101113" stroke="#fff" stroke-width=".9" stroke-linejoin="round"/>`; }
   else if (ks === 'capblack') // coloured cap on a black knurled base, index line over cap and base (black on light caps)
     g = `<circle r="48" fill="#0b0b0c"/>${knurl(45, 6, '#3c3c40', 34)}<circle r="36" fill="#000" opacity=".5" cy="2.5"/><circle r="34" fill="url(#${id}d)"/><circle r="34" fill="url(#${id}g)" opacity=".55"/><circle r="34" fill="none" stroke="rgba(0,0,0,.35)" stroke-width="1"/><g class="rot">${line(8, 47, 4.4, cLum(c) > .62 ? '#141414' : '#f8f8f8')}</g>`;
   else if (ks === 'nevering') // outer ring of a Neve dual concentric: turned aluminium, black index line
@@ -9546,7 +9587,7 @@ function pageHelpSlides() {
 /* ================= home-screen app (PWA) ================= */
 const isStandalone = () => window.matchMedia?.('(display-mode: standalone)').matches || window.navigator.standalone === true;
 const isIOS = () => /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-const APP_VERSION = '11.11.2026 (2)';
+const APP_VERSION = '11.11.2026 (3)';
 function registerSW() {
   if (!('serviceWorker' in navigator) || (location.protocol !== 'https:' && location.hostname !== 'localhost') || IN_CLAUDE_HOST()) return;
   navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).then(reg => {
