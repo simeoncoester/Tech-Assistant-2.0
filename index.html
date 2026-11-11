@@ -4285,13 +4285,13 @@ const GEAR_DB = {
     'TL Audio': [['VTC', 'hw']], 'Chandler': [['TG Passive Channel', 'hw']], 'Universal Audio': [['6176', 'hw'], ['LA-610 MkII', 'hw']], 'Manley': [['VOXBOX', 'hw']], 'Avalon': [['VT-737sp', 'hw']], 'Rupert Neve Designs': [['Shelford Channel', 'hw']]
   },
   'Kompressor': {
-    'Universal Audio': [['1176LN', 'hw'], ['Teletronix LA-2A', 'hw'], ['175B', 'hw']], 'Empirical Labs': [['Distressor EL8', 'hw'], ['Distressor EL8-X', 'hw'], ['FATSO', 'hw']], 'dbx': [['160A', 'hw'], ['165A', 'hw']], 'SSL': [['G-Series Bus Compressor', 'hw']], 'API': [['2500', 'hw'], ['527', 'hw']], 'Neve': [['33609', 'hw'], ['2254', 'hw']], 'Fairchild': [['660', 'hw'], ['670', 'hw']], 'Chandler': [['TG1', 'hw'], ['Zener Limiter', 'hw']], 'Tube-Tech': [['CL 1B', 'hw']], 'Manley': [['Variable Mu', 'hw']], 'Shadow Hills': [['Mastering Compressor', 'hw']], 'CAPI': [['FC526', 'hw']], 'Klark Teknik': [['2A-KT', 'hw'], ['76-KT', 'hw']], 'Behringer': [['369-KT', 'hw']], 'Sound Skulptor': [['CP4500', 'hw']], 'Link Audio': [['DYNX', 'hw']]
+    'Universal Audio': [['1176LN', 'hw'], ['Teletronix LA-2A', 'hw'], ['175B', 'hw']], 'Empirical Labs': [['Distressor EL8', 'hw'], ['Distressor EL8-X', 'hw'], ['FATSO', 'hw']], 'dbx': [['160A', 'hw'], ['165A', 'hw']], 'SSL': [['G-Series Bus Compressor', 'hw']], 'API': [['2500', 'hw'], ['527', 'hw']], 'Neve': [['33609', 'hw'], ['2254', 'hw']], 'Fairchild': [['660', 'hw'], ['670', 'hw']], 'Chandler': [['TG1', 'hw'], ['Zener Limiter', 'hw']], 'Tube-Tech': [['CL 1B', 'hw']], 'Manley': [['Variable Mu', 'hw']], 'Shadow Hills': [['Mastering Compressor', 'hw']], 'CAPI': [['FC526', 'hw']], 'Klark Teknik': [['2A-KT', 'hw'], ['76-KT', 'hw']], 'Behringer': [['369-KT', 'hw']], 'Sound Skulptor': [['CP4500', 'hw'], ['MU524', 'hw']], 'AML': [['54F50', 'hw']], 'Link Audio': [['DYNX', 'hw']]
   },
   'Gate / Expander': {
     'Drawmer': [['DS201', 'hw']], 'dbx': [['904', 'hw']], 'SSL': [['E-Series Gate', 'hw']]
   },
   'Sättigung': {
-    'Thermionic Culture': [['Culture Vulture', 'hw']], 'Elysia': [['Karacter', 'hw'], ['Karacter 500', 'hw']], 'Black Box Analog Design': [['HG-2', 'hw']]
+    'Thermionic Culture': [['Culture Vulture', 'hw']], 'Elysia': [['Karacter', 'hw'], ['Karacter 500', 'hw']], 'Black Box Analog Design': [['HG-2', 'hw']], 'Sound Skulptor': [['TS500', 'hw'], ['True Grit', 'hw']]
   },
   'Transient Designer': {
     'SPL': [['Transient Designer', 'hw']]
@@ -4517,6 +4517,50 @@ const mkIsaOne = () => { const DK = '#20304f', W0 = '#f2f4ff', Y = '#f6e27a', H 
   c.push(['k', 'Headphone Volume|', ...A(1388, 585), 0.06, '#f3dd8a', 'n']); T(A(1378, 493), '+5', .62); T(A(1340, 650), '0', .62); T(A(1384, 650), 'Volume', .62); T(A(1432, 650), '+10', .62); deco.push(['ticks', ...A(1388, 585), 0.038, 3, W0, -135, 135, .1]);
   T(A(1527, 534), 'Cue Mix', .68); P('Cue Mix', A(1527, 590), '#f3c46a');
   return { kind: 'Preamp', ks: 'neve', ar: 2.105, noEars: true, noTicks: true, bg: '#2548c4', bg2: '#1d3aa3', ink: '#ffffff', kc: '#f3dd8a', fs: 11, brand: '', model: '', tx: .5, ty: .1, deco, c }; };
+// Sound Skulptor 500 series modules and AML 54F50 after the user's photos (photo pixels -> panel fractions through A)
+const mkTS500 = () => { const F = 46, H = 1000 / .286, deco = [], c = [], A = (x, y) => [+((x - 237) / 341).toFixed(3), +((y - 60) / 1225).toFixed(4)];
+  const T = (p, t, s = .85, col) => deco.push(['txt', p[0], +(p[1] + s * F * .35 / H).toFixed(4), t, s, col]);
+  T(A(300, 95), 'TS', 1.35); T(A(497, 92), '500', 1.35); deco.push(['screw', ...A(290, 255), 0.085], ['screw', ...A(288, 1105), 0.085]);
+  [['Drive', 225, 'DRIVE'], ['Output', 1075, 'OUTPUT']].forEach(([nm, y, lab]) => { c.push(['k', nm + '|', ...A(412, y), 0.5, '#151515', 'n']); deco.push(['pdots', ...A(412, y), 0.345, 11, 0.03, '#f2f2f2']); T(A(322, y + 95), '0', 1); T(A(520, y + 92), '10', 1); T(A(420, y + 128), lab); });
+  T(A(288, 470), '7.5'); T(A(362, 412), '15"'); T(A(438, 467), '30"'); c.push(['d', 'Tape Speed 7.5 / 15 / 30|', ...A(360, 470), 0.13, '', 'n']);
+  T(A(340, 543), 'TAPE SAT'); T(A(285, 592), '–', 1.1); T(A(428, 594), '+', 1.1); T(A(366, 640), '~', 1.1); c.push(['d', 'Tape Sat|', ...A(360, 594), 0.13, '', 'n']);
+  T(A(327, 673), 'BIAS/EQ'); c.push(['d', 'Bias / EQ|', ...A(360, 722), 0.13, '', 'n']);
+  deco.push(['poly', [A(268, 728), A(278, 728), A(284, 716), A(298, 716)], '#f2f2f2', 5], ['poly', [A(415, 722), A(460, 722)], '#f2f2f2', 5], ['poly', [A(345, 772), A(355, 772), A(361, 784), A(378, 784)], '#f2f2f2', 5]);
+  T(A(294, 857), 'OFF'); T(A(440, 857), 'ON'); T(A(368, 906), 'MUTE'); c.push(['d', 'Mute Off / On|', ...A(366, 857), 0.13, '', 'n']);
+  const L = ['clp', '15', '12', '9', '6', '4', '2', '0', '2', '4', '6', '9', '12', '18', '24', '30'], y0 = 452, st = (902 - 452) / 15, led = (i, col) => deco.push(['led', ...A(505, y0 + i * st), 0.07, col, i > 7]);
+  L.forEach((t, i) => { led(i, i < 4 ? '#ff3b30' : i < 8 ? '#ffd23d' : '#3ee06a'); T(A(551, y0 + i * st), t, .62); }); T(A(549, 405), '+', 1.1); T(A(552, 932), '–', 1.1);
+  return { kind: 'Sättigung', ks: 'bakelite', noTicks: true, ar: .286, bg: '#a8181d', bg2: '#86090f', ink: '#f4f4f4', kc: '#151515', fs: F, brand: '', model: '', tx: .5, ty: .03, deco, c }; };
+const mkTrueGrit = () => { const F = 46, H = 1000 / .286, deco = [], c = [], A = (x, y) => [+((x - 178) / 347).toFixed(3), +((y - 62) / 1308).toFixed(4)];
+  const T = (p, t, s = .8, col) => deco.push(['txt', p[0], +(p[1] + s * F * .35 / H).toFixed(4), t, s, col]);
+  T(A(245, 108), 'TRUE', 1.15); T(A(445, 108), 'GRIT', 1.15); deco.push(['screw', ...A(212, 378), 0.075], ['screw', ...A(203, 1082), 0.07]);
+  [['Drive', 227, 'DRIVE', '10'], ['Level', 465, 'LEVEL', '10'], ['Hi Cut', 710, 'HI CUT', '10'], ['Lo Cut', 955, 'LO CUT', '10'], ['Blend', 1195, 'BLEND', '100%']].forEach(([nm, y, lab, end]) => { const p = A(272, y); c.push(['k', nm + '|', ...p, 0.36, '#161616', 'n']); deco.push(['pdots', ...p, 0.228, 11, 0.024, '#f2f2f2']);
+    T(A(300, y - 98), '5', .75); T(A(222, y + 96), '0', .75); T(A(385, y + 10), '8', .75); T(A(end.length > 2 ? 398 : 372, y + 90), end, .75); T(A(end.length > 2 ? 292 : 315, y + (end.length > 2 ? 86 : 114)), lab); });
+  [['Boost', 355, '#f2f2f2', 300], ['Hi Cut In', 590, '#f2f2f2', 0], ['Lo Cut In', 830, '#f2f2f2', 0], ['In', 1060, '#d8322a', 0]].forEach(([nm, y, col]) => c.push(['p', nm + '|', ...A(430, y), 0.17, col, 'n', { ps: 'sq', plain: true }]));
+  deco.push(['vtxt', A(495, 300)[0], A(495, 300)[1], 'BOOST', .62, '#f2f2f2', 0.021]); T(A(492, 588), 'IN', .75); T(A(492, 828), 'IN', .75); T(A(492, 1062), 'IN', .75);
+  deco.push(['poly', [A(412, 240), A(435, 240), A(435, 315)], '#f2f2f2', 4], ['poly', [A(412, 712), A(435, 712), A(435, 632)], '#f2f2f2', 4], ['poly', [A(412, 945), A(435, 945), A(435, 872)], '#f2f2f2', 4]);
+  return { kind: 'Sättigung', ks: 'round', noTicks: true, ar: .286, bg: '#5b6a34', bg2: '#47552a', ink: '#f4f4f4', kc: '#161616', fs: F, brand: '', model: '', tx: .5, ty: .03, deco, c }; };
+const mkMU524 = () => { const F = 46, H = 1000 / .286, deco = [], c = [], A = (x, y) => [+((x - 205) / 323).toFixed(3), +((y - 45) / 1183).toFixed(4)];
+  const T = (p, t, s = .8, col) => deco.push(['txt', p[0], +(p[1] + s * F * .35 / H).toFixed(4), t, s, col]);
+  T(A(255, 82), 'MU', 1.1); T(A(478, 82), '524', 1.1); deco.push(['screw', ...A(258, 165), 0.08], ['screw', ...A(480, 165), 0.08], ['screw', ...A(245, 710), 0.07], ['screw', ...A(462, 965), 0.07], ['screw', ...A(232, 1105), 0.07]);
+  T(A(368, 140), 'BYPASS', .75); T(A(298, 208), 'IN', .75); T(A(428, 208), 'LINK', .75); c.push(['d', 'Bypass In / Bypass / Link|', ...A(348, 186), 0.12, '', 'n']);
+  deco.push(['rect', 0.02, A(0, 228)[1], 0.96, +(318 / 1183).toFixed(4), '#111', '#000', 10], ['vu', 0.08, A(0, 245)[1], 0.84, +(165 / 1183).toFixed(4), { gr: true, label: 'Sound Skulptor', face: '#efe3bf' }]);
+  [['In', 650, '#b0222a', 'IN'], ['Out', 858, '#8d9299', 'OUT'], ['Recovery', 1085, '#2b5fb4', 'REC.']].forEach(([nm, y, col, lab]) => { const p = A(322, y); c.push(['k', nm + '|', ...p, 0.33, col, 'n']); deco.push(['pdots', ...p, 0.235, 11, 0.024, '#f2f2f2']); T(A(335, y - 86), '5', .75); T(A(280, y + 72), '0', .75); T(A(395, y + 72), '10', .75); T(A(335, y + 92), lab, .75); });
+  [['Limit', 652, ['LIMIT']], ['HPF', 860, ['HPF']], ['Fast Attack', 1070, ['FAST', 'ATTK']]].forEach(([nm, y, labs]) => { c.push(['p', nm + '|', ...A(468, y), 0.2, '#f1efe8', 'n', { plain: true }]); labs.forEach((t, i) => T(A(470, y + 60 + i * 27), t, .7)); });
+  return { kind: 'Kompressor', ks: 'round', noTicks: true, ar: .286, bg: '#5b6a34', bg2: '#47552a', ink: '#f4f4f4', kc: '#161616', fs: F, brand: '', model: '', tx: .5, ty: .03, deco, c }; };
+const mkAML54 = () => { const F = 26, H = 1000 / .567, deco = [], c = [], G = '#8f9296', A = (x, y) => [+((x - 30) / 820).toFixed(3), +((y - 25) / 1445).toFixed(4)];
+  const T = (p, t, s = .7, col) => deco.push(['txt', p[0], +(p[1] + s * F * .35 / H).toFixed(4), t, s, col]);
+  deco.push(['screw', ...A(240, 60), 0.05], ['screw', ...A(650, 60), 0.05], ['screw', ...A(230, 1425), 0.05], ['screw', ...A(650, 1425), 0.05], ['vmeter', ...A(118, 135), +(190 / 820).toFixed(3), +(715 / 1445).toFixed(4), {}]);
+  T(A(790, 70), '54F50', .7); T(A(398, 236), 'SYS'); c.push(['s', 'Sys|', ...A(398, 322), 0.075, '', 'n']);
+  T(A(455, 462), 'COMP', .6); T(A(455, 488), 'OFF', .6); T(A(468, 542), 'Slow', .6); T(A(472, 598), 'Fast', .6); c.push(['d', 'Comp Off / Slow / Fast|', ...A(392, 535), 0.075, '', 'n']);
+  T(A(455, 702), 'HPF', .6); T(A(455, 728), 'OFF', .6); T(A(465, 775), '1', .6); T(A(465, 828), '2', .6); c.push(['d', 'HPF Off / 1 / 2|', ...A(392, 772), 0.075, '', 'n']);
+  T(A(215, 876), 'METER'); T(A(148, 940), 'In', .6); T(A(275, 940), 'Out', .6); T(A(212, 985), 'G/R', .6); c.push(['d', 'Meter In / Out / GR|', ...A(208, 930), 0.075, '', 'n']);
+  const K = (nm, x, y, labs, a0, a1, n = labs.length) => { const p = A(x, y); c.push(['k', nm + '|', ...p, 0.27, G, 'n', { sweep: [a0, a1] }]); deco.push(['pdots', ...p, 0.172, n, 0.013, '#f2f2f2', a0, a1]); if (labs.some(t => t)) deco.push(['scale', ...p, 0.212, labs, .5, '#f2f2f2', a0, a1]); };
+  K('Ratio', 615, 262, ['1.5:1', '2:1', '3:1', '4:1', '6:1'], -72, 72); T(A(790, 398), 'RATIO');
+  K('Threshold', 615, 742, ['', '', '', '', '', '', '', '', '', '', ''], -135, 135); T(A(745, 932), 'THRESHOLD');
+  K('Gain Make-Up', 222, 1228, ['', '', '', '', '', '+10', '', '', '', '', '+20'], -135, 135); T(A(190, 1392), 'GAIN MAKE-UP');
+  K('Recovery', 600, 1235, ['25mS', '50mS', '100mS', '200mS', '400mS', '800mS', '1.5S', 'AUTO'], -80, 100); T(A(752, 1392), 'RECOVERY');
+  deco.push(['led', ...A(450, 1305), 0.03, '#ff3b30', true]);
+  return { kind: 'Kompressor', ks: 'marconi', noTicks: true, bare: true, ar: .567, bg: '#3f5568', bg2: '#33475a', ink: '#f2f2f2', kc: G, fs: F, brand: '', model: '', tx: .5, ty: .03, deco, c }; };
 const FACEPLATES = {
   'Universal Audio 1176LN': { kind: 'Kompressor', ks: 'skirt', ps: 'sq', ar: 4, bg: '#17181b', bg2: '#0c0d0f', ink: '#ececec', kc: '#c9cdd3', fs: 17, brand: 'UNIVERSAL AUDIO', model: '1176LN', tx: .06, ty: .15,
     deco: [['vu', .76, .14, .19, .72], ['txt', .62, .075, 'RATIO'], ['txt', .69, .075, 'METER']],
@@ -4781,6 +4825,10 @@ const FACEPLATES = {
   'CAPI FC526': { kind: 'Kompressor', ks: 'api', ar: 0.286, bg: '#121212', bg2: '#0a0a0a', ink: '#e8e8e8', kc: '#2f6fc4', fs: 46, brand: '', model: '', tx: 0.5, ty: 0.03,
     deco: [['txt', 0.13, 0.03, 'CAPI', 0.9], ['led', 0.24, 0.022, 0.05, '#3a8fe0', true], ['vtxt', 0.065, 0.07, 'INPUT', 0.8, '#3a8fe0', 0.026], ['vtxt', 0.065, 0.25, 'OUTPUT', 0.8, '#3a8fe0', 0.026], ['vtxt', 0.065, 0.41, 'ATTACK', 0.8, '#d8d8d8', 0.026], ['vtxt', 0.065, 0.56, 'RELEASE', 0.8, '#d8d8d8', 0.026], ['vtxt', 0.08, 0.75, 'RATIO', 0.8, '#d8d8d8', 0.026], ['poly', [[0, 0.396], [0.735, 0.396]], '#9aa0a8', 3], ['poly', [[0.735, 0.37], [0.735, 0.694]], '#9aa0a8', 3], ['poly', [[0.735, 0.37], [1, 0.37]], '#9aa0a8', 3], ['poly', [[0, 0.694], [1, 0.694]], '#9aa0a8', 3], ['txt', 0.76, 0.1968, 'BYP', 0.8], ['txt', 0.76, 0.29, 'ACT', 0.8], ['txt', 0.79, 0.385, 'PK', 0.75], ['led', 0.885, 0.378, 0.035, '#ff3b30', false], ['leds', 0.876, 0.412, 0.876, 0.649, 11, 0.035, '#a8e04a', 1, '#ff4a3d'], ['txt', 0.86, 0.67, 'GR', 0.75], ['txt', 0.45, 0.72, '20', 0.8], ['txt', 0.58, 0.72, 'ABI', 0.8], ['txt', 0.22, 0.752, '12', 0.8], ['txt', 0.17, 0.8, '8', 0.8], ['txt', 0.8, 0.711, 'SC HPF', 0.75, '#3a8fe0'], ['txt', 0.8, 0.798, 'IN', 0.75, '#3a8fe0'], ['txt', 0.82, 0.821, 'GR', 0.75, '#3a8fe0'], ['txt', 0.82, 0.924, 'OFF', 0.75, '#3a8fe0'], ['txt', 0.79, 0.418, '0', 0.6], ['txt', 0.79, 0.442, '.5', 0.6], ['txt', 0.79, 0.465, '1', 0.6], ['txt', 0.79, 0.489, '2', 0.6], ['txt', 0.79, 0.513, '3', 0.6], ['txt', 0.79, 0.536, '4', 0.6], ['txt', 0.79, 0.56, '5', 0.6], ['txt', 0.79, 0.584, '6', 0.6], ['txt', 0.79, 0.608, '7', 0.6], ['txt', 0.79, 0.631, '10', 0.6], ['txt', 0.79, 0.655, '20', 0.6]],
     c: [['k', 'Input|', 0.39, 0.112, 0.36, '#2f6fc4', 'n'], ['k', 'Output|', 0.41, 0.293, 0.36, '#2f6fc4', 'n'], ['s', 'Bypass / Active|', 0.761, 0.234, 0.15, '', 'n'], ['k', 'Attack|', 0.425, 0.481, 0.32, '#1a1a1a', 'n'], ['k', 'Release|', 0.442, 0.628, 0.32, '#1a1a1a', 'n'], ['k', 'Ratio|', 0.469, 0.851, 0.46, '#d8322a', 'n'], ['s', 'Sidechain HPF|', 0.805, 0.753, 0.15, '', 'n'], ['s', 'Meter GR / Off|', 0.823, 0.873, 0.15, '', 'n']] },
+  'Sound Skulptor TS500': mkTS500(),
+  'Sound Skulptor True Grit': mkTrueGrit(),
+  'Sound Skulptor MU524': mkMU524(),
+  'AML 54F50': mkAML54(),
   'Sound Skulptor CP4500': { kind: 'Kompressor', ks: 'round', ar: 0.578, bare: true, bg: '#2e3a46', bg2: '#26303a', ink: '#e6e6e6', kc: '#161616', fs: 28, brand: '', model: '', tx: 0.5, ty: 0.03,
     deco: [['txt', 0.49, 0.03, 'CP4500', 1.6], ['screw', 0.234, 0.029, 0.045], ['screw', 0.739, 0.029, 0.045], ['screw', 0.095, 0.166, 0.04], ['screw', 0.095, 0.255, 0.04], ['screw', 0.91, 0.089, 0.04], ['screw', 0.914, 0.745, 0.04], ['screw', 0.117, 0.747, 0.035], ['screw', 0.266, 0.98, 0.04], ['screw', 0.77, 0.98, 0.04], ['rect', 0.176, 0.047, 0.639, 0.312, '#151515', '#000', 6], ['vu', 0.2, 0.06, 0.59, 0.17, { dark: true, gr: true, label: 'dB COMPRESSION', face: '#30363c' }], ['screw', 0.495, 0.307, 0.045, false], ['led', 0.9, 0.245, 0.016, '#3ee08a', false], ['txt', 0.9, 0.375, 'IN', 1], ['txt', 0.5, 0.398, 'Sound Skulptor', 1.4], ['scale', 0.212, 0.49, 0.16, ['2', '4', '10'], 0.9, '#e6e6e6', -60, 0], ['txt', 0.24, 0.56, 'RATIO', 1], ['scale', 0.815, 0.484, 0.16, ['-15', '', '', '', '', '+15'], 0.9, '#e6e6e6', -120, 120], ['txt', 0.79, 0.562, 'THRESHOLD', 1], ['scale', 0.212, 0.69, 0.16, ['0.1', '0.3', '1', '3', '10', '30'], 0.85, '#e6e6e6', -80, 60], ['txt', 0.25, 0.765, 'ATTACK - mS', 0.9], ['txt', 0.49, 0.585, 'SIDE CHAIN', 1], ['txt', 0.49, 0.613, 'HF LIFT', 1], ['txt', 0.49, 0.716, '100Hz', 0.75], ['txt', 0.49, 0.8, 'HP  200Hz', 0.75], ['txt', 0.49, 0.895, '50Hz', 0.75], ['poly', [[0.57, 0.71], [0.585, 0.71], [0.585, 0.886], [0.57, 0.886]], '#e6e6e6', 3], ['scale', 0.811, 0.685, 0.16, ['0', '', '', '', '', '+'], 0.9, '#e6e6e6', -120, 120], ['txt', 0.79, 0.762, 'MAKEUP', 0.9], ['scale', 0.221, 0.883, 0.16, ['0.05', '0.1', '0.3', '0.6', '1.2', 'AUTO'], 0.85, '#e6e6e6', -80, 70], ['txt', 0.25, 0.955, 'RELEASE - S', 0.9], ['scale', 0.82, 0.88, 0.16, ['0', '', '', '', '', '100%'], 0.9, '#e6e6e6', -120, 120], ['txt', 0.8, 0.955, 'MIX', 0.9]],
     c: [['p', 'In|', 0.91, 0.305, 0.075, '#ece8dc', 'n'], ['k', 'Ratio|', 0.212, 0.49, 0.18, '#161616', 'n'], ['k', 'Threshold|', 0.815, 0.484, 0.2, '#161616', 'n'], ['k', 'Attack|', 0.212, 0.69, 0.18, '#161616', 'n'], ['p', 'SC HF Lift|', 0.505, 0.669, 0.075, '#ece8dc', 'n'], ['p', 'SC HP 100 Hz|', 0.509, 0.755, 0.075, '#ece8dc', 'n'], ['p', 'SC HP 50 Hz|', 0.514, 0.849, 0.075, '#ece8dc', 'n'], ['k', 'Makeup|', 0.811, 0.685, 0.2, '#161616', 'n'], ['k', 'Release|', 0.221, 0.883, 0.18, '#161616', 'n'], ['k', 'Mix|', 0.82, 0.88, 0.2, '#161616', 'n']] },
@@ -9679,7 +9727,7 @@ function pageHelpSlides() {
 /* ================= home-screen app (PWA) ================= */
 const isStandalone = () => window.matchMedia?.('(display-mode: standalone)').matches || window.navigator.standalone === true;
 const isIOS = () => /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-const APP_VERSION = '11.11.2026 (7)';
+const APP_VERSION = '11.11.2026 (8)';
 function registerSW() {
   if (!('serviceWorker' in navigator) || (location.protocol !== 'https:' && location.hostname !== 'localhost') || IN_CLAUDE_HOST()) return;
   navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).then(reg => {
