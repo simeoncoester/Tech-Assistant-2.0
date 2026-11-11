@@ -50,7 +50,7 @@ sed -n '/<script>/,/<\/script>/p' index.html | sed '1d;$d' > /tmp/x.js && node -
 - Neu (11.11., Teil 2): Pultec EQP-1A/MEQ-5, Maag EQ4 und SSL E/G-Series EQ nach Fotos; SSL E- und G-Series EQ zusammengelegt (`fpRename`).
 - Neu (11.11., Teil 3): Distressor EL8/EL8-X und API 2500 nach Fotos; LED-Anzeigen als antippbare Taster.
 - Design-Durchsicht (11.11. (6)): Kippschalter bei 25 Geräten vergrößert, lange VU-Beschriftungen eingepasst, Einzelkorrekturen (siehe CLAUDE.md). ISA 428, ISA One und Avalon VT-737sp sind in (7) nach Nutzerfotos komplett beschriftet neu gebaut.
-- Neu (11.11. (8)): Sound Skulptor TS500, True Grit, MU524 und AML 52F50 (Skalen in (9) exakt nach Foto; Hersteller „AML“ unbestätigt).
+- Neu (11.11. (8)): Sound Skulptor TS500, True Grit, MU524 und AML 52F50 (Skalen in (9) exakt nach Foto; Hersteller und Modell vom Nutzer bestätigt).
 - Automatische Seiten teilen jetzt auch hohe Module (Oben/Unten) und kompakte Geräte nach Lesbarkeit.
 - Noch offen (Lesbarkeit ohne Zoom, siehe `fp-legible.js`): Geräte mit eigenen `pages`, deren Bereiche auf dem iPhone noch zu klein sind – TL Audio VTC und Master Section, Universal Audio 6176 und LA-610 MkII, Manley VOXBOX, Shelford Channel, SPL Transient Designer, Drawmer DS201, Bricasti M7 – sowie Elysia Karacter 500 (sehr kleine Skalenzahlen). Dort hilft bisher der Zoom; feinere Seiten wären besser.
 - Im Rahmen des Drawmer DS201 sitzt der LINK-Schalter knapp außerhalb von Kanal 2; Lage am Original unbestätigt (nicht geraten).
