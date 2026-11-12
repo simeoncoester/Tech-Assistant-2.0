@@ -2570,6 +2570,11 @@ button.ins:focus-visible{outline:2px solid #6c9bef;outline-offset:1px}
 .pr-sld.colored i{background:linear-gradient(180deg,color-mix(in srgb,var(--kc) 55%,#fff),var(--kc))}
 .pr-sld.set i{border-color:#3ddc8c;box-shadow:0 0 10px rgba(61,220,140,.55),0 2px 4px rgba(0,0,0,.6)}
 .pr-sld-val{font:700 1.1rem Barlow,sans-serif;color:var(--accent,#4d8cf0)}
+/* tab bar: sticky at the end of the page flow instead of position:fixed - on the iPhone the fixed bar came loose and scrolled along with long pages (guitar instruments, drum tuner with open settings). The bar keeps its own room, the page is exactly screen-high when the content is short */
+html #tabbar,html.glass #tabbar,html.ice #tabbar{position:-webkit-sticky!important;position:sticky!important;left:auto!important;right:auto!important;bottom:calc(env(safe-area-inset-bottom,0px) + 10px)!important;margin:0 12px calc(env(safe-area-inset-bottom,0px) + 10px)}
+@media (min-width:800px){html #tabbar,html.glass #tabbar,html.ice #tabbar{max-width:732px;margin-left:auto;margin-right:auto}}
+body{min-height:100dvh}
+html body.has-tabs main#app,html.glass body.has-tabs main#app,html.ice body.has-tabs main#app{padding-bottom:14px;min-height:calc(100dvh - var(--hdr,60px) - var(--tabpad,100px) + 14px)}
 </style>
 </head>
 <body>
@@ -2958,7 +2963,7 @@ window.matchMedia && window.matchMedia('(min-width: 1024px)').addEventListener?.
 function syncHdr() {
   const b = document.querySelector('.bar'); if (b) document.documentElement.style.setProperty('--hdr', Math.ceil(b.offsetTop + b.offsetHeight) + 'px');
   // room at the bottom: exactly the floating tab bar plus a small gap
-  const tb = document.getElementById('tabbar'); if (tb && !tb.hidden) document.documentElement.style.setProperty('--tabpad', Math.ceil(window.innerHeight - tb.getBoundingClientRect().top + 14) + 'px');
+  const tb = document.getElementById('tabbar'); if (tb && !tb.hidden) document.documentElement.style.setProperty('--tabpad', Math.ceil(tb.offsetHeight + (parseFloat(getComputedStyle(tb).marginBottom) || 0) + 14) + 'px'); // the bar is sticky in the page flow: its height plus the gap below it
 }
 window.addEventListener('resize', () => syncHdr());
 function render(keepScroll) {
@@ -9728,7 +9733,7 @@ function pageHelpSlides() {
 /* ================= home-screen app (PWA) ================= */
 const isStandalone = () => window.matchMedia?.('(display-mode: standalone)').matches || window.navigator.standalone === true;
 const isIOS = () => /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-const APP_VERSION = '11.11.2026 (9)';
+const APP_VERSION = '12.11.2026 (1)';
 function registerSW() {
   if (!('serviceWorker' in navigator) || (location.protocol !== 'https:' && location.hostname !== 'localhost') || IN_CLAUDE_HOST()) return;
   navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).then(reg => {
