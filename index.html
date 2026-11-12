@@ -2256,6 +2256,8 @@ html body.has-tabs main,html.glass body.has-tabs main,html.ice body.has-tabs mai
 [data-pane="lugs"] .lugwrap .drumsvg{max-height:max(220px,calc(100dvh - var(--hdr,60px) - var(--tabpad,100px) - 300px))}
 }
 @media (max-height:760px){[data-pane="pitch"] canvas.spec{display:none}[data-pane="pitch"] .lugwrap .drumsvg{max-height:max(170px,calc(100dvh - var(--hdr,60px) - var(--tabpad,100px) - 320px))}[data-pane="lugs"] .lugwrap .drumsvg{max-height:max(170px,calc(100dvh - var(--hdr,60px) - var(--tabpad,100px) - 336px))}}
+/* tablets in landscape: same as short screens, so the drum is not tiny next to an empty spectrum */
+@media (min-width:700px) and (min-height:761px) and (max-height:860px){[data-pane="pitch"] canvas.spec{display:none}[data-pane="pitch"] .lugwrap .drumsvg{max-height:max(170px,calc(100dvh - var(--hdr,60px) - var(--tabpad,100px) - 320px))}}
 .gt-settings .card{margin-top:12px}
 [data-pane]:not([data-pane="lugs"]) .dt-lugonly{display:none}
 /* resonance tuning: the head measured next is lit in green, like the selected guitar string */
@@ -8449,6 +8451,9 @@ function viewConsole() {
   };
   draw();
   requestAnimationFrame(() => { fitConsole(); if (window.ResizeObserver) new ResizeObserver(() => fitConsole()).observe(wrap); });
+  // turning the tablet: the wrap has a fixed width, so the observer alone would miss a narrower screen
+  const onRot = () => { if (!wrap.isConnected) { removeEventListener('resize', onRot); return; } fitConsole(); requestAnimationFrame(fitConsole); };
+  addEventListener('resize', onRot);
   return {
     title: 'Mischpult', back: () => route.consoleFrom === 'inst' ? nav('inst') : nav('chain'),
     body: [
@@ -10074,7 +10079,7 @@ function pageHelpSlides() {
 /* ================= home-screen app (PWA) ================= */
 const isStandalone = () => window.matchMedia?.('(display-mode: standalone)').matches || window.navigator.standalone === true;
 const isIOS = () => /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-const APP_VERSION = '12.11.2026 (9)';
+const APP_VERSION = '12.11.2026 (10)';
 function registerSW() {
   if (!('serviceWorker' in navigator) || (location.protocol !== 'https:' && location.hostname !== 'localhost') || IN_CLAUDE_HOST()) return;
   navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).then(reg => {
