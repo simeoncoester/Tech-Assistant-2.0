@@ -7982,6 +7982,19 @@ async function pdfDevImage(st, tpl) {
     g.restore(); });
   try { return { data: cv.toDataURL('image/jpeg', .86), ar }; } catch (e) { return null; }
 }
+// the artist's own look for the PDF: head = lettering (wordmark picture, else the name set in the uploaded font), logo = logo or picture
+async function pdfBrand(a) {
+  const out = { head: null, logo: null }; if (!a) return out;
+  const load = src => new Promise(res => { const im = new Image(); im.onload = () => res(im); im.onerror = () => res(null); im.src = src; });
+  try { const m = a.wordmarkV && getAsset('wordmark-' + a.id), im = m && await load(m);
+    if (im) { const cw = 1400, ch = Math.max(40, Math.round(cw * im.height / im.width)), t = document.createElement('canvas'); t.width = cw; t.height = ch; const g = t.getContext('2d'); g.drawImage(im, 0, 0, cw, ch); g.globalCompositeOperation = 'source-in'; g.fillStyle = '#000'; g.fillRect(0, 0, cw, ch); // the wordmark is a mask: its shape in black
+      const c = document.createElement('canvas'); c.width = cw; c.height = ch; const g2 = c.getContext('2d'); g2.fillStyle = '#fff'; g2.fillRect(0, 0, cw, ch); g2.drawImage(t, 0, 0); out.head = { data: c.toDataURL('image/jpeg', .92), ar: cw / ch }; } } catch (e) {}
+  try { const fam = !out.head && a.fontV && (await ensureArtistFont(a), artistFontFamily(a));
+    if (fam) { const font = `200px ${fam}`; try { await document.fonts.load(font, a.name); } catch (e) {} if (document.fonts.check(font, a.name)) { const c = document.createElement('canvas'), g = c.getContext('2d'); g.font = font; const mt = g.measureText(a.name), asc = Math.ceil(mt.actualBoundingBoxAscent || 160), desc = Math.ceil(mt.actualBoundingBoxDescent || 40), tw = Math.ceil(mt.width) + 40; c.width = tw; c.height = asc + desc + 30;
+        const g2 = c.getContext('2d'); g2.fillStyle = '#fff'; g2.fillRect(0, 0, c.width, c.height); g2.fillStyle = '#000'; g2.font = font; g2.fillText(a.name, 20, asc + 15); out.head = { data: c.toDataURL('image/jpeg', .92), ar: c.width / c.height }; } } } catch (e) {}
+  try { const lg = a.logoV && getAsset('logo-' + a.id); if (lg) out.logo = await pdfImg(lg, 1800); } catch (e) {}
+  return out;
+}
 // page writer: headings, text, tables and pictures with automatic page breaks
 function pdfWriter(doc, foot) {
   const M = 14; let W = 210, H = 297, y = M, ori = 'p', fresh = true, titled = false;
@@ -7990,7 +8003,20 @@ function pdfWriter(doc, foot) {
     need(hh) { if (y + hh > H - M - 5) w.page(ori); },
     used() { fresh = false; },
     sect(min = 60) { if (titled && ori === 'p') w.need(min); else w.page('p'); }, // every category starts on a new portrait page; only the first one stays under the title
-    title(t, sub) { w.need(34); y += 4; doc.setFont('helvetica', 'bold'); doc.setFontSize(27); doc.setTextColor(0); const ls = doc.splitTextToSize(pdfTxt(t), W - 2 * M); doc.text(ls, W / 2, y + 8, { align: 'center' }); y += ls.length * 11; if (sub) { doc.setFont('helvetica', 'normal'); doc.setFontSize(12.5); doc.setTextColor(90); const ss = doc.splitTextToSize(pdfTxt(sub), W - 2 * M); doc.text(ss, W / 2, y + 4, { align: 'center' }); y += ss.length * 5.6 + 1; } doc.setTextColor(0); y += 4; doc.setDrawColor(30); doc.setLineWidth(.8); doc.line(W / 2 - 30, y, W / 2 + 30, y); y += 8; fresh = false; titled = true; },
+    // page title; with the artist's lettering (w.brand.head: wordmark or own font) above it when there is one
+    title(t, sub) { const bh = w.brand && w.brand.head; w.need(34 + (bh ? 20 : 0)); y += 4;
+      if (bh) { let ih = 15, iw = ih * bh.ar; if (iw > 120) { iw = 120; ih = iw / bh.ar; } try { doc.addImage(bh.data, 'JPEG', (W - iw) / 2, y, iw, ih, undefined, 'FAST'); } catch (e) {} y += ih + 5; }
+      doc.setFont('helvetica', 'bold'); doc.setFontSize(27); doc.setTextColor(0); const ls = doc.splitTextToSize(pdfTxt(t), W - 2 * M); doc.text(ls, W / 2, y + 8, { align: 'center' }); y += ls.length * 11; if (sub) { doc.setFont('helvetica', 'normal'); doc.setFontSize(12.5); doc.setTextColor(90); const ss = doc.splitTextToSize(pdfTxt(sub), W - 2 * M); doc.text(ss, W / 2, y + 4, { align: 'center' }); y += ss.length * 5.6 + 1; } doc.setTextColor(0); y += 4; doc.setDrawColor(30); doc.setLineWidth(.8); doc.line(W / 2 - 30, y, W / 2 + 30, y); y += 8; fresh = false; titled = true; },
+    // cover page: artist lettering (or name), what this document is, and the artist's logo / picture as large as the page allows. Only when a logo or picture exists
+    cover(name, big, sub) { const b = w.brand || {}; if (!b.logo) return false; w.page('p'); y = M + 14;
+      if (b.head) { let ih = 30, iw = ih * b.head.ar; if (iw > W - 2 * M - 20) { iw = W - 2 * M - 20; ih = iw / b.head.ar; } try { doc.addImage(b.head.data, 'JPEG', (W - iw) / 2, y, iw, ih, undefined, 'FAST'); } catch (e) {} y += ih + 9; }
+      else { doc.setFont('helvetica', 'bold'); doc.setFontSize(40); doc.setTextColor(0); const ls = doc.splitTextToSize(pdfTxt(name), W - 2 * M); doc.text(ls, W / 2, y + 12, { align: 'center' }); y += ls.length * 16 + 4; }
+      if (big) { doc.setFont('helvetica', 'bold'); doc.setFontSize(22); doc.setTextColor(0); const ls = doc.splitTextToSize(pdfTxt(big), W - 2 * M); doc.text(ls, W / 2, y + 7, { align: 'center' }); y += ls.length * 9.5 + 1; }
+      if (sub) { doc.setFont('helvetica', 'normal'); doc.setFontSize(13); doc.setTextColor(90); const ss = doc.splitTextToSize(pdfTxt(sub), W - 2 * M - 20); doc.text(ss, W / 2, y + 5, { align: 'center' }); y += ss.length * 6 + 2; doc.setTextColor(0); }
+      y += 4; doc.setDrawColor(30); doc.setLineWidth(.8); doc.line(W / 2 - 30, y, W / 2 + 30, y); y += 12;
+      const maxW = W - 2 * M - 16, maxH = H - M - 12 - y; let iw = maxW, ih = iw / b.logo.ar; if (ih > maxH) { ih = maxH; iw = ih * b.logo.ar; }
+      try { doc.addImage(b.logo.data, 'JPEG', (W - iw) / 2, y + (maxH - ih) / 2, iw, ih, undefined, 'FAST'); } catch (e) {}
+      y = H; fresh = false; titled = false; return true; },
     // category: white type on a dark band, with clear space above
     h1(t) { w.need(30); titled = false; if (!fresh) y += 9; doc.setFillColor(28, 32, 40); doc.rect(M, y, W - 2 * M, 11, 'F'); doc.setFont('helvetica', 'bold'); doc.setFontSize(16); doc.setTextColor(255); doc.text(pdfTxt(t), M + 4, y + 7.7); doc.setTextColor(0); y += 16; fresh = false; },
     // channel / kit: large name over a rule
@@ -8046,7 +8072,7 @@ function pdfSetlist(w, sl, a) {
   const cols = keys.map(k => ({ label: stIsX(k) ? k.slice(2) : trText(ST_LABEL[k] || k), w: wt(k), bold: k === 'title', color: (cfg.colors || {})[k] ? pdfDark((cfg.colors || {})[k]) : null }));
   const land = cols.length > 6 || cols.reduce((s, c) => s + c.w, 0) > 9.5;
   w.page(land ? 'l' : 'p');
-  w.title(sl.name || trText('Setliste'), [a && a.name, fmtDate(sl.date), sl.venue, plural(sl.songs.length, 'Song', 'Songs')].filter(Boolean).join('  -  '));
+  w.title(sl.name || trText('Setliste'), [a && !(w.brand && w.brand.head) && a.name, fmtDate(sl.date), sl.venue, plural(sl.songs.length, 'Song', 'Songs')].filter(Boolean).join('  -  '));
   const info = (sl.info || []).filter(r => r && r.k && String(r.v || '').trim()); if (info.length) w.text(info.map(r => `${r.k}: ${r.v}`).join('     '), { gray: true, gap: 3 });
   if (sl.songs.length) w.table(cols, sl.songs.map((x, i) => keys.map(k => cell(x, k, i))), { size: cols.length > 8 ? 8 : cols.length > 5 ? 9 : 10 });
   else w.text(trText('Noch keine Songs.'), { gray: true });
@@ -8166,7 +8192,7 @@ function pdfParts(p) {
 }
 async function pdfProduction(w, a, p, on) {
   const live = p.mode !== 'studio';
-  if ([...on].some(k => k !== 'setlists' && k !== 'mixT' && k !== 'mixD') || p.notes) { w.page('p'); w.title(p.name || trText('Unbenannte Produktion'), [a.name, trText(live ? 'Live' : 'Studio'), fmtDate(p.date), p.venue].filter(Boolean).join('  -  ')); if (p.notes) w.text(p.notes, { gap: 3 }); } // setlists bring their own title page
+  if ([...on].some(k => k !== 'setlists' && k !== 'mixT' && k !== 'mixD') || p.notes) { w.page('p'); w.title(p.name || trText('Unbenannte Produktion'), [!(w.brand && w.brand.head) && a.name, trText(live ? 'Live' : 'Studio'), fmtDate(p.date), p.venue].filter(Boolean).join('  -  ')); if (p.notes) w.text(p.notes, { gap: 3 }); } // setlists bring their own title page
   if (on.has('kits')) await pdfKits(w, p);
   if (on.has('guitar')) pdfInsts(w, p, 'guitar');
   if (on.has('bass')) pdfInsts(w, p, 'bass');
@@ -8184,13 +8210,13 @@ async function pdfProduction(w, a, p, on) {
 async function pdfRunMany(jobs, title) {
   const busy = h('div', { class: 'sheet-ov pop-ov pdf-busy', role: 'status' }, h('div', { class: 'pop pop-ask' }, h('h3', {}, 'PDF wird erstellt …'), h('p', { class: 'pop-text' }, 'Das kann bei vielen Geräten einen Moment dauern.'))); document.body.append(busy); await new Promise(r => setTimeout(r, 40));
   try { const lib = await getJsPDF(); if (!lib) throw new Error('pdf'); const out = [];
-    for (const j of jobs) { const doc = new lib.jsPDF({ unit: 'mm', format: 'a4' }), w = pdfWriter(doc, j.foot); await j.build(w); w.finish(); out.push({ doc, name: j.name }); }
+    const brands = new Map(); for (const j of jobs) { const doc = new lib.jsPDF({ unit: 'mm', format: 'a4' }), w = pdfWriter(doc, j.foot); if (j.artist) { if (!brands.has(j.artist)) brands.set(j.artist, await pdfBrand(j.artist)); w.brand = brands.get(j.artist); } await j.build(w); w.finish(); out.push({ doc, name: j.name }); }
     busy.remove(); await pdfDeliverMany(out, title);
   } catch (e) { busy.remove(); console.error(e); toast('Das PDF konnte nicht erstellt werden.'); }
 }
-const pdfRun = (name, title, foot, build) => pdfRunMany([{ name, foot, build }], title);
+const pdfRun = (name, title, foot, build, artist) => pdfRunMany([{ name, foot, build, artist }], title);
 const pdfFoot = a => `${a ? a.name + '  -  ' : ''}Tech Assistent  -  ${new Date().toLocaleDateString(LOCALE)}`;
-function exportSetlistPdf(sl, a = artist()) { pdfRun(`${slugify(sl.name || 'setliste')}.pdf`, sl.name || 'Setliste', pdfFoot(a), async w => pdfSetlist(w, sl, a)); }
+function exportSetlistPdf(sl, a = artist()) { pdfRun(`${slugify(sl.name || 'setliste')}.pdf`, sl.name || 'Setliste', pdfFoot(a), async w => pdfSetlist(w, sl, a), a); }
 // checkbox list: items [{ key, label, small }] or { head } for a group title
 function pdfPick(title, items, onGo) {
   const ov = h('div', { class: 'sheet-ov pop-ov', role: 'dialog', 'aria-modal': 'true', 'aria-label': trText(title) });
@@ -8208,7 +8234,7 @@ function pdfPick(title, items, onGo) {
 }
 function exportProductionPdf(p, a = artist()) {
   const parts = pdfParts(p); if (!parts.length) { toast('Hier ist noch nichts gespeichert.'); return; }
-  pdfPick('Als PDF exportieren', parts.map(([key, label, small, off]) => ({ key, label, small, off })), keys => pdfRun(`${slugify((a ? a.name + '-' : '') + (p.name || 'produktion'))}.pdf`, p.name || 'Produktion', pdfFoot(a), w => pdfProduction(w, a, p, new Set(keys))));
+  pdfPick('Als PDF exportieren', parts.map(([key, label, small, off]) => ({ key, label, small, off })), keys => pdfRun(`${slugify((a ? a.name + '-' : '') + (p.name || 'produktion'))}.pdf`, p.name || 'Produktion', pdfFoot(a), async w => { w.cover(a.name, p.name || trText('Unbenannte Produktion'), [trText(p.mode === 'studio' ? 'Studio' : 'Live'), fmtDate(p.date), p.venue].filter(Boolean).join('  -  ')); await pdfProduction(w, a, p, new Set(keys)); }, a));
 }
 function exportArtistPdf(a) {
   const ps = a.productions || [], live = ps.filter(p => p.mode !== 'studio' && pdfParts(p).length), studio = ps.filter(p => p.mode === 'studio' && pdfParts(p).length);
@@ -8217,7 +8243,7 @@ function exportArtistPdf(a) {
   // one PDF per area: "<Künstler> Live.pdf" and "<Künstler> Studio.pdf", each starting directly with its first tour / production
   const fname = area => `${String(a.name || trText('Künstler')).replace(/[\\/:*?"<>|]+/g, ' ').replace(/\s+/g, ' ').trim()} ${area}.pdf`;
   pdfPick('Als PDF exportieren', [...(live.length ? [{ head: 'Live' }, ...live.map(item)] : []), ...(studio.length ? [{ head: 'Studio' }, ...studio.map(item)] : []), ...(hasMix ? [{ head: 'Zusätzlich' }, { key: '#mix', label: 'Mischpultansicht', off: true }] : [])], keys => {
-    const job = (list, area) => { const sel = list.filter(p => keys.includes(p.id)); return sel.length ? { name: fname(area), foot: `${a.name}  -  ${area}  -  Tech Assistent  -  ${new Date().toLocaleDateString(LOCALE)}`, build: async w => { for (const p of sel) await pdfProduction(w, a, p, new Set(pdfParts(p).filter(x => !x[3] || keys.includes('#mix')).map(x => x[0]))); } } : null; };
+    const job = (list, area) => { const sel = list.filter(p => keys.includes(p.id)); return sel.length ? { name: fname(area), foot: `${a.name}  -  ${area}  -  Tech Assistent  -  ${new Date().toLocaleDateString(LOCALE)}`, artist: a, build: async w => { w.cover(a.name, area, sel.map(p => p.name || trText('Unbenannte Produktion')).join('  -  ')); for (const p of sel) await pdfProduction(w, a, p, new Set(pdfParts(p).filter(x => !x[3] || keys.includes('#mix')).map(x => x[0]))); } } : null; };
     const jobs = [job(live, 'Live'), job(studio, 'Studio')].filter(Boolean); if (jobs.length) pdfRunMany(jobs, a.name); });
 }
 function setlistMenu(sl) {
@@ -10031,7 +10057,7 @@ function pageHelpSlides() {
 /* ================= home-screen app (PWA) ================= */
 const isStandalone = () => window.matchMedia?.('(display-mode: standalone)').matches || window.navigator.standalone === true;
 const isIOS = () => /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-const APP_VERSION = '12.11.2026 (7)';
+const APP_VERSION = '12.11.2026 (8)';
 function registerSW() {
   if (!('serviceWorker' in navigator) || (location.protocol !== 'https:' && location.hostname !== 'localhost') || IN_CLAUDE_HOST()) return;
   navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).then(reg => {
