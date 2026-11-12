@@ -8056,17 +8056,17 @@ async function pdfChain(w, C, title, p) {
       row.forEach(([r, rx, iw, cw]) => { doc.setFont('helvetica', 'normal'); doc.setFontSize(7.5); doc.setTextColor(105); doc.text(doc.splitTextToSize(pdfTxt(r.kind), cw)[0] || '', rx, y0 + 3); doc.setFont('helvetica', 'bold'); doc.setFontSize(8.5); doc.setTextColor(0); doc.text((doc.splitTextToSize(pdfTxt(r.gear), cw) || []).slice(0, 2), rx, y0 + 6.8);
         try { doc.addImage(r.im.data, 'JPEG', rx, y0 + 11, iw, HN, undefined, 'FAST'); } catch (e) {} });
       w.y = y0 + HN + 14; w.used(); row.forEach(([r]) => { if (r.vals.length) w.text(`${r.gear || r.kind}: ${r.vals.join('   |   ')}`, { size: 8.5, gray: true, gap: 1.5 }); }); } };
-  const block = async (ch, i, kind) => { const wd = chWidth(ch), tag = wd === 'stereo' ? 'Stereo' : wd === 'dual' ? 'Dual Mono' : '', items = [];
-    for (const st of ch.stages || []) items.push(await item(st, wd === 'dual' ? 'L' : ''));
-    if (wd === 'dual') for (const st of ch.stagesR || []) items.push(await item(st, 'R'));
-    w.need(20 + (ch.source ? 5 : 0) + (ch.notes ? 5 : 0) + firstH(items)); // a channel never starts at the foot of a page without its first device
+  const prep = async ch => { const wd = chWidth(ch), items = []; for (const st of ch.stages || []) items.push(await item(st, wd === 'dual' ? 'L' : '')); if (wd === 'dual') for (const st of ch.stagesR || []) items.push(await item(st, 'R')); return items; };
+  const headH = (ch, items) => 20 + (ch.source ? 5 : 0) + (ch.notes ? 5 : 0) + firstH(items); // channel name, source and the first device stay together
+  const block = async (ch, i, kind, items) => { const wd = chWidth(ch), tag = wd === 'stereo' ? 'Stereo' : wd === 'dual' ? 'Dual Mono' : ''; items ||= await prep(ch);
+    w.need(headH(ch, items)); // a channel never starts at the foot of a page without its first device
     w.h2(`${kind === 'bus' ? trText('Bus') + ': ' : (i + 1) + '.  '}${ch.name || trText(kind === 'bus' ? 'Bus' : 'Kanal')}`, tag);
     if (ch.source) w.text(`${trText(kind === 'bus' ? 'Quellen' : 'Mikrofon / Quelle')}: ${ch.source}`, { size: 10.5, gap: 1.5 }); if (ch.notes) w.text(ch.notes, { gray: true, gap: 1 });
     if (items.length) flow(items); else w.text(trText('Keine Stufen.'), { size: 8.5, gray: true });
     w.y += 2; };
   w.sect(90); w.h1(title);
   for (let i = 0; i < chans.length; i++) await block(chans[i], i, 'ch');
-  if (busses.length) { w.need(70); w.h1(`${title} - ${trText('Busse und Effekte')}`); for (let i = 0; i < busses.length; i++) await block(busses[i], i, 'bus'); }
+  if (busses.length) { const it0 = await prep(busses[0]); w.need(28 + headH(busses[0], it0)); w.h1(`${title} - ${trText('Busse und Effekte')}`); for (let i = 0; i < busses.length; i++) await block(busses[i], i, 'bus', i ? null : it0); } // the heading never stays behind alone: it moves to the next page together with the first bus
   if (masters.length) { const items = []; for (const st of masters) items.push(await item(st, '')); w.need(30 + firstH(items)); w.h1(`${title} - Master Section`); flow(items); }
 }
 // mixing console as on screen: one strip per channel, bus and master with inserts, gain, pan, sends, mute / solo and fader
@@ -10015,7 +10015,7 @@ function pageHelpSlides() {
 /* ================= home-screen app (PWA) ================= */
 const isStandalone = () => window.matchMedia?.('(display-mode: standalone)').matches || window.navigator.standalone === true;
 const isIOS = () => /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-const APP_VERSION = '12.11.2026 (4)';
+const APP_VERSION = '12.11.2026 (5)';
 function registerSW() {
   if (!('serviceWorker' in navigator) || (location.protocol !== 'https:' && location.hostname !== 'localhost') || IN_CLAUDE_HOST()) return;
   navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).then(reg => {
