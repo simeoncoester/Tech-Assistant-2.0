@@ -41,7 +41,7 @@ sed -n '/<script>/,/<\/script>/p' index.html | sed '1d;$d' > /tmp/x.js && node -
   - `swap.js` (Gerätewechsel tauscht Foto), `eye.js` (Auge Foto ↔ Faceplate), `choice.js` (Foto/Faceplate-Tasten, Amps), `fpsync.js`, `attach.js`
   - `pages.js`, `swipe.js`, `touch.js` (Seiten und Wischen auf iPhone-Größe), `zoom.js` (Lupe, Doppeltipp, Zwei-Finger-Zoom, automatische Seiten; erwartet „ZOOM OK“), `conc.js` (Doppelknöpfe getrennt drehbar, erwartet „CONC OK“), `tab.js` (untere Reiterleiste bleibt beim Scrollen unten, erwartet „TAB OK“), `fader.js`, `master.js` (Master Section), `disp.js` (Display-Texteingabe), `ampch.js` (Kanalnamen mehrerer Amps), `mob.js`
 
-## Stand 12.11.2026 (1)
+## Stand 12.11.2026 (2)
 - Erledigt: Zoom im Foto-Recall, automatische Seiten für breite Geräte, Skalenstriche weichen Nachbarn aus, Rahmen-/Beschriftungsfehler (VTC Master Section, VOXBOX, SPL, DS201, EMT 250, TG2, GML 8200), größere Tippflächen im Mischpult.
 - Zoom-Fehler vom iPhone behoben (34): Platte und Regler werden nur noch als eine Ebene skaliert; eine Zoom-Geste verstellt oder verschiebt keinen Regler mehr; verschobene Faceplate-Regler werden einmalig zurückgesetzt. Auf einem echten iPhone gegenprüfen (hier nur Chromium).
 - Faceplate-Menü eingeschränkt (10.11. (1)): nur „Werte zurücksetzen“/„Von Stufe entfernen“, kein Umbenennen; „Regler setzen“ bleibt auch bei Faceplates; eigene Fotos behalten alle Optionen.
@@ -52,6 +52,7 @@ sed -n '/<script>/,/<\/script>/p' index.html | sed '1d;$d' > /tmp/x.js && node -
 - Design-Durchsicht (11.11. (6)): Kippschalter bei 25 Geräten vergrößert, lange VU-Beschriftungen eingepasst, Einzelkorrekturen (siehe CLAUDE.md). ISA 428, ISA One und Avalon VT-737sp sind in (7) nach Nutzerfotos komplett beschriftet neu gebaut.
 - Neu (11.11. (8)): Sound Skulptor TS500, True Grit, MU524 und AML 52F50 (Skalen in (9) exakt nach Foto; Hersteller und Modell vom Nutzer bestätigt).
 - Reiterleiste (12.11. (1)): jetzt `sticky` statt `fixed`, weil sie auf dem iPhone mitscrollte. Nur in Chromium geprüft – auf einem echten iPhone gegenprüfen.
+- Neu (12.11. (2)): PDF-Export für Künstler, Tour/Produktion und einzelne Setlisten (`tools/tests/pdf.js`, erwartet „PDF OK“). Teilen-Dialog/Download nur in Chromium geprüft – auf dem iPhone gegenprüfen.
 - Automatische Seiten teilen jetzt auch hohe Module (Oben/Unten) und kompakte Geräte nach Lesbarkeit.
 - Noch offen (Lesbarkeit ohne Zoom, siehe `fp-legible.js`): Geräte mit eigenen `pages`, deren Bereiche auf dem iPhone noch zu klein sind – TL Audio VTC und Master Section, Universal Audio 6176 und LA-610 MkII, Manley VOXBOX, Shelford Channel, SPL Transient Designer, Drawmer DS201, Bricasti M7 – sowie Elysia Karacter 500 (sehr kleine Skalenzahlen). Dort hilft bisher der Zoom; feinere Seiten wären besser.
 - Im Rahmen des Drawmer DS201 sitzt der LINK-Schalter knapp außerhalb von Kanal 2; Lage am Original unbestätigt (nicht geraten).
