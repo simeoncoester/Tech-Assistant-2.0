@@ -7986,15 +7986,15 @@ async function pdfDevImage(st, tpl) {
 }
 // page writer: headings, text, tables and pictures with automatic page breaks
 function pdfWriter(doc, foot) {
-  const M = 14; let W = 210, H = 297, y = M, ori = 'p', fresh = true;
+  const M = 14; let W = 210, H = 297, y = M, ori = 'p', fresh = true, titled = false;
   const w = { doc, M, get W() { return W; }, get H() { return H; }, get y() { return y; }, set y(v) { y = v; },
     page(o = ori) { if (!(fresh && o === ori)) { if (fresh) { doc.deletePage(doc.getNumberOfPages()); } doc.addPage('a4', o === 'l' ? 'landscape' : 'portrait'); } ori = o; W = o === 'l' ? 297 : 210; H = o === 'l' ? 210 : 297; y = M; fresh = true; },
     need(hh) { if (y + hh > H - M - 5) w.page(ori); },
     used() { fresh = false; },
-    sect(min = 60) { if (ori !== 'p') w.page('p'); else w.need(min); }, // a new block: back to portrait after a landscape setlist, otherwise go on below
-    title(t, sub) { w.need(34); y += 4; doc.setFont('helvetica', 'bold'); doc.setFontSize(27); doc.setTextColor(0); const ls = doc.splitTextToSize(pdfTxt(t), W - 2 * M); doc.text(ls, W / 2, y + 8, { align: 'center' }); y += ls.length * 11; if (sub) { doc.setFont('helvetica', 'normal'); doc.setFontSize(12.5); doc.setTextColor(90); const ss = doc.splitTextToSize(pdfTxt(sub), W - 2 * M); doc.text(ss, W / 2, y + 4, { align: 'center' }); y += ss.length * 5.6 + 1; } doc.setTextColor(0); y += 4; doc.setDrawColor(30); doc.setLineWidth(.8); doc.line(W / 2 - 30, y, W / 2 + 30, y); y += 8; fresh = false; },
+    sect(min = 60) { if (titled && ori === 'p') w.need(min); else w.page('p'); }, // every category starts on a new portrait page; only the first one stays under the title
+    title(t, sub) { w.need(34); y += 4; doc.setFont('helvetica', 'bold'); doc.setFontSize(27); doc.setTextColor(0); const ls = doc.splitTextToSize(pdfTxt(t), W - 2 * M); doc.text(ls, W / 2, y + 8, { align: 'center' }); y += ls.length * 11; if (sub) { doc.setFont('helvetica', 'normal'); doc.setFontSize(12.5); doc.setTextColor(90); const ss = doc.splitTextToSize(pdfTxt(sub), W - 2 * M); doc.text(ss, W / 2, y + 4, { align: 'center' }); y += ss.length * 5.6 + 1; } doc.setTextColor(0); y += 4; doc.setDrawColor(30); doc.setLineWidth(.8); doc.line(W / 2 - 30, y, W / 2 + 30, y); y += 8; fresh = false; titled = true; },
     // category: white type on a dark band, with clear space above
-    h1(t) { w.need(30); if (!fresh) y += 9; doc.setFillColor(28, 32, 40); doc.rect(M, y, W - 2 * M, 11, 'F'); doc.setFont('helvetica', 'bold'); doc.setFontSize(16); doc.setTextColor(255); doc.text(pdfTxt(t), M + 4, y + 7.7); doc.setTextColor(0); y += 16; fresh = false; },
+    h1(t) { w.need(30); titled = false; if (!fresh) y += 9; doc.setFillColor(28, 32, 40); doc.rect(M, y, W - 2 * M, 11, 'F'); doc.setFont('helvetica', 'bold'); doc.setFontSize(16); doc.setTextColor(255); doc.text(pdfTxt(t), M + 4, y + 7.7); doc.setTextColor(0); y += 16; fresh = false; },
     // channel / kit: large name over a rule
     h2(t, right) { w.need(20); y += 3; doc.setDrawColor(190); doc.setLineWidth(.3); doc.line(M, y, W - M, y); y += 2.5; doc.setFont('helvetica', 'bold'); doc.setFontSize(15); doc.setTextColor(0); doc.text(pdfTxt(t), M, y + 5.5); if (right) { doc.setFont('helvetica', 'bold'); doc.setFontSize(9.5); doc.setTextColor(105); doc.text(pdfTxt(right), W - M, y + 5.2, { align: 'right' }); doc.setTextColor(0); } y += 9.5; fresh = false; },
     text(t, o = {}) { if (!String(t || '').trim()) return; doc.setFont('helvetica', o.bold ? 'bold' : 'normal'); doc.setFontSize(o.size || 9.5); doc.setTextColor(o.gray ? 105 : 0); const ls = doc.splitTextToSize(pdfTxt(t), W - 2 * M - (o.indent || 0)), lh = (o.size || 9.5) * .46; ls.forEach(l => { w.need(lh + 1); doc.text(l, M + (o.indent || 0), y + lh * .8); y += lh; }); y += o.gap ?? 1.5; doc.setTextColor(0); fresh = false; },
@@ -10015,7 +10015,7 @@ function pageHelpSlides() {
 /* ================= home-screen app (PWA) ================= */
 const isStandalone = () => window.matchMedia?.('(display-mode: standalone)').matches || window.navigator.standalone === true;
 const isIOS = () => /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-const APP_VERSION = '12.11.2026 (3)';
+const APP_VERSION = '12.11.2026 (4)';
 function registerSW() {
   if (!('serviceWorker' in navigator) || (location.protocol !== 'https:' && location.hostname !== 'localhost') || IN_CLAUDE_HOST()) return;
   navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).then(reg => {
