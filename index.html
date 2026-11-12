@@ -378,7 +378,7 @@ input,select,textarea{box-shadow:inset 0 1px 3px rgba(0,0,0,.6)}
 
 
 .console-wrap{margin:4px -14px 0;overflow-x:auto;padding:4px 14px 14px;-webkit-overflow-scrolling:touch}
-.console{display:inline-flex;align-items:stretch;background:linear-gradient(180deg,#1c1f24,#121418);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:10px 6px;box-shadow:inset 0 1px 0 rgba(255,255,255,.06),0 14px 30px rgba(0,0,0,.6)}
+.console{display:inline-flex;align-items:stretch;text-align:left;background:linear-gradient(180deg,#1c1f24,#121418);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:10px 6px;box-shadow:inset 0 1px 0 rgba(255,255,255,.06),0 14px 30px rgba(0,0,0,.6)}
 .strip{width:74px;flex:none;display:flex;flex-direction:column;align-items:center;gap:8px;padding:4px 5px 6px;border-right:1px solid rgba(0,0,0,.65);box-shadow:1px 0 0 rgba(255,255,255,.035);transition:opacity .15s}
 .strip:last-child{border-right:0;box-shadow:none}
 .strip.bus{background:transparent}
@@ -2446,7 +2446,8 @@ html.ice .res-slots .slot[aria-pressed="true"] em{color:#0f6a3c}
 .total-recall .rc-text{display:flex;flex-direction:column;gap:2px;align-items:flex-start}.tr-sum{font:500 .8rem Barlow,sans-serif;color:var(--muted);text-align:left}
 button.ins{cursor:pointer;color:inherit;text-align:left;font:600 10px/1 "Barlow Condensed",sans-serif;-webkit-appearance:none;appearance:none;position:relative}
 button.ins:focus-visible{outline:2px solid #6c9bef;outline-offset:1px}
-@media (pointer:coarse){.ins,button.ins{height:26px;font-size:11px}.ms button{width:29px;height:28px;font-size:11px}}/* touch screens: finger-sized inserts and mute/solo in the mixer */
+@media (pointer:coarse){.ins,button.ins{height:26px;font-size:11px}.ms button{width:29px;height:28px;font-size:11px}}
+@media (pointer:coarse){.linkbtn{min-height:34px;padding-top:6px;padding-bottom:6px}button.scribble{min-height:28px}}/* touch screens: finger-sized inserts and mute/solo in the mixer */
 .ins.has-photo{padding-right:10px}.ins.has-photo::after{content:'';position:absolute;right:3px;top:50%;width:5px;height:5px;margin-top:-2.5px;border-radius:50%;background:#36c97e;box-shadow:0 0 5px #36c97e}
 .ch-width{display:inline-block;flex:none;align-self:center;margin-right:auto;margin-left:8px;padding:2px 7px;border-radius:999px;font:700 .68rem/1.3 Barlow,sans-serif;letter-spacing:.06em;text-transform:uppercase;vertical-align:middle;color:#7fb2ff;border:1px solid rgba(77,140,240,.55);background:rgba(77,140,240,.14)}
 .ch-width.w-dual{color:#f0b35a;border-color:rgba(240,170,70,.55);background:rgba(240,170,70,.14)}
@@ -8430,8 +8431,24 @@ function viewConsole() {
         sendRows(null, 'master'),
         h('div', { class: 'ms', style: 'visibility:hidden' }, h('button', {}, 'M')),
         faderEl(C.master, 'Master'), h('div', { class: 'scribble', style: 'cursor:default' }, 'Master'), h('div', { class: 'src' }, 'Stereo'))));
+    fitConsole();
+  };
+  // tablets and laptops: enlarge the whole console so it uses the free width (never beyond the free height)
+  const fitConsole = () => {
+    const c = wrap.firstElementChild; if (!c || !wrap.isConnected) return;
+    c.style.zoom = ''; wrap.style.cssText = '';
+    if (innerWidth < 700) return;
+    // the page column is narrow on wide screens: let the console use the whole screen width, centred
+    const vw = document.documentElement.clientWidth, par = wrap.parentNode.getBoundingClientRect();
+    if (vw > par.width + 40) wrap.style.cssText = `width:${vw}px;margin-left:${-Math.round(par.left)}px;margin-right:0;box-sizing:border-box;text-align:center;padding-left:16px;padding-right:16px`;
+    const cw = c.offsetWidth, chh = c.offsetHeight; if (!cw || !chh) return;
+    const tb = document.getElementById('tabbar'), top = wrap.getBoundingClientRect().top + scrollY;
+    const freeH = innerHeight - Math.min(top, 220) - (tb && tb.offsetHeight ? tb.offsetHeight + 24 : 0) - 78;
+    const k = Math.min(1.7, (wrap.clientWidth - 30) / cw, Math.max(1, freeH / chh));
+    if (k > 1.05) c.style.zoom = String(Math.round(k * 100) / 100);
   };
   draw();
+  requestAnimationFrame(() => { fitConsole(); if (window.ResizeObserver) new ResizeObserver(() => fitConsole()).observe(wrap); });
   return {
     title: 'Mischpult', back: () => route.consoleFrom === 'inst' ? nav('inst') : nav('chain'),
     body: [
@@ -10057,7 +10074,7 @@ function pageHelpSlides() {
 /* ================= home-screen app (PWA) ================= */
 const isStandalone = () => window.matchMedia?.('(display-mode: standalone)').matches || window.navigator.standalone === true;
 const isIOS = () => /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-const APP_VERSION = '12.11.2026 (8)';
+const APP_VERSION = '12.11.2026 (9)';
 function registerSW() {
   if (!('serviceWorker' in navigator) || (location.protocol !== 'https:' && location.hostname !== 'localhost') || IN_CLAUDE_HOST()) return;
   navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).then(reg => {
