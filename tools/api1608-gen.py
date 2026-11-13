@@ -52,8 +52,14 @@ HL(k,178)
 Y(k,'Safe',26,214); T(k,26,234,'SAFE',.3); B(k,'Solo',74,214,'SOLO',SOLO,30)
 Y(k,'Mute Grp',26,270); T(k,26,288,'MUTE',.28); T(k,26,298,'GRP',.28); B(k,'Mute',74,270,None,MUTE,30)
 k=3
-F(k,'Fader',40,40,560,CHF,.684)
-g.T(k,80,20,'444C',.4,BLU)
+g.d.append(['vu',round((g.cx(k)+8)/g.CW,4),round((34+6)/g.CH,4),round(84/g.CW,4),round(60/g.CH,4),{'label':'VU','face':'#f3ec7a'}])
+T(k,50,84,'CHANNEL VU',.26,BLU)
+F(k,'Fader',72,120,570,CHF,.684)
+g.T(k,80,104,'944C',.34,BLU)
+for nm,y,col,lab,sub in [('Switch Overwrite',130,'#c4200f','SW OVR','MUTE'),('Null Up',176,'#e83a1a','▲ NULL',None),('Null Down',204,'#e83a1a','▼',None),('Static',240,'#2b8ff0','STATIC',None),('Sub-Mode',272,'#2f9a2f','SUB-MODE',None),
+                         ('FD 2',304,'#f1c21e','FD 2',None),('FD 1',332,'#f1c21e','FD 1',None),('SEL',370,'#1f3fe0','SEL','DAW'),('READ',420,'#2f9a2f','READ','SOLO'),('UPDATE',470,'#f3ee32','UPDATE','SELECT'),('WRITE',520,'#c4200f','WRITE','RECORD')]:
+    B(k,nm,26,y,None,col,12,None); g.c[-1][7]['ps']='rd'; T(k,26,y-10,lab,.2); 
+    if sub: T(k,26,y+14,sub,.18,BLU)
 strip=dict(kind='Channel Strip',pages=pages_of(g,[(n,k,k) for k,n in enumerate(cols)],len(cols)),ks='api',ps='sq',ar=round(g.CW/g.CH,4),bare=True,noTicks=True,bg='#0d0d0f',bg2='#060607',ink=INK,kc=GRN,fs=16,brand='',model='',tx=.5,ty=.03,deco=g.d,c=g.c)
 
 # ================= master section =================
@@ -68,9 +74,9 @@ Y(k,'Osc Bus',34,232); T(k,74,236,'BUS',.36); Y(k,'Osc On',34,280); T(k,74,284,'
 T(k,55,320,'OSCILLATOR',.38); HL(k,334)
 K(k,'Peak Threshold',55,392,26,'#c41a10','api',{'sweep':[-120,120]}); SC(k,55,392,24,['+4','+8','+12','+16','+20','+24'],.28,-120,120); T(k,55,438,'dBu',.26,BLU); T(k,55,452,'PEAK THRESHOLD',.28)
 k=1
-for nm,x,y in [('SM',28,30),('LRG',28,52),('DIR',78,52)]: LED(k,x,y,'#f1d61e',7); T(k,x-16 if x<50 else x+16,y+3,nm,.28,BLU)
+for nm,x,y in [('LINE',34,30),('MIC',34,52),('DIR',72,52)]: LED(k,x,y,'#f1d61e',7); T(k,x-18 if x<50 else x+18,y+3,nm,.28,BLU)
 B(k,'VU CH',30,96,'VU CH',LG,30); B(k,'VU BUS',80,96,'VU BUS',LG,30)
-B(k,'Flip',30,146,'FLIP',LG,30); B(k,'0dB SM',80,146,'0dB SM',OR,30); T(k,30,172,'CLEAR',.28,BLU)
+B(k,'Mute Group',30,146,'MUTE GROUP',LG,30); B(k,'0dB',80,146,'0dB',OR,30)
 HL(k,186)
 K(k,'Solo Level',40,230,28,'#f2e31d','api'); D(k,40,230,20); T(k,86,234,'LEVEL',.32)
 Y(k,'SIP',58,290); T(k,24,294,'SIP',.34); Y(k,'AFL',58,332); T(k,24,336,'AFL',.34)
@@ -125,6 +131,76 @@ k=12; T(k,80,8,'940C',.4,BLU); T(k,80,30,'PGM',.6)
 F(k,'PGM Fader',70,60,560,PGF,1,'#f02a10')
 for nm,y,col in [('READ',380,'#3aa53a'),('UPDATE',430,'#f3ee32'),('WRITE',480,'#c4200f')]: LED(k,26,y,col,10); T(k,26,y-12,nm,.24)
 master=dict(kind='Master Section',pages=pages_of(g,[('Oszillator & Solo',0,1),('Talkback & Monitor',2,4),('Summing Busse',5,6),('Aux Masters',7,8),('Stereo Returns',9,10),('Program Bus',11,12)],len(mcols)),ks='api',ps='sq',ar=round(g.CW/g.CH,4),bare=True,noTicks=True,bg='#0d0d0f',bg2='#060607',ink=INK,kc=GRN,fs=16,brand='',model='',tx=.5,ty=.03,deco=g.d,c=g.c)
-for e in (strip,master):
+# ================= 529C stereo bus compressor (manual drawing page 58, 1366 x 742 px) =================
+W5,H5=1366,742
+A=lambda x,y: [round(x/W5,4),round(y/H5,4)]
+d5=[]; c5=[]
+def k5(nm,x,y,dia,col,labs,a0,a1,lab,unit):
+    c5.append(['k',nm+'|',*A(x,y),round(dia/W5,4),col,'n',{'sweep':[a0,a1]}]); d5.append(['pdots',*A(x,y),round((dia*.5+16)/W5,4),len(labs),round(7/W5,4),BLU,a0,a1])
+    d5.append(['scale',*A(x,y),round((dia*.5+52)/W5,4),labs,.55,INK,a0,a1]); d5.append(['txt',*A(x,y+108),unit,.55,BLU]); d5.append(['txt',*A(x,y+132),lab,.8,INK])
+k5('Release',140,236,130,'#141414',['.05','.06','.07','.1','.3','.5','1','4'],-135,135,'RELEASE','sec')
+k5('Ratio',360,236,130,'#141414',['1.5','2','3','4','6','10','∞'],-135,135,'RATIO','x:1')
+k5('Attack',580,236,130,'#141414',['1','5','15','30','40','50'],-135,135,'ATTACK','m/sec')
+k5('Thresh',780,236,80,'#5a5a5a',['+20','+18','+14','+10','+6','+2','-2','-10'],-135,135,'THRESH','dB')
+k5('Gain',935,236,80,'#ff2a10',['0','6','9','12','18','+24'],-135,135,'GAIN','dB')
+d5.append(['led',*A(672,168),round(18/W5,4),'#ff2a10',False])
+for x,lab in [(108,'OUT'),(205,'THRUST'),(305,'KNEE'),(402,'TYPE'),(500,'MAKE UP'),(600,'METER')]:
+    d5.append(['rect',round((x-25)/W5,4),round(530/H5,4),round(50/W5,4),round(50/H5,4),'#c9c9c9','#666',2]); d5.append(['txt',*A(x,620),lab,.7,BLU])
+for nm,x,y,col,lab in [('Out Byp',96,434,'#f2a020','BYP'),('Out In',96,478,'#2fb23a','IN'),('Thrust Loud',194,390,'#ff2a10','LOUD'),('Thrust Med',194,434,'#f2a020','MED'),('Thrust Norm',194,478,'#2fb23a','NORM'),
+                       ('Knee Hard',293,390,'#ff2a10','HARD'),('Knee Med',293,434,'#f2a020','MED'),('Knee Soft',293,478,'#2fb23a','SOFT'),('Type New',392,434,'#f2a020','NEW'),('Type Old',392,478,'#2fb23a','OLD'),
+                       ('Make Up Man',490,434,'#ff2a10','MAN.'),('Make Up Auto',490,478,'#f2a020','AUTO'),('Meter Output',590,434,'#f2a020','OUTPUT'),('Meter Input',590,478,'#2fb23a','INPUT')]:
+    c5.append(['p',nm+'|',*A(x,y),round(18/W5,4),col,'n',{'ps':'rd'}]); d5.append(['txt',*A(x+16+len(lab)*7,y+7),lab,.62,INK])
+d5+=[['txt',*A(424,458),'F FWD',.4,BLU],['txt',*A(424,522),'F BACK',.4,BLU],['txt',*A(964,548),'529C',1.6,INK],['txt',*A(972,585),'STEREO BUS COMPRESSOR',.62,INK],
+     ['rect',round(1146/W5,4),round(194/H5,4),round(108/W5,4),round(358/H5,4),'none','#1a9ff0',14],['txt',*A(1200,220),'VU',.7,INK],['txt',*A(1172,232),'L',.7,BLU],['txt',*A(1228,232),'R',.7,BLU],['txt',*A(1300,220),'GR',.7,INK]]
+vus=['18','9','6','3','0','-3','-6','-9','-12','-15']; grs=['-1.5','-4','-6','-8','-10','-12','-15','-17','-19','-23']
+for i in range(10):
+    y=246+i*30.8; col='#ff2a10' if i==0 else '#f2a020' if i<4 else '#2fb23a'
+    d5+=[['led',*A(1170,y),round(16/W5,4),col,False],['led',*A(1228,y),round(16/W5,4),col,False],['txt',*A(1200,y+6),vus[i],.45,INK],['led',*A(1318,y),round(16/W5,4),'#ff2a10',False],['txt',*A(1282,y+6),grs[i],.45,INK]]
+comp529=dict(kind='Kompressor',ks='api',ps='sq',ar=round(W5/H5,4),bare=True,noTicks=True,bg='#0d0d0f',bg2='#060607',ink=INK,kc='#141414',fs=16,brand='',model='',tx=.5,ty=.03,deco=d5,c=c5,pages=[['Regler',0,0,.53,1],['Schalter & Meter',.04,.45,1,1]])
+
+# ================= Audient DLC (Dual Layer Control, after the user's photo) =================
+dcols=['DLC 1-2','DLC 3-4','DLC 5-6','DLC 7-8','DAW Control','Transport']
+g=build(dcols,110,620,.4)
+DI='#1b2a33'
+TD=lambda k,x,y,t,sz=.5,col=DI: g.T(k,x,y,t,sz,col)
+DF=[['10',1],['5',.884],['0',.761],['5',.642],['10',.47],['20',.331],['30',.251],['40',.161],['50',.094],['60',.034],['∞',0]]
+for k in range(4):
+    for j in range(2):
+        n=k*2+j+1; x=30+j*52
+        g.d.append(['rect',round((g.cx(k)+x-22)/g.CW,4),round((34+4)/g.CH,4),round(44/g.CW,4),round(74/g.CH,4),'#2c3640','none',2])
+        g.d.append(['leds',round((g.cx(k)+x-8)/g.CW,4),round((34+12)/g.CH,4),round((g.cx(k)+x-8)/g.CW,4),round((34+70)/g.CH,4),10,round(5/g.CW,4),'#f3d27a',0,'#f3d27a'])
+        g.d.append(['rect',round((g.cx(k)+x-18)/g.CW,4),round((34+84)/g.CH,4),round(36/g.CW,4),round(12/g.CH,4),'#2c3640','none',2]); g.T(k,x,94,str(n),.3,'#e8eef2')
+        g.B(k,f'Ch {n} Source',x-8,120,None,'#c9ccd0',12); TD(k,x+12,116,'LINE I/P',.15); TD(k,x+12,126,'S GRP',.15); TD(k,x-8,108,'SOURCE',.15)
+        g.B(k,f'Ch {n} Dest',x-8,150,None,'#c9ccd0',12); TD(k,x+12,146,'LINE O/P',.15); TD(k,x+12,156,'S GRP',.15); TD(k,x-8,138,'DEST',.15)
+        g.K(k,f'Ch {n} Pan',x,186,20,'#2f7fd0'); g.d.append(['pdots',round((g.cx(k)+x)/g.CW,4),round((34+186)/g.CH,4),round(14/g.CW,4),11,round(2/g.CW,4),DI,-140,140]); TD(k,x,170,'C',.18)
+        g.B(k,f'Ch {n} Mix',x-8,220,None,'#c9ccd0',12); TD(k,x-8,234,'MIX',.16)
+        g.B(k,f'Ch {n} Sel',x,268,'SEL','#7fe0b0',18); g.B(k,f'Ch {n} Cut',x,296,'CUT','#f06a7a',18); g.B(k,f'Ch {n} Solo',x,324,'SOLO','#f1d27a',18)
+        for e in g.c[-3:]: e[7]['plain']=True
+        q={'vert':True,'zero':.761,'dbLabel':False,'marks':DF}; L=600-360
+        g.c.append(['f',f'Ch {n} Fader|',round((g.cx(k)+x-6)/g.CW,4),round((34+480)/g.CH,4),round(L/16.9/g.CW,4),'#c9ccd0','n',q])
+k=4
+g.B(k,'Pre/Post Meters',20,14,None,'#c9ccd0',12); TD(k,46,18,'PRE/POST',.2); TD(k,20,30,'METERS',.18)
+g.c.append(['x','DLC Display|',round((g.cx(k)+55)/g.CW,4),round((34+60)/g.CH,4),round(100/g.CW,4),'#9fd0ff','n',{'dar':6,'lines':2,'ph':['1: Analogue 1','5: Analogue 5'],'max':4}])
+for i in range(4): g.K(k,f'Encoder {i+1}',16+i*26,92,16,'#141414','round')
+for i,(nm,lab) in enumerate([('<','<'),('>','>'),('5-8','5-8'),('DAW Meters','DAW METERS')]): g.B(k,'DLC '+nm,16+i*26,130,None,'#c9ccd0',12); TD(k,16+i*26,120,lab,.16)
+for i in range(4): g.B(k,f'F{i+1}',16+i*26,170,None,'#c9ccd0',12); TD(k,16+i*26,160,f'F{i+1}',.18)
+TD(k,55,198,'SELECT MODE',.2)
+for i,lab in enumerate(['','GRP','REC EN','SELECT']): g.B(k,'Sel Mode '+(lab or 'Blank'),16+i*26,224,None,'#c9ccd0',12); TD(k,16+i*26,214,lab,.15)
+for i,lab in enumerate(['AUTO SAFE','UNITY','AUTO MODE','SHIFT']): g.B(k,lab.title(),16+i*26,260,None,'#c9ccd0',12); TD(k,16+i*26,276,lab,.14)
+for i,lab in enumerate(['CYCLE','MARKER','NUDGE','SCRUB']): g.B(k,lab.title(),16+i*26,320,None,'#c9ccd0',12); TD(k,16+i*26,336,lab,.15)
+k=5
+g.B(k,'Bank <',36,30,None,'#c9ccd0',12); g.B(k,'Bank >',74,30,None,'#c9ccd0',12); TD(k,55,20,'< BANK >',.2)
+for i,lab in enumerate(['PAN','AUX','INSERT','ASSIGN']):
+    x=36+(i%2)*38; y=74+(i//2)*36; g.B(k,lab.title(),x,y,None,'#c9ccd0',12); TD(k,x,y-12,lab,.16)
+g.B(k,'Setup',36,148,None,'#c9ccd0',12); TD(k,36,164,'SETUP',.16); g.B(k,'DAW',74,148,None,'#c9ccd0',12); TD(k,74,164,'DAW',.16)
+for nm,x,y in [('Up',55,184),('Left',36,204),('Right',74,204),('Down',55,224)]: g.B(k,'Nav '+nm,x,y,None,'#c9ccd0',12)
+for nm,x,y,col,lab in [('Rewind',36,290,'#f1c98a','◀◀'),('Fast Forward',74,290,'#f1c98a','▶▶'),('Stop',26,340,'#f2e12a','■'),('Play',55,340,'#7fe0b0','▶'),('Record',84,340,'#f06a7a','●')]:
+    g.B(k,nm,x,y,None,col,20); g.c[-1][7]['plain']=True; TD(k,x,y+20,lab,.24)
+TD(k,55,378,'TRANSPORT',.2)
+g.K(k,'Jog Wheel',55,450,56,'#141414','round')
+dlc=dict(kind='Sonstiges',pages=pages_of(g,[('Kanäle 1-4',0,1),('Kanäle 5-8',2,3),('DAW & Transport',4,5)],len(dcols)),ks='round',ps='sq',ar=round(g.CW/g.CH,4),bare=True,noTicks=True,bg='#dadbdb',bg2='#c4c5c5',ink=DI,kc='#141414',fs=16,brand='',model='',tx=.5,ty=.03,deco=g.d,c=g.c)
+for e in g.d:
+    if e[0]=='txt' and e[5]=='#c9d2dc': e[5]=DI
+for e in (strip,master,comp529,dlc):
     n=[q[1] for q in e['c']]; assert len(n)==len(set(n)), [x for x in n if n.count(x)>1]
-sys.stdout.write(''.join(f"  {json.dumps(k)}: {json.dumps(v,ensure_ascii=False)},\n" for k,v in [('API 1608-II',strip),('API 1608-II Master Section',master)]))
+sys.stdout.write(''.join(f"  {json.dumps(k)}: {json.dumps(v,ensure_ascii=False)},\n" for k,v in [('API 1608-II',strip),('API 1608-II Master Section',master),('API 529C',comp529),('Audient DLC',dlc)]))
