@@ -2584,6 +2584,22 @@ html .sl-row .list-item{padding-right:108px}
 .pdf-pick-hd{display:flex;justify-content:space-between;align-items:center;gap:10px;color:var(--muted);font-size:.9rem;margin-top:2px}
 .pdf-pick-grp{font:700 .76rem Barlow,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:8px 2px 0}
 .pdf-busy{z-index:60}
+
+/* ===== phone held sideways (short and wide) ===== */
+/* show mode: centred content must stay reachable when it is taller than its box (centring cut off the top) */
+.ss-mid{justify-content:flex-start!important}.ss-mid>:first-child{margin-top:auto}.ss-mid>:last-child{margin-bottom:auto}
+@media (orientation:landscape) and (max-height:500px){
+html #tabbar button,html.glass #tabbar button,html.ice #tabbar button{flex-direction:row;justify-content:center;gap:6px;padding:6px 4px;max-width:150px}
+#tabbar button svg{width:20px;height:20px}
+html #tabbar,html.glass #tabbar,html.ice #tabbar{padding:4px!important;bottom:calc(env(safe-area-inset-bottom,0px) + 6px)!important;margin-bottom:calc(env(safe-area-inset-bottom,0px) + 6px)}
+.stage-song{padding-top:calc(env(safe-area-inset-top,0px) + 6px);padding-bottom:calc(env(safe-area-inset-bottom,0px) + 6px)}
+html .stage-song > .ss-top{position:absolute;left:22px;right:22px;width:auto!important;top:calc(env(safe-area-inset-top,0px) + 6px);pointer-events:none;z-index:2}.stage-song .ss-top>*{pointer-events:auto}
+.ss-hrow .ss-title{font-size:clamp(1.6rem,5vw,2.4rem)!important}
+.ss-head.v2{gap:6px!important;padding-bottom:8px!important}
+.ss-mid{padding:8px 0 4px!important;gap:10px!important}
+#onb{padding-top:calc(env(safe-area-inset-top,0px) + 8px);padding-bottom:calc(env(safe-area-inset-bottom,0px) + 8px)}
+#onb .onb-slide{max-width:min(640px,100%)}.onb-slide p{max-width:62ch}.onb-slide h2{margin-top:4px}
+}
 </style>
 </head>
 <body>
@@ -5717,11 +5733,22 @@ function showPhotoRecall(st, tpl, setup) {
       if (mode === 'setup' || (mode === 'set' && e.target.closest && e.target.closest('.pr-ctrl'))) { lastTap = 0; return; } // double tap: view mode anywhere, while setting only beside the controls
       const now = Date.now(); if (now - lastTap < 320 && Math.hypot(e.clientX - lastXY[0], e.clientY - lastXY[1]) < 32) { lastTap = 0; z > 1 ? setZoom(1) : setZoom(zoomStep(), e.clientX, e.clientY); } else { lastTap = now; lastXY = [e.clientX, e.clientY]; } };
     window.addEventListener('pointermove', gMove, true); window.addEventListener('pointerup', gUp, true); window.addEventListener('pointercancel', gUp, true);
-    ov.addEventListener('gesturestart', e => e.preventDefault()); }
+    // computer: pinch on the trackpad (Safari: gesture events, others: wheel with ctrl) and ctrl/cmd + wheel zoom at the pointer; plain wheel moves the enlarged detail
+    let gz = 1;
+    ov.addEventListener('gesturestart', e => { e.preventDefault(); gz = z; });
+    ov.addEventListener('gesturechange', e => { e.preventDefault(); if (pts.size) return; setZoom(gz * (e.scale || 1), e.clientX, e.clientY); });
+    ov.addEventListener('wheel', e => { if (!e.target.closest || !e.target.closest('.pr-main')) return;
+      if (e.ctrlKey || e.metaKey) { e.preventDefault(); const dy = e.deltaMode === 1 ? e.deltaY * 16 : e.deltaY; setZoom(z * Math.exp(-dy * (e.ctrlKey && Math.abs(dy) < 40 ? .012 : .0022)), e.clientX, e.clientY); return; }
+      if (z > 1) { e.preventDefault(); const k = e.deltaMode === 1 ? 16 : 1; panX += (e.shiftKey && !e.deltaX ? e.deltaY : e.deltaX) * k; panY += (e.shiftKey && !e.deltaX ? 0 : e.deltaY) * k; fit(); } }, { passive: false }); }
   img.addEventListener('load', fit);
   const ro = window.ResizeObserver ? new ResizeObserver(fit) : null;
   const close = () => { ro?.disconnect(); ov.remove(); document.removeEventListener('keydown', esc); window.removeEventListener('pointermove', gMove, true); window.removeEventListener('pointerup', gUp, true); window.removeEventListener('pointercancel', gUp, true); };
-  const esc = e => { if (e.key === 'Escape' && !document.querySelector('.sheet-ov')) close(); };
+  const esc = e => { if (document.querySelector('.sheet-ov, .pr-pop-ov') || /^(INPUT|TEXTAREA|SELECT)$/.test((e.target && e.target.tagName) || '')) return;
+    if (e.key === 'Escape') close();
+    else if (e.key === '+' || e.key === '=') { e.preventDefault(); setZoom(z * 1.5); }
+    else if (e.key === '-') { e.preventDefault(); setZoom(z / 1.5); }
+    else if (e.key === '0') setZoom(1);
+    else if ((e.key === 'ArrowRight' || e.key === 'ArrowLeft') && pages && mode === 'view' && !(e.target && e.target.closest && e.target.closest('.pr-ctrl'))) { e.preventDefault(); goPage(pg + (e.key === 'ArrowRight' ? 1 : -1)); } };
   document.addEventListener('keydown', esc);
   ov.append(
     h('div', { class: 'pr-bar' }, title, segBtns,
@@ -6487,6 +6514,10 @@ function showStage(s) {
       (s.info || []).filter(it => it.k && it.v).length ? h('div', { class: 'sh-info no-i18n' }, s.info.filter(it => it.k && it.v).map((it, k) => h('span', { 'data-i': k }, h('b', {}, it.k), it.v))) : null].filter(Boolean); }
   draw();
   document.body.append(ov); darkWhile(ov); ov.querySelector('.close').focus();
+  // computer: Escape closes the large view (only when nothing else is open on top of it)
+  const escSt = e => { if (!ov.isConnected) { document.removeEventListener('keydown', escSt, true); return; }
+    if (e.key === 'Escape' && !document.querySelector('.sheet-ov, .st-pov, .stage-song, #onb, .pr-ov, .sh-ov') && !/^(INPUT|TEXTAREA|SELECT)$/.test((e.target && e.target.tagName) || '')) ov.querySelector('.stage-x').click(); };
+  document.addEventListener('keydown', escSt, true);
 }
 // edit a single value of a song from the large view
 function stEditField(s, x, k, done) {
@@ -10079,7 +10110,7 @@ function pageHelpSlides() {
 /* ================= home-screen app (PWA) ================= */
 const isStandalone = () => window.matchMedia?.('(display-mode: standalone)').matches || window.navigator.standalone === true;
 const isIOS = () => /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-const APP_VERSION = '12.11.2026 (10)';
+const APP_VERSION = '13.11.2026 (1)';
 function registerSW() {
   if (!('serviceWorker' in navigator) || (location.protocol !== 'https:' && location.hostname !== 'localhost') || IN_CLAUDE_HOST()) return;
   navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).then(reg => {
