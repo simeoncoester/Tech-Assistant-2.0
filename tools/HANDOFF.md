@@ -41,7 +41,7 @@ sed -n '/<script>/,/<\/script>/p' index.html | sed '1d;$d' > /tmp/x.js && node -
   - `swap.js` (Gerätewechsel tauscht Foto), `eye.js` (Auge Foto ↔ Faceplate), `choice.js` (Foto/Faceplate-Tasten, Amps), `fpsync.js`, `attach.js`
   - `pages.js`, `swipe.js`, `touch.js` (Seiten und Wischen auf iPhone-Größe), `zoom.js` (Lupe, Doppeltipp, Zwei-Finger-Zoom, automatische Seiten; erwartet „ZOOM OK“), `conc.js` (Doppelknöpfe getrennt drehbar, erwartet „CONC OK“), `tab.js` (untere Reiterleiste bleibt beim Scrollen unten, erwartet „TAB OK“), `fader.js`, `master.js` (Master Section), `disp.js` (Display-Texteingabe), `ampch.js` (Kanalnamen mehrerer Amps), `mob.js`
 
-## Stand 13.11.2026 (3)
+## Stand 13.11.2026 (4)
 - Erledigt: Zoom im Foto-Recall, automatische Seiten für breite Geräte, Skalenstriche weichen Nachbarn aus, Rahmen-/Beschriftungsfehler (VTC Master Section, VOXBOX, SPL, DS201, EMT 250, TG2, GML 8200), größere Tippflächen im Mischpult.
 - Zoom-Fehler vom iPhone behoben (34): Platte und Regler werden nur noch als eine Ebene skaliert; eine Zoom-Geste verstellt oder verschiebt keinen Regler mehr; verschobene Faceplate-Regler werden einmalig zurückgesetzt. Auf einem echten iPhone gegenprüfen (hier nur Chromium).
 - Faceplate-Menü eingeschränkt (10.11. (1)): nur „Werte zurücksetzen“/„Von Stufe entfernen“, kein Umbenennen; „Regler setzen“ bleibt auch bei Faceplates; eigene Fotos behalten alle Optionen.
