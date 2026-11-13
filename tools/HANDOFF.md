@@ -41,7 +41,7 @@ sed -n '/<script>/,/<\/script>/p' index.html | sed '1d;$d' > /tmp/x.js && node -
   - `swap.js` (Gerätewechsel tauscht Foto), `eye.js` (Auge Foto ↔ Faceplate), `choice.js` (Foto/Faceplate-Tasten, Amps), `fpsync.js`, `attach.js`
   - `pages.js`, `swipe.js`, `touch.js` (Seiten und Wischen auf iPhone-Größe), `zoom.js` (Lupe, Doppeltipp, Zwei-Finger-Zoom, automatische Seiten; erwartet „ZOOM OK“), `conc.js` (Doppelknöpfe getrennt drehbar, erwartet „CONC OK“), `tab.js` (untere Reiterleiste bleibt beim Scrollen unten, erwartet „TAB OK“), `fader.js`, `master.js` (Master Section), `disp.js` (Display-Texteingabe), `ampch.js` (Kanalnamen mehrerer Amps), `mob.js`
 
-## Stand 13.11.2026 (10) – Übergabe an die nächste Sitzung
+## Stand 13.11.2026 (11) – Übergabe an die nächste Sitzung
 **Arbeitsweise, die sich bewährt hat**
 - Vor jeder Arbeit `git fetch origin main && git merge --ff-only origin/main`; gearbeitet wird im Session-Branch, gepusht auf diesen Branch **und** auf `main` (vom Nutzer so gewünscht). Danach im GitHub-Workflow „pages build and deployment“ (Workflow-ID 393049086) den Erfolg abwarten.
 - Commit-Nachrichten deutsch, mit den vom System vorgegebenen Trailern (Co-Authored-By/Claude-Session).
@@ -63,11 +63,11 @@ sed -n '/<script>/,/<\/script>/p' index.html | sed '1d;$d' > /tmp/x.js && node -
 
 - Audient ASP8024-HE (13.11. (10)): Channel Strip und Master Section nach der Broschüre; Master Section im Mischpult als Insert im Master-Zug; Übernahme-Dropdown nach Produktion gruppiert. Generator `tools/audient8024-gen.py`.
 
-**Unsicher / beim Nutzer nachfragen (Audient ASP8024-HE)**
-- Eingangssektion des Kanalzugs (Mic-Gain, 48V, Phase, HPF, Line/Mic-Wahl) fehlt in der Broschüre – braucht ein Foto/Handbuch.
-- Long Fader: nur erwähnt, Skala nicht abgebildet → Skala vom Short Fader übernommen; Sub-Group-Fader ebenso.
-- Master Section außer VCA Bus Compressor nur nach Text: Anordnung, Knopffarben, Beschriftungen (Lautsprecher A–D, Ext 1–3, Bus Masters 1–24, Aux-Link) und der Mix-Fader (ohne Skala) sind nicht abgebildet; Cut/Dim/Mono und Stereo-Inputs fehlen deshalb.
-- Kanalzug: Taster mit dunkler Kappe (Follow Pan, Pre, Air, 100Hz) sind am Pult offenbar beleuchtet – als dunkle Taster gezeichnet.
+**Unsicher / beim Nutzer nachfragen (Audient ASP8024 / ASP8024-HE)**
+- Kanalzug-Eingangssektion (Mic-Gain, 48V, Phase, HPF, Line/Mic) fehlt weiter – auf den Fotos zu klein lesbar.
+- Long Fader des Kanalzugs: Skala vom Short Fader übernommen.
+- Master Section nach Handbuch-Zeichnungen des Original-ASP8024; Anordnung der Sektionen untereinander (Konsolenfoto) nur ungefähr. Das Pult auf dem Foto hat mehr Aux-Master-Knöpfe als die Zeichnung (A, B, 1–4) – angelegt sind nur die gezeichneten. Wie viele Stereo-Eingänge (angelegt 4) und ob das HE dieselbe Master Section hat (angenommen, plus Kompressor und Heritage aus der Broschüre).
+- Oszillator: zwei Taster ergeben 40 Hz/1k/10k/15k (Kombination laut Zeichnung).
 
 **Unsicher / beim Nutzer nachfragen (SSL 4000 E/G)**
 - Kappenfarben: Handbuch ist schwarz-weiß; EQ rot/grün/blau/schwarz (G), Gate grün, Kompressor schwarz, Filter grau sind typische Werte, nicht aus dem Handbuch.

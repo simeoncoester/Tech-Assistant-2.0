@@ -63,53 +63,124 @@ pages=pages_of(g,[(n,k,k) for k,n in enumerate(cols)],len(cols))
 strip=dict(kind='Channel Strip',pages=pages,ks='ssl',ps='sq',ar=round(g.CW/g.CH,4),bare=True,noTicks=True,bg='#2a2e34',bg2='#1d2025',ink=INK,kc=GY,fs=16,brand='',model='',tx=.5,ty=.03,deco=g.d,c=g.c)
 
 # ================= master section =================
-mcols=['VCA Bus Compressor','Mix Bus','Control Room','Talkback & Solo','Aux Masters','Bus Masters','Sub Groups 1-2','Sub Groups 3-4','Sub Groups 5-6','Sub Groups 7-8']
-g=build(mcols,110,600,.5,5)
-T,K,B,SC,DOT,HL,LED,F=g.T,g.K,g.B,g.SC,g.DOT,g.HL,g.LED,g.F
-k=0
-K(k,'Threshold',30,56,24,BLU); DOT(k,30,56,17); T(k,30,30,'THRESHOLD',.26); T(k,14,80,'LOWER',.22); T(k,46,80,'HIGHER',.22)
-K(k,'Gain Make-Up',82,56,24,BLU); DOT(k,82,56,17); T(k,82,30,'GAIN MAKE-UP',.24); T(k,68,80,'LESS',.22); T(k,96,80,'MORE',.22)
-K(k,'Attack',30,140,28,BLU,'ssl',{'sweep':[-140,140]}); SC(k,30,140,21,['0.1','0.3','1','3','10','30'],.25,-140,140); T(k,30,172,'ATTACK [mS]',.24)
-K(k,'Release',82,140,28,BLU,'ssl',{'sweep':[-140,140]}); SC(k,82,140,21,['0.1','0.3','0.6','1.2','2.4','AUTO'],.24,-140,140); T(k,82,172,'RELEASE [S]',.24)
-K(k,'Ratio',30,234,28,BLU,'ssl',{'sweep':[-45,45]}); SC(k,30,234,21,['2:1','4:1','10:1'],.25,-45,45); T(k,30,264,'RATIO',.26)
-T(k,82,214,'BASS',.4); T(k,82,228,'EXPAND',.28); T(k,82,242,'↓',.4); B(k,'Bass Expand',82,262,None,WH,16)
-B(k,'Comp In',30,310,'IN','#3d8bff',22)
-k=1
-B(k,'Heritage',30,40,'HERITAGE',WH,24); T(k,30,64,'RETRO IRON',.26)
-B(k,'Bass Boost',30,100,'BASS',WH,22); B(k,'Treble Boost',80,100,'TREBLE',WH,22)
-F(k,'Mix Fader',55,150,560,None,.642); T(k,55,580,'MIX',.4)
-k=2
-K(k,'Monitor Level',55,62,44,'#d6d8da','alu'); DOT(k,55,62,30,15); T(k,55,104,'MONITOR',.32)
-for i,n in enumerate(['A','B','C','D']): B(k,'Speaker '+n,17+i*25,140,n,WH,18)
-T(k,55,160,'SPEAKERS',.28); HL(k,172)
-for i,n in enumerate(['MIX','EXT 1','EXT 2','EXT 3']): B(k,'Source '+n.title(),17+i*25,196,n,WH,18)
-T(k,55,216,'SOURCE',.28); HL(k,228)
-K(k,'Engineer Phones',30,268,26,GY); DOT(k,30,268,18); T(k,30,294,'PHONES',.26)
-k=3
-K(k,'Talkback Level',30,50,26,GY); DOT(k,30,50,18); T(k,30,76,'TALKBACK',.26)
-for i,n in enumerate(['STUDIO','FOLDBACK','BUS']): B(k,'TB '+n.title(),84,30+i*30,n,WH,22)
-HL(k,128)
-B(k,'Solo in Front',30,160,'SOLO IN FRONT',WH,24); K(k,'Solo in Front Level',80,160,24,GY); DOT(k,80,160,17); T(k,80,184,'LEVEL',.26)
-k=4
-for i in range(14):
-    r,c=divmod(i,2); x=30+c*50; y=28+r*60
-    K(k,f'Aux Master {i+1}',x,y,22,GY); DOT(k,x,y,16); T(k,x,y+24,str(i+1),.3)
-    if c==0: B(k,f'Aux Link {i+1}-{i+2}',55,y,'LINK',DK,12)
-for i,n in enumerate(['A','B']): K(k,f'Cue {n} Master',30+i*50,452,24,BK); DOT(k,30+i*50,452,17); T(k,30+i*50,478,f'CUE {n}',.28)
-k=5
-for i in range(24):
-    r,c=divmod(i,3); x=22+c*33; y=28+r*60
-    K(k,f'Bus Master {i+1}',x,y,20,GY); DOT(k,x,y,14); T(k,x,y+22,str(i+1),.3)
-for j in range(4):
-    k=6+j
-    for i in range(2):
-        x=30+i*50; n=1+2*j+i
-        T(k,x,14,str(n),.4)
-        K(k,f'Sub Group {n} Pan',x,46,22,BK); DOT(k,x,46,15); T(k,x-12,68,'L',.26); T(k,x+12,68,'R',.26)
-        B(k,f'Sub Group {n} Solo',x,96,'SOLO',WH,20); B(k,f'Sub Group {n} Cut',x,124,'CUT',WH,20)
-        F(k,f'Sub Group {n} Fader',x,160,560,SF,.642)
-mpages=pages_of(g,[('Compressor & Mix',0,1),('Monitor & Talkback',2,3),('Aux Masters',4,4),('Bus Masters',5,5),('Sub Groups',6,9)],len(mcols))
-master=dict(kind='Master Section',pages=mpages,ks='ssl',ps='sq',ar=round(g.CW/g.CH,4),bare=True,noTicks=True,bg='#2a2e34',bg2='#1d2025',ink=INK,kc=GY,fs=16,brand='',model='',tx=.5,ty=.03,deco=g.d,c=g.c)
-for e in (strip,master):
+# Layout after the ASP8024 manual drawings the user sent (compressor, oscillator, solo, communications/talkback, control room,
+# studio, bus master trims, aux masters, stereo input, sub group, master fader). style 'he' = Heritage Edition (dark panel,
+# compressor as in the HE brochure, Heritage/Bass/Treble), style 'orig' = original ASP8024 (light grey panel, compressor with GR LEDs).
+SG=[['10',1],['5',.777],['0',.704],['5',.557],['10',.426],['20',.248],['30',.12],['40',.074],['∞',0]]
+MF=[['0',1],['5',.787],['10',.663],['15',.523],['20',.402],['30',.229],['40',.106],['50',.065],['∞',0]]
+def mk_master(style):
+    he=style=='he'
+    MAR=PNK if he else '#7b2340'; CY=BLU if he else '#4fb8bb'; YB='#e8c23a'; RB='#e0483a'; SB=DK if he else '#b9bcbf'
+    ink='#eef0f2' if he else '#163838'; barc='#3a3f47' if he else '#5cc5a3'; bart='#dfe3e8' if he else '#123030'
+    global INK
+    old=INK; INK=ink
+    mcols=['Compressor','Oscillator & Solo','Communications','Control Room','Studio','Bus Master Trims','Aux Masters',
+           'Stereo In 1-2','Stereo In 3-4','Sub Groups 1-2','Sub Groups 3-4','Sub Groups 5-6','Sub Groups 7-8','Master Fader']
+    g=build(mcols,110,600,.5,7)
+    K,B,SC,DOT,HL,LED,F=g.K,g.B,g.SC,g.DOT,g.HL,g.LED,g.F
+    T=lambda k,x,y,t,sz=.5,col=None: g.T(k,x,y,t,sz,col or INK)
+    for e in g.d:
+        if e[0]=='txt' and e[5]=='#c9d2dc': e[5]=ink if not he else e[5]
+    def BAR(k,y,t,x0=6,w=98): g.d.append(['rect',round((g.cx(k)+x0)/g.CW,4),round((34+y-7)/g.CH,4),round(w/g.CW,4),round(14/g.CH,4),barc,'none',2]); T(k,x0+w/2,y+3,t,.3,bart)
+    def KN(k,name,x,y,dia,col,labs=None,a0=-135,a1=135,lab=None,sz=.25):
+        K(k,name,x,y,dia,col,'ssl',{'sweep':[a0,a1]} if labs and (a0,a1)!=(-135,135) else None); DOT(k,x,y,dia*.7,11,a0,a1)
+        if labs: SC(k,x,y,dia*.7+7,labs,sz,a0,a1)
+        if lab: T(k,x,y+dia*.5+17,lab,.26)
+    def L010(k,name,x,y,dia,col,lab='LEVEL'): K(k,name,x,y,dia,col); DOT(k,x,y,dia*.7); T(k,x-dia*.55,y+dia*.5+6,'0',.24); T(k,x+dia*.55,y+dia*.5+6,'10',.24); T(k,x,y+dia*.5+12,lab,.24)
+    # 0 compressor
+    k=0
+    if he:
+        KN(k,'Threshold',30,56,24,CY); T(k,30,30,'THRESHOLD',.26); T(k,14,80,'LOWER',.22); T(k,46,80,'HIGHER',.22)
+        KN(k,'Gain Make-Up',82,56,24,CY); T(k,82,30,'GAIN MAKE-UP',.24); T(k,68,80,'LESS',.22); T(k,96,80,'MORE',.22)
+        y1=140
+    else:
+        BAR(k,10,'GAIN REDUCTION - dB'); g.d.append(['leds',*[round((g.cx(k)+12)/g.CW,4),round((34+34)/g.CH,4)],*[round((g.cx(k)+98)/g.CW,4),round((34+34)/g.CH,4)],12,round(6/g.CW,4),'#ff6b5a',0,'#ff6b5a'])
+        for i,v in enumerate(['24','22','20','18','16','14','12','10','8','6','4','2']): T(k,12+i*86/11,26,v,.2)
+        K(k,'Threshold',30,82,22,CY); DOT(k,30,82,15); T(k,30,60,'THRESHOLD',.24); T(k,14,104,'-20',.22); T(k,46,104,'+20',.22)
+        K(k,'Make Up',82,82,22,CY); DOT(k,82,82,15); T(k,82,60,'MAKE UP',.24); T(k,68,104,'0',.22); T(k,96,104,'40',.22)
+        y1=160
+    KN(k,'Attack',26,y1,22,CY,['.1','.3','1','3','10','30'],-140,140,None,.22); T(k,26,y1+30,'ATTACK - mS',.22)
+    KN(k,'Release',80,y1,22,CY,['.1','.3','.6','1.2','2.4','AUTO'],-140,140,None,.22); T(k,80,y1+30,'RELEASE - S',.22)
+    KN(k,'Ratio',30,y1+94,28,CY,['2:1','4:1','10:1'],-45,45); T(k,30,y1+124,'RATIO',.26)
+    if he: T(k,82,y1+74,'BASS',.4); T(k,82,y1+88,'EXPAND',.28); T(k,82,y1+102,'↓',.4); B(k,'Bass Expand',82,y1+122,None,WH,16)
+    B(k,'Comp In',30,y1+176,'IN','#3d8bff' if he else YB,24)
+    # 1 oscillator + solo
+    k=1; BAR(k,10,'OSCILLATOR')
+    B(k,'Osc Freq A',20,40,None,SB,16); B(k,'Osc Freq B',20,82,None,SB,16); T(k,24,64,'FREQ Hz',.22)
+    for i,v in enumerate(['40','1k','10k','15k']): T(k,44+i*12,64,v,.2)
+    B(k,'Osc Bus',90,40,None,SB,16); T(k,90,58,'BUS',.24); B(k,'Osc Mix',90,82,None,SB,16); T(k,90,100,'MIX',.24)
+    L010(k,'Osc Level',30,132,22,CY); B(k,'Osc On',80,132,'ON',RB,24)
+    BAR(k,200,'SOLO')
+    L010(k,'Solo Level',30,236,26,MAR); KN(k,'Solo in Front',82,236,20,MAR); T(k,70,256,'SOLO',.2); T(k,94,256,'MIX',.2); T(k,82,266,'SOLO IN FRONT',.2)
+    B(k,'SIP',38,300,'SIP',RB,24); B(k,'AFL/PFL',84,300,None,SB,14); T(k,84,318,'AFL/PFL',.22)
+    # 2 communications / talkback (+ HE mix bus)
+    k=2; BAR(k,10,'COMMUNICATIONS'); L010(k,'Talkback Level',55,48,28,MAR)
+    BAR(k,104,'TALKBACK')
+    for i,n in enumerate(['SLATE','SLS','FB']): B(k,'TB '+n.title(),22+i*33,134,n,YB,24)
+    if he:
+        BAR(k,190,'MIX BUS'); B(k,'Heritage',55,222,'HERITAGE',WH,24); T(k,55,246,'RETRO IRON',.24)
+        B(k,'Bass Boost',30,282,'BASS',WH,22); B(k,'Treble Boost',80,282,'TREBLE',WH,22)
+    # 3 control room
+    k=3; BAR(k,10,'CONTROL ROOM'); BAR(k,30,'SOURCE SELECT')
+    for i,n in enumerate(['MIX','TAPE 1','TAPE 2','TAPE 3']): B(k,'Source '+n.title(),16+i*26,56,n,YB,20)
+    BAR(k,84,'SPEAKER SELECT')
+    for i in range(3): L010(k,f'Alt {i+1} Level',42+i*26,110,16,CY,'')
+    for i,n in enumerate(['MAIN','ALT 1','ALT 2','ALT 3']): B(k,'Speaker '+n.title(),16+i*26,152,n,YB,20)
+    BAR(k,180,'MAIN MONITORS'); L010(k,'Monitor Level',72,218,30,MAR)
+    B(k,'Mono',20,210,None,SB,14); T(k,20,226,'MONO',.22)
+    B(k,'Cut Left',14,250,None,SB,13); B(k,'Cut Right',36,250,None,SB,13); T(k,14,266,'CUT L',.2); T(k,36,266,'CUT R',.2)
+    B(k,'Monitor Cut',30,296,'CUT',RB,22); B(k,'Dim',82,296,'DIM',YB,22)
+    # 4 studio
+    k=4; BAR(k,10,'STUDIO'); T(k,22,30,'SPK',.26); T(k,58,30,'FB A',.26); T(k,92,30,'FB B',.26)
+    for j,(gname,x0) in enumerate([('Speakers',8),('Foldback A',44),('Foldback B',78)]):
+        for i,n in enumerate(['Tape 1','Tape 2','C/RM']): B(k,f'{gname} {n}',x0+6,52+i*24,None,SB,12)
+        for i,n in enumerate(['Aux A','Aux B']): B(k,f'{gname} {n} L',x0+4,124+i*28,None,SB,11); B(k,f'{gname} {n} R',x0+20,124+i*28,None,SB,11)
+    for i,n in enumerate(['TAPE 1','TAPE 2','C/RM']): T(k,34,55+i*24,n,.18)
+    for i,n in enumerate(['AUX A','AUX B']): T(k,58,140+i*28,n,.18)
+    T(k,55,184,'L — R',.22)
+    L010(k,'Studio Speakers Level',20,214,22,CY,''); L010(k,'Foldback A Level',56,214,22,MAR,''); L010(k,'Foldback B Level',92,214,22,MAR,'')
+    B(k,'Studio On',20,266,'ON',RB,20); B(k,'Foldback A Solo',56,266,'SOLO',YB,20); B(k,'Foldback B Solo',92,266,'SOLO',YB,20)
+    # 5 bus master trims
+    k=5
+    for i in range(24):
+        r,c=divmod(i,3); x=22+c*33; y=26+r*66
+        K(k,f'Bus Master {i+1}',x,y,20,MAR); DOT(k,x,y,14); T(k,x,y-17,'0',.2); T(k,x-12,y+20,'-10',.18); T(k,x+12,y+20,'+10',.18); T(k,x,y+32,f'{(i%12)+1}/{(i%12)+13}' if False else str(i+1),.28)
+    # 6 aux masters
+    k=6
+    for i,n in enumerate(['A','B','1','2','3','4']):
+        r,c=divmod(i,2); x=30+c*50; y=46+r*110
+        L010(k,f'Aux {n} Master',x,y,24,MAR if n in 'AB' else CY,'')
+        B(k,f'Aux {n} Solo',x,y+40,'SOLO',YB,20); T(k,x,y+60,f'AUX {n}',.28)
+        if n in ('3','4'): B(k,f'Aux {n} Link',x,y-34,None,SB,12); T(k,x+20,y-34,'LINK →'+('1' if n=='3' else '2'),.18)
+    # 7/8 stereo inputs (two modules per column)
+    for k,base in ((7,1),(8,3)):
+        for m in range(2):
+            n=base+m; o=m*55; T(k,o+27,10,f'ST {n}',.28)
+            for i,(a,b2) in enumerate([('1-2','13-14'),('3-4','15-16'),('5-6','17-18'),('7-8','19-20'),('9-10','21-22'),('11-12','23-24')]):
+                r,c=divmod(i,2); x=o+15+c*25; y=30+r*34; B(k,f'Stereo {n} Route {a}',x,y,None,SB,12); T(k,x,y+13,a,.17); T(k,x,y+21,b2,.15)
+            B(k,f'Stereo {n} Shift',o+15,140,None,SB,12); T(k,o+15,128,'13-24',.17); T(k,o+15,154,'SHIFT',.17)
+            for j,lab in enumerate(['F/B A','F/B B']):
+                y=184+j*54; K(k,f'Stereo {n} {lab}',o+27,y,18,MAR); DOT(k,o+27,y,12); T(k,o+27,y-15,lab,.18); T(k,o+16,y+15,'0',.17); T(k,o+38,y+15,'10',.17)
+            K(k,f'Stereo {n} Gain',o+27,296,18,CY); DOT(k,o+27,296,12); T(k,o+27,281,'0',.17); T(k,o+14,311,'-20',.16); T(k,o+40,311,'+20',.16); T(k,o+27,320,'GAIN',.17)
+            K(k,f'Stereo {n} Level',o+27,368,22,MAR); DOT(k,o+27,368,15); T(k,o+14,386,'0',.17); T(k,o+40,386,'10',.17); T(k,o+27,394,'LEVEL',.17)
+            B(k,f'Stereo {n} Mix',o+42,416,None,SB,11); T(k,o+42,430,'MIX',.16)
+            B(k,f'Stereo {n} Solo',o+16,450,'SOLO',YB,16); B(k,f'Stereo {n} Cut',o+39,450,'CUT',RB,16)
+    # 9-12 sub groups
+    for j in range(4):
+        k=9+j
+        for i in range(2):
+            x=30+i*50; n=1+2*j+i
+            T(k,x,12,f'SUB GROUP {n}',.2)
+            K(k,f'Sub Group {n} Pan',x,46,22,CY); DOT(k,x,46,15); T(k,x,28,'C',.2); T(k,x-12,68,'L',.22); T(k,x+12,68,'R',.22)
+            B(k,f'Sub Group {n} Mix',x,90,None,SB,12); T(k,x,104,'MIX',.18)
+            B(k,f'Sub Group {n} Solo',x-11,124,'SOLO',YB,18); B(k,f'Sub Group {n} Cut',x+11,150,'CUT',RB,18)
+            F(k,f'Sub Group {n} Fader',x,190,570,SG,.704)
+    # 13 master fader
+    k=13; F(k,'Master Fader',40,60,570,MF,1)
+    mpages=pages_of(g,[('Compressor & Solo',0,1),('Talkback & Control Room',2,3),('Studio',4,4),('Bus Trims & Aux',5,6),('Stereo Inputs',7,8),('Sub Groups & Master',9,13)],len(mcols))
+    INK=old
+    return dict(kind='Master Section',pages=mpages,ks='ssl',ps='sq',ar=round(g.CW/g.CH,4),bare=True,noTicks=True,bg='#2a2e34' if he else '#c9c8c6',bg2='#1d2025' if he else '#b3b2b0',ink=ink,kc=GY,fs=16,brand='',model='',tx=.5,ty=.03,deco=g.d,c=g.c)
+master=mk_master('he'); master_orig=mk_master('orig')
+for e in (strip,master,master_orig):
     n=[q[1] for q in e['c']]; assert len(n)==len(set(n)), [x for x in n if n.count(x)>1]
-sys.stdout.write(''.join(f"  {json.dumps(k)}: {json.dumps(v,ensure_ascii=False)},\n" for k,v in [('Audient ASP8024-HE',strip),('Audient ASP8024-HE Master Section',master)]))
+sys.stdout.write(''.join(f"  {json.dumps(k)}: {json.dumps(v,ensure_ascii=False)},\n" for k,v in [('Audient ASP8024-HE',strip),('Audient ASP8024-HE Master Section',master),('Audient ASP8024 Master Section',master_orig)]))
