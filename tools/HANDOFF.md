@@ -41,21 +41,32 @@ sed -n '/<script>/,/<\/script>/p' index.html | sed '1d;$d' > /tmp/x.js && node -
   - `swap.js` (Gerätewechsel tauscht Foto), `eye.js` (Auge Foto ↔ Faceplate), `choice.js` (Foto/Faceplate-Tasten, Amps), `fpsync.js`, `attach.js`
   - `pages.js`, `swipe.js`, `touch.js` (Seiten und Wischen auf iPhone-Größe), `zoom.js` (Lupe, Doppeltipp, Zwei-Finger-Zoom, automatische Seiten; erwartet „ZOOM OK“), `conc.js` (Doppelknöpfe getrennt drehbar, erwartet „CONC OK“), `tab.js` (untere Reiterleiste bleibt beim Scrollen unten, erwartet „TAB OK“), `fader.js`, `master.js` (Master Section), `disp.js` (Display-Texteingabe), `ampch.js` (Kanalnamen mehrerer Amps), `mob.js`
 
-## Stand 13.11.2026 (6)
-- Erledigt: Zoom im Foto-Recall, automatische Seiten für breite Geräte, Skalenstriche weichen Nachbarn aus, Rahmen-/Beschriftungsfehler (VTC Master Section, VOXBOX, SPL, DS201, EMT 250, TG2, GML 8200), größere Tippflächen im Mischpult.
-- Zoom-Fehler vom iPhone behoben (34): Platte und Regler werden nur noch als eine Ebene skaliert; eine Zoom-Geste verstellt oder verschiebt keinen Regler mehr; verschobene Faceplate-Regler werden einmalig zurückgesetzt. Auf einem echten iPhone gegenprüfen (hier nur Chromium).
-- Faceplate-Menü eingeschränkt (10.11. (1)): nur „Werte zurücksetzen“/„Von Stufe entfernen“, kein Umbenennen; „Regler setzen“ bleibt auch bei Faceplates; eigene Fotos behalten alle Optionen.
-- Neu (10.11.): Klark Teknik 76-KT und Behringer 369-KT; Knöpfe plastischer (gedrehtes Metall, Rändel, Familien `urei`/`spun`/`nevecap`), Knöpfe auch in Vorschaubildern. Offen: übrige Knopf-Familien (`chicken`, `api`, `ssl`, `bakelite`, `marconi`) einzeln gegen Originalfotos nachschärfen; Behringer 369-KT hat im Foto Langlöcher statt Eckschrauben.
-- Neu (11.11.): Doppelknöpfe mit Sweep, API 512c/550A und Neve 1073/1084/1073LB nach Fotos neu gebaut. Unbestätigt: beim Neve 1084 ist HPF dem äußeren Ring und LPF dem inneren Knopf zugeordnet; `Neve 1073` ist jetzt quer (wie Nutzerfoto) statt hochkant.
-- Neu (11.11., Teil 2): Pultec EQP-1A/MEQ-5, Maag EQ4 und SSL E/G-Series EQ nach Fotos; SSL E- und G-Series EQ zusammengelegt (`fpRename`).
-- Neu (11.11., Teil 3): Distressor EL8/EL8-X und API 2500 nach Fotos; LED-Anzeigen als antippbare Taster.
-- Design-Durchsicht (11.11. (6)): Kippschalter bei 25 Geräten vergrößert, lange VU-Beschriftungen eingepasst, Einzelkorrekturen (siehe CLAUDE.md). ISA 428, ISA One und Avalon VT-737sp sind in (7) nach Nutzerfotos komplett beschriftet neu gebaut.
-- Neu (11.11. (8)): Sound Skulptor TS500, True Grit, MU524 und AML 52F50 (Skalen in (9) exakt nach Foto; Hersteller und Modell vom Nutzer bestätigt).
-- Reiterleiste (12.11. (1)): jetzt `sticky` statt `fixed`, weil sie auf dem iPhone mitscrollte. Nur in Chromium geprüft – auf einem echten iPhone gegenprüfen.
-- Neu (12.11. (2)): PDF-Export für Künstler, Tour/Produktion und einzelne Setlisten (`tools/tests/pdf.js`, erwartet „PDF OK“). Teilen-Dialog/Download nur in Chromium geprüft – auf dem iPhone gegenprüfen.
-- Automatische Seiten teilen jetzt auch hohe Module (Oben/Unten) und kompakte Geräte nach Lesbarkeit.
-- Noch offen (Lesbarkeit ohne Zoom, siehe `fp-legible.js`): Geräte mit eigenen `pages`, deren Bereiche auf dem iPhone noch zu klein sind – TL Audio VTC und Master Section, Universal Audio 6176 und LA-610 MkII, Manley VOXBOX, Shelford Channel, SPL Transient Designer, Drawmer DS201, Bricasti M7 – sowie Elysia Karacter 500 (sehr kleine Skalenzahlen). Dort hilft bisher der Zoom; feinere Seiten wären besser.
-- Im Rahmen des Drawmer DS201 sitzt der LINK-Schalter knapp außerhalb von Kanal 2; Lage am Original unbestätigt (nicht geraten).
+## Stand 13.11.2026 (7) – Übergabe an die nächste Sitzung
+**Arbeitsweise, die sich bewährt hat**
+- Vor jeder Arbeit `git fetch origin main && git merge --ff-only origin/main`; gearbeitet wird im Session-Branch, gepusht auf diesen Branch **und** auf `main` (vom Nutzer so gewünscht). Danach im GitHub-Workflow „pages build and deployment“ (Workflow-ID 393049086) den Erfolg abwarten.
+- Commit-Nachrichten deutsch, mit den vom System vorgegebenen Trailern (Co-Authored-By/Claude-Session).
+- Der Nutzer schreibt per Diktat und schickt Fotos/Screenshots; bei unleserlichen Details **nicht raten**, sondern nachfragen bzw. in der Antwort als „unsicher gelesen“ auflisten. Antworten kurz: was geändert wurde, wie man es bedient.
+- Netz im Container eingeschränkt: Websuche geht, Abruf vieler Händler-/Handbuchseiten (vintageking.com, kmraudio.com, barryrudolph.com) nicht. PDFs, die der Nutzer hochlädt, mit `pdftotext`/`pdfimages` lesen.
+- `tools/tests/undefined/*.png` werden von `test.js` überschrieben – vor dem Commit mit `git checkout -- tools/tests/undefined` zurücksetzen.
+
+**Neu seit dem letzten Stand**
+- Tablet und Handy (12.11. (9)/(10), 13.11. (1)): Mischpult füllt auf Tablets die Breite und zoomt (`fitConsole`, hört auf `resize`), Drum-Tuner quer größer, Handy quer mit flacher Reiterleiste und kompaktem Showmodus, Showmodus-Inhalt nie mehr oben abgeschnitten. Test: `tools/tests/tablet.js` (Viewport per `VP='[w,h,"dark"]'`, erwartet „TABLET OK“, läuft Minuten).
+- Computer (13.11. (1)): Foto-Recall mit Trackpad-Pinch/Strg+Mausrad, Mausrad verschiebt, Tasten `+ - 0`, Pfeile = Seite; Escape schließt auch die Großansicht. Test: `tools/tests/desk.js` („DESK OK“).
+- CAPI (13.11. (2)–(4)): 553F, VP25/26 (Gain-Kappe halb Orange/halb Blau über `q[7].c2`), VP28, VP312, LC4B (blau eloxierte Knöpfe über `q[7].bc`), LC25.
+- Neve 8424 (13.11. (5)/(6)): Channel Strip und Master Section, nach dem Handbuch-PDF des Nutzers korrigiert. Generator `tools/neve8424-gen.py`.
+- Neve 8058 (13.11. (7)): Channel Strip (Routing 32408 / Preamp & EQ 31102 / Aux & Monitor 32404 / Fader) und Master Section (Meter, Aux-Output-Matrix, Phase Meter, Oszillator, Rev Return to 4T, Aux/Group/4T Outputs, Solo Safe, Cue, Studio Loudspeaker, Input Selector, 4T Mixdown, Talkback, Monitor, Meters) – nur aus Fotos des Nutzers (PDF ohne Text) plus Websuche zu den 31102-Frequenzen. Generator `tools/neve8058-gen.py`.
+- Generator-Muster für große Pulte: Python-Skript erzeugt die beiden JSON-Zeilen; in `index.html` die Zeilen, die mit `  "Neve 8058` beginnen, ersetzen (siehe Skriptkopf). Einträge stehen vor `'TL Audio VTC'`.
+
+**Unsicher / beim Nutzer nachfragen (Neve 8058)**
+- 31102: Gain-Skala, Gain-Bereiche der EQ-Bänder und der kleine Taster neben HF („EQ-Taster“) sind nicht lesbar; Frequenzen (HF 10/12/16 kHz, Mid .35–7.2 kHz, LF 35–220 Hz, HPF 45–360 Hz, LPF 18–6 kHz) stammen aus der Websuche.
+- 32404: Bedeutung der Taster unter Aux 1–4, der vier Monitor-Taster und der Mixdown-Taster; ob der hellblaue Knopf „Monitor Pan“ und der dunkelblaue „Mixdown Level“ ist.
+- 32408: Skala des Direct-Level-Knopfs (nur Striche gezeichnet).
+- Master: Beschriftung der Cue-Taster (rot/grün), Studio-LS-Taster („on“?), Talkback-Taster 5 („slate“/„mon“?), Oszillator-Schalter Mitte, zwei unbeschriftete Monitor-Wahltasten (nur gezeichnet), Fader-Skala (10 … 0 … ∞ nach Foto).
+
+**Weiterhin offen (älter)**
+- Auf echtem iPhone/iPad gegenprüfen: Zoom-Ebene im Foto-Recall, Reiterleiste `sticky`, PDF-Teilen/Speichern, Mischpult-Zoom auf dem Tablet, Showmodus im Handy-Querformat, Trackpad-Zoom in Safari.
+- Lesbarkeit ohne Zoom (`fp-legible.js`): TL Audio VTC und Master Section, UA 6176/LA-610 MkII, VOXBOX, Shelford, SPL Transient Designer, DS201, Bricasti M7, Karacter 500.
+- Behringer 369-KT: Langlöcher statt Eckschrauben; Neve 1084: HPF außen/LPF innen unbestätigt; DS201 LINK-Lage unbestätigt.
 
 ## Offene Punkte vom Nutzer
 - Für Lexicon 480L/PCM96, EMT 140, Eventide H3000, Thermionic Culture Vulture und Elysia Karacter (19") fehlen noch Fotos – nicht raten, nicht anlegen.
