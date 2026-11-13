@@ -9,58 +9,70 @@ BLU='#2f63b8'; PNK='#c4406e'; BK='#1d1e21'; GY='#8f9398'; DK='#3a3d42'
 SF=[['10',1],['5',.777],['0',.642],['5',.496],['10',.379],['20',.231],['40',.098],['∞',0]]
 
 # ================= channel strip =================
-cols=['Bus Routing','Aux & EQ','Mitten & SF Pan','Short Fader','Long Fader']
-g=build(cols,100,600,.75)
-T,K,B,SC,DOT,HL,LED,F=g.T,g.K,g.B,g.SC,g.DOT,g.HL,g.LED,g.F
-def AUX(k,n,x,y,col=GY):
-    K(k,f'Aux {n}' if n.isdigit() else f'Cue {n}',x,y,26,col); DOT(k,x,y,18); T(k,x-16,y+22,'∞',.34); T(k,x+16,y+22,'0',.3); T(k,x,y+24,'dB',.24); T(k,x+27,y+4,'→ '+n,.4)
-def PAIR(k,a,b,y0,lab,cue=False):
-    pre='Cue' if cue else 'Aux'
-    AUX(k,a,30,y0); AUX(k,b,30,y0+64)
-    B(k,f'{pre} {a}-{b} SF',84,y0-12,'SF',WH,18); B(k,f'{pre} {a}-{b} Pre',84,y0+16,'PRE',DK,18); T(k,84,y0+38,'CUE' if cue else 'AUX',.3)
-    B(k,f'{pre} {a}-{b} '+('SF B' if cue else 'Link'),84,y0+64,'SF' if cue else lab,WH,18)
-k=0
-for i in range(12):
-    r,c=divmod(i,4); x=16+c*23; y=26+r*52
-    B(k,f'Bus {i+1}/{i+13}',x,y,None,WH,16); T(k,x,y+19,str(i+1),.36); g.d.append(['rect',round((g.cx(k)+x-8)/g.CW,4),round((34+y+23)/g.CH,4),round(16/g.CW,4),round(11/g.CH,4),'#d5d7da','none',2]); T(k,x,y+32,str(i+13),.32,'#1d1f22')
-B(k,'+12 Shift',18,186,None,WH,18); T(k,18,170,'+12',.3); T(k,18,206,'SHIFT',.3)
-B(k,'Follow Pan',52,186,None,DK,18); T(k,52,170,'FOLLOW',.3); T(k,52,206,'PAN',.3)
-B(k,'Routing LF',84,186,None,WH,18); T(k,84,206,'LF',.34); HL(k,222)
-PAIR(k,'1','2',254,'7-8'); PAIR(k,'3','4',394,'9-10')
-k=1
-PAIR(k,'5','6',26,'11-12'); PAIR(k,'A','B',160,None,True)
-HL(k,262); T(k,50,276,'EQUALISER',.36)
-B(k,'HF/LF In',20,298,'IN',WH,18); T(k,52,302,'>-<',.4); B(k,'HF/LF SF',84,298,'SF',WH,18)
-B(k,'Air',22,342,None,DK,16); T(k,22,328,'AIR',.3); T(k,22,362,'HF',.5)
-K(k,'HF dB',68,354,34,BLU); DOT(k,68,354,24); T(k,58,384,'dB',.26); T(k,86,384,'±15',.26)
-B(k,'100Hz',22,418,None,DK,16); T(k,22,404,'100Hz',.28); T(k,22,438,'LF',.5)
-K(k,'LF dB',68,430,34,PNK); DOT(k,68,430,24); T(k,58,460,'dB',.26); T(k,86,460,'±15',.26)
-HL(k,478); B(k,'HMF/LMF In',20,500,'IN',WH,18); T(k,52,504,'-0-0-',.36); B(k,'HMF/LMF SF',84,500,'SF',WH,18)
-k=2
-K(k,'HMF kHz',40,40,26,BLU,'ssl',{'sweep':[-140,140]}); SC(k,40,40,19,['0.45','0.7','3.2','7.5','20'],.27,-140,140); T(k,40,66,'kHz',.26); T(k,84,56,'HMF',.55)
-K(k,'HMF BW',24,104,24,BLU); DOT(k,24,104,17); T(k,24,124,'BW',.26)
-K(k,'HMF dB',70,112,34,BLU); DOT(k,70,112,24); T(k,60,142,'dB',.26); T(k,88,142,'±15',.26)
-HL(k,152)
-K(k,'LMF Hz',40,190,26,PNK,'ssl',{'sweep':[-140,140]}); SC(k,40,190,19,['50','75','175','750','1k5'],.27,-140,140); T(k,40,216,'Hz',.26); T(k,84,206,'LMF',.55)
-K(k,'LMF BW',24,254,24,PNK); DOT(k,24,254,17); T(k,24,274,'BW',.26)
-K(k,'LMF dB',70,262,34,PNK); DOT(k,70,262,24); T(k,60,292,'dB',.26); T(k,88,292,'±15',.26)
-HL(k,304)
-B(k,'Copy LF',22,336,None,WH,18); T(k,22,318,'COPY LF',.28); T(k,66,320,'MIC',.32,'#ff4a3d'); T(k,66,334,'TAPE',.32); T(k,22,362,'↓ SOURCE',.28)
-K(k,'SF Pan',62,392,30,BK); DOT(k,62,392,21); T(k,48,418,'L',.3); T(k,76,418,'R',.3); T(k,62,368,'PAN',.28)
-B(k,'SF Mix',86,436,'MIX',WH,18)
-k=3
-F(k,'Short Fader',28,40,380,SF,.642)
-B(k,'SF Solo',78,250,'SOLO',WH,24); B(k,'SF Cut',78,296,'CUT',WH,24)
-g.d.append(['rect',round((g.cx(k)+8)/g.CW,4),round((34+404)/g.CH,4),round(84/g.CW,4),round(30/g.CH,4),'#c9ccd0','none',4])
-B(k,'Ch Flip',24,500,None,WH,18); T(k,24,520,'CH FLIP',.28); T(k,68,494,'TAPE',.32,'#7fd34a'); T(k,68,510,'MIC',.32)
-k=4
-K(k,'LF Pan',34,46,32,BK); DOT(k,34,46,22); T(k,20,74,'L',.3); T(k,48,74,'R',.3); T(k,72,40,'PAN',.28)
-B(k,'LF Mix',84,62,'MIX',WH,18)
-B(k,'LF Solo',30,118,'SOLO',WH,24); B(k,'LF Cut',74,118,'CUT',WH,24)
-g.d.append(['rect',round((g.cx(k)+8)/g.CW,4),round((34+150)/g.CH,4),round(84/g.CW,4),round(30/g.CH,4),'#c9ccd0','none',4])
-F(k,'Long Fader',40,210,580,SF,.642)
-pages=pages_of(g,[(n,k,k) for k,n in enumerate(cols)],len(cols))
-strip=dict(kind='Channel Strip',pages=pages,ks='ssl',ps='sq',ar=round(g.CW/g.CH,4),bare=True,noTicks=True,bg='#2a2e34',bg2='#1d2025',ink=INK,kc=GY,fs=16,brand='',model='',tx=.5,ty=.03,deco=g.d,c=g.c)
+# style 'he' = Heritage Edition (dark panel, colours of the HE brochure picture); 'orig' = ASP8024 (light grey panel, colours of the user's console photo)
+def mk_strip(style):
+    global INK
+    he=style=='he'; old=INK; INK='#eef0f2' if he else '#1b2a33'
+    AUXC=GY if he else '#2e6a52'; CUEC=GY if he else '#2f7fd0'; HFC=BLU if he else '#d93a35'; LFC=PNK if he else '#5c6068'
+    HMC=BLU if he else '#2e6a52'; LMC=PNK if he else '#2f7fd0'; PANC=BK if he else '#2f7fd0'
+    cols=['Bus Routing','Aux & EQ','Mitten & SF Pan','Short Fader','Long Fader']
+    g=build(cols,100,600,.75)
+    K,B,SC,DOT,HL,LED,F=g.K,g.B,g.SC,g.DOT,g.HL,g.LED,g.F
+    T=lambda k,x,y,t,sz=.5,col=None: g.T(k,x,y,t,sz,col or INK)
+    def AUX(k,n,x,y,col=None):
+        K(k,f'Aux {n}' if n.isdigit() else f'Cue {n}',x,y,26,col or (AUXC if n.isdigit() else CUEC)); DOT(k,x,y,18); T(k,x-16,y+22,'∞',.34); T(k,x+16,y+22,'0',.3); T(k,x,y+24,'dB',.24); T(k,x+27,y+4,'→ '+n,.4)
+    def PAIR(k,a,b,y0,lab,cue=False):
+        pre='Cue' if cue else 'Aux'
+        AUX(k,a,30,y0); AUX(k,b,30,y0+64)
+        B(k,f'{pre} {a}-{b} SF',84,y0-12,'SF',WH,18); B(k,f'{pre} {a}-{b} Pre',84,y0+16,'PRE',DK,18); T(k,84,y0+38,'CUE' if cue else 'AUX',.3)
+        B(k,f'{pre} {a}-{b} '+('SF B' if cue else 'Link'),84,y0+64,'SF' if cue else lab,WH,18)
+    k=0
+    for i in range(12):
+        r,c=divmod(i,4); x=16+c*23; y=26+r*52
+        B(k,f'Bus {i+1}/{i+13}',x,y,None,WH,16); T(k,x,y+19,str(i+1),.36); g.d.append(['rect',round((g.cx(k)+x-8)/g.CW,4),round((34+y+23)/g.CH,4),round(16/g.CW,4),round(11/g.CH,4),'#d5d7da','none',2]); T(k,x,y+32,str(i+13),.32,'#1d1f22')
+    B(k,'+12 Shift',18,186,None,WH,18); T(k,18,170,'+12',.3); T(k,18,206,'SHIFT',.3)
+    B(k,'Follow Pan',52,186,None,DK,18); T(k,52,170,'FOLLOW',.3); T(k,52,206,'PAN',.3)
+    B(k,'Routing LF',84,186,None,WH,18); T(k,84,206,'LF',.34); HL(k,222)
+    PAIR(k,'1','2',254,'7-8'); PAIR(k,'3','4',394,'9-10')
+    k=1
+    PAIR(k,'5','6',26,'11-12'); PAIR(k,'A','B',160,None,True)
+    HL(k,262); T(k,50,276,'EQUALISER',.36)
+    B(k,'HF/LF In',20,298,'IN',WH,18); T(k,52,302,'>-<',.4); B(k,'HF/LF SF',84,298,'SF',WH,18)
+    B(k,'Air',22,342,None,DK,16); T(k,22,328,'AIR',.3); T(k,22,362,'HF',.5)
+    K(k,'HF dB',68,354,34,HFC); DOT(k,68,354,24); T(k,58,384,'dB',.26); T(k,86,384,'±15',.26)
+    B(k,'100Hz',22,418,None,DK,16); T(k,22,404,'100Hz',.28); T(k,22,438,'LF',.5)
+    K(k,'LF dB',68,430,34,LFC); DOT(k,68,430,24); T(k,58,460,'dB',.26); T(k,86,460,'±15',.26)
+    HL(k,478); B(k,'HMF/LMF In',20,500,'IN',WH,18); T(k,52,504,'-0-0-',.36); B(k,'HMF/LMF SF',84,500,'SF',WH,18)
+    k=2
+    K(k,'HMF kHz',40,40,26,HMC,'ssl',{'sweep':[-140,140]}); SC(k,40,40,19,['0.45','0.7','3.2','7.5','20'],.27,-140,140); T(k,40,66,'kHz',.26); T(k,84,56,'HMF',.55)
+    K(k,'HMF BW',24,104,24,HMC); DOT(k,24,104,17); T(k,24,124,'BW',.26)
+    K(k,'HMF dB',70,112,34,HMC); DOT(k,70,112,24); T(k,60,142,'dB',.26); T(k,88,142,'±15',.26)
+    HL(k,152)
+    K(k,'LMF Hz',40,190,26,LMC,'ssl',{'sweep':[-140,140]}); SC(k,40,190,19,['50','75','175','750','1k5'],.27,-140,140); T(k,40,216,'Hz',.26); T(k,84,206,'LMF',.55)
+    K(k,'LMF BW',24,254,24,LMC); DOT(k,24,254,17); T(k,24,274,'BW',.26)
+    K(k,'LMF dB',70,262,34,LMC); DOT(k,70,262,24); T(k,60,292,'dB',.26); T(k,88,292,'±15',.26)
+    HL(k,304)
+    B(k,'Copy LF',22,336,None,WH,18); T(k,22,318,'COPY LF',.28); T(k,66,320,'MIC',.32,'#ff4a3d'); T(k,66,334,'TAPE',.32); T(k,22,362,'↓ SOURCE',.28)
+    K(k,'SF Pan',62,392,30,PANC); DOT(k,62,392,21); T(k,48,418,'L',.3); T(k,76,418,'R',.3); T(k,62,368,'PAN',.28)
+    B(k,'SF Mix',86,436,'MIX',WH,18)
+    k=3
+    F(k,'Short Fader',28,40,380,SF,.642)
+    B(k,'SF Solo',78,250,'SOLO',WH,24); B(k,'SF Cut',78,296,'CUT',WH,24)
+    g.d.append(['rect',round((g.cx(k)+8)/g.CW,4),round((34+404)/g.CH,4),round(84/g.CW,4),round(30/g.CH,4),'#c9ccd0','none',4])
+    B(k,'Ch Flip',24,500,None,WH,18); T(k,24,520,'CH FLIP',.28); T(k,68,494,'TAPE',.32,'#7fd34a'); T(k,68,510,'MIC',.32)
+    k=4
+    K(k,'LF Pan',34,46,32,PANC); DOT(k,34,46,22); T(k,20,74,'L',.3); T(k,48,74,'R',.3); T(k,72,40,'PAN',.28)
+    B(k,'LF Mix',84,62,'MIX',WH,18)
+    B(k,'LF Solo',30,118,'SOLO',WH,24); B(k,'LF Cut',74,118,'CUT',WH,24)
+    g.d.append(['rect',round((g.cx(k)+8)/g.CW,4),round((34+150)/g.CH,4),round(84/g.CW,4),round(30/g.CH,4),'#c9ccd0','none',4])
+    F(k,'Long Fader',40,210,580,SF,.642)
+    if not he:
+        for e in g.d:
+            if e[0]=='txt' and e[5]=='#c9d2dc': e[5]='#1b2a33'
+    pages=pages_of(g,[(n,k,k) for k,n in enumerate(cols)],len(cols))
+    INK=old
+    return dict(kind='Channel Strip',pages=pages,ks='ssl',ps='sq',ar=round(g.CW/g.CH,4),bare=True,noTicks=True,bg='#2a2e34' if he else '#cfd0d0',bg2='#1d2025' if he else '#b9baba',ink='#eef0f2' if he else '#1b2a33',kc=GY,fs=16,brand='',model='',tx=.5,ty=.03,deco=g.d,c=g.c)
+strip=mk_strip('he'); strip_orig=mk_strip('orig')
 
 # ================= master section =================
 # Layout after the ASP8024 manual drawings the user sent (compressor, oscillator, solo, communications/talkback, control room,
@@ -147,11 +159,11 @@ def mk_master(style):
         K(k,f'Bus Master {i+1}',x,y,20,MAR); DOT(k,x,y,14); T(k,x,y-17,'0',.2); T(k,x-12,y+20,'-10',.18); T(k,x+12,y+20,'+10',.18); T(k,x,y+32,f'{(i%12)+1}/{(i%12)+13}' if False else str(i+1),.28)
     # 6 aux masters
     k=6
-    for i,n in enumerate(['A','B','1','2','3','4']):
-        r,c=divmod(i,2); x=30+c*50; y=46+r*110
-        L010(k,f'Aux {n} Master',x,y,24,MAR if n in 'AB' else CY,'')
-        B(k,f'Aux {n} Solo',x,y+40,'SOLO',YB,20); T(k,x,y+60,f'AUX {n}',.28)
-        if n in ('3','4'): B(k,f'Aux {n} Link',x,y-34,None,SB,12); T(k,x+20,y-34,'LINK →'+('1' if n=='3' else '2'),.18)
+    for i,n in enumerate(['A','B']+[str(j) for j in range(1,13)]): # count after the user's console photo: Aux A, B and 1-12 (14 auxiliaries)
+        r,c=divmod(i,2); x=30+c*50; y=30+r*82
+        K(k,f'Aux {n} Master',x,y,22,MAR if n in 'AB' else CY); DOT(k,x,y,15); T(k,x-13,y+19,'0',.2); T(k,x+13,y+19,'10',.2)
+        B(k,f'Aux {n} Solo',x,y+44,'SOLO',YB,18); T(k,x,y+62,f'AUX {n}',.24)
+        if n in ('3','4'): B(k,f'Aux {n} Link',x+20,y-16,None,SB,10); T(k,x+20,y-28,'LINK→'+('1' if n=='3' else '2'),.16)
     # 7/8 stereo inputs (two modules per column)
     for k,base in ((7,1),(8,3)):
         for m in range(2):
@@ -181,6 +193,6 @@ def mk_master(style):
     INK=old
     return dict(kind='Master Section',pages=mpages,ks='ssl',ps='sq',ar=round(g.CW/g.CH,4),bare=True,noTicks=True,bg='#2a2e34' if he else '#c9c8c6',bg2='#1d2025' if he else '#b3b2b0',ink=ink,kc=GY,fs=16,brand='',model='',tx=.5,ty=.03,deco=g.d,c=g.c)
 master=mk_master('he'); master_orig=mk_master('orig')
-for e in (strip,master,master_orig):
+for e in (strip,strip_orig,master,master_orig):
     n=[q[1] for q in e['c']]; assert len(n)==len(set(n)), [x for x in n if n.count(x)>1]
-sys.stdout.write(''.join(f"  {json.dumps(k)}: {json.dumps(v,ensure_ascii=False)},\n" for k,v in [('Audient ASP8024-HE',strip),('Audient ASP8024-HE Master Section',master),('Audient ASP8024 Master Section',master_orig)]))
+sys.stdout.write(''.join(f"  {json.dumps(k)}: {json.dumps(v,ensure_ascii=False)},\n" for k,v in [('Audient ASP8024-HE',strip),('Audient ASP8024',strip_orig),('Audient ASP8024-HE Master Section',master),('Audient ASP8024 Master Section',master_orig)]))

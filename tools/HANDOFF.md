@@ -41,7 +41,7 @@ sed -n '/<script>/,/<\/script>/p' index.html | sed '1d;$d' > /tmp/x.js && node -
   - `swap.js` (Gerätewechsel tauscht Foto), `eye.js` (Auge Foto ↔ Faceplate), `choice.js` (Foto/Faceplate-Tasten, Amps), `fpsync.js`, `attach.js`
   - `pages.js`, `swipe.js`, `touch.js` (Seiten und Wischen auf iPhone-Größe), `zoom.js` (Lupe, Doppeltipp, Zwei-Finger-Zoom, automatische Seiten; erwartet „ZOOM OK“), `conc.js` (Doppelknöpfe getrennt drehbar, erwartet „CONC OK“), `tab.js` (untere Reiterleiste bleibt beim Scrollen unten, erwartet „TAB OK“), `fader.js`, `master.js` (Master Section), `disp.js` (Display-Texteingabe), `ampch.js` (Kanalnamen mehrerer Amps), `mob.js`
 
-## Stand 13.11.2026 (11) – Übergabe an die nächste Sitzung
+## Stand 13.11.2026 (12) – Übergabe an die nächste Sitzung
 **Arbeitsweise, die sich bewährt hat**
 - Vor jeder Arbeit `git fetch origin main && git merge --ff-only origin/main`; gearbeitet wird im Session-Branch, gepusht auf diesen Branch **und** auf `main` (vom Nutzer so gewünscht). Danach im GitHub-Workflow „pages build and deployment“ (Workflow-ID 393049086) den Erfolg abwarten.
 - Commit-Nachrichten deutsch, mit den vom System vorgegebenen Trailern (Co-Authored-By/Claude-Session).
@@ -62,6 +62,12 @@ sed -n '/<script>/,/<\/script>/p' index.html | sed '1d;$d' > /tmp/x.js && node -
 - SSL 4000 E/G (13.11. (9)): Channel Strip (SL611G, 6 Spalten) und Master Section (SL651G + Centre Section, 17 Spalten in zwei Reihen, `build(..., PR)`) nach dem G-Handbuch des Nutzers (gescanntes PDF → Seiten als Bilder gelesen). Generator `tools/ssl4000eg-gen.py`.
 
 - Audient ASP8024-HE (13.11. (10)): Channel Strip und Master Section nach der Broschüre; Master Section im Mischpult als Insert im Master-Zug; Übernahme-Dropdown nach Produktion gruppiert. Generator `tools/audient8024-gen.py`.
+
+**Unsicher / beim Nutzer nachfragen (API 1608-II)**
+- Doppelknöpfe der Aux-Sends: welches Label innen/außen liegt (angenommen: oberes Symbol = innerer Knopf).
+- Kanal-VU, Talkback-Mikro, Final-Touch-Automation (940C/944C-LEDs am Kanal) nicht angelegt; Kanal-Fader 444C ohne Automations-LEDs.
+- Master-Section-Anordnung = Module nebeneinander wie im Handbuch, nicht nach Konsolenfoto; 529C-Kompressor gibt es nur bei der 2448 (nicht angelegt).
+- Audient DLC (Foto): als reiner DAW-Controller nicht angelegt – nachfragen. Audient ASP8024 Kanal: Beschriftung der beiden Shelf-Taster (AIR/100Hz von der HE übernommen) auf dem Foto nicht lesbar.
 
 **Unsicher / beim Nutzer nachfragen (Audient ASP8024 / ASP8024-HE)**
 - Kanalzug-Eingangssektion (Mic-Gain, 48V, Phase, HPF, Line/Mic) fehlt weiter – auf den Fotos zu klein lesbar.
