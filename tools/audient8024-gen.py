@@ -15,7 +15,7 @@ def mk_strip(style):
     he=style=='he'; old=INK; INK='#eef0f2' if he else '#1b2a33'
     AUXC=GY if he else '#2e6a52'; CUEC=GY if he else '#2f7fd0'; HFC=BLU if he else '#d93a35'; LFC=PNK if he else '#5c6068'
     HMC=BLU if he else '#2e6a52'; LMC=PNK if he else '#2f7fd0'; PANC=BK if he else '#2f7fd0'
-    cols=['Bus Routing','Aux & EQ','Mitten & SF Pan','Short Fader','Long Fader']
+    cols=['Input','Bus Routing','Aux & EQ','Mitten & SF Pan','Short Fader','Long Fader']
     g=build(cols,100,600,.75)
     K,B,SC,DOT,HL,LED,F=g.K,g.B,g.SC,g.DOT,g.HL,g.LED,g.F
     T=lambda k,x,y,t,sz=.5,col=None: g.T(k,x,y,t,sz,col or INK)
@@ -26,7 +26,20 @@ def mk_strip(style):
         AUX(k,a,30,y0); AUX(k,b,30,y0+64)
         B(k,f'{pre} {a}-{b} SF',84,y0-12,'SF',WH,18); B(k,f'{pre} {a}-{b} Pre',84,y0+16,'PRE',DK,18); T(k,84,y0+38,'CUE' if cue else 'AUX',.3)
         B(k,f'{pre} {a}-{b} '+('SF B' if cue else 'Link'),84,y0+64,'SF' if cue else lab,WH,18)
+    # input section: not shown in the sources; laid out logically in the style of the rest of the strip
+    # (mic gain range 6-66 dB from the brochure specification; no other printed values invented)
     k=0
+    K(k,'Mic Gain',34,60,34,'#d93a35' if not he else PNK); DOT(k,34,60,24,13); T(k,14,92,'6',.3); T(k,54,92,'66',.3); T(k,34,100,'MIC GAIN',.3)
+    B(k,'48V',82,40,'48V',WH,18); B(k,'Phase',82,70,'Ø',WH,18); B(k,'Pad',82,100,'PAD',WH,18)
+    HL(k,124)
+    K(k,'Line Gain',34,160,28,GY); DOT(k,34,160,20); T(k,34,192,'LINE GAIN',.28)
+    B(k,'Line',82,160,'LINE',WH,18)
+    HL(k,216)
+    K(k,'HPF',34,252,28,GY); DOT(k,34,252,20); T(k,34,284,'HPF',.3); B(k,'HPF In',82,252,'IN',WH,18)
+    HL(k,306)
+    B(k,'Insert',34,334,'INS',WH,18); B(k,'Insert Pre',82,334,'PRE',DK,18); T(k,58,358,'INSERT',.28)
+    LED(k,34,392,'#ff4433',7); T(k,58,395,'PEAK',.28)
+    k=1
     for i in range(12):
         r,c=divmod(i,4); x=16+c*23; y=26+r*52
         B(k,f'Bus {i+1}/{i+13}',x,y,None,WH,16); T(k,x,y+19,str(i+1),.36); g.d.append(['rect',round((g.cx(k)+x-8)/g.CW,4),round((34+y+23)/g.CH,4),round(16/g.CW,4),round(11/g.CH,4),'#d5d7da','none',2]); T(k,x,y+32,str(i+13),.32,'#1d1f22')
@@ -34,7 +47,7 @@ def mk_strip(style):
     B(k,'Follow Pan',52,186,None,DK,18); T(k,52,170,'FOLLOW',.3); T(k,52,206,'PAN',.3)
     B(k,'Routing LF',84,186,None,WH,18); T(k,84,206,'LF',.34); HL(k,222)
     PAIR(k,'1','2',254,'7-8'); PAIR(k,'3','4',394,'9-10')
-    k=1
+    k=2
     PAIR(k,'5','6',26,'11-12'); PAIR(k,'A','B',160,None,True)
     HL(k,262); T(k,50,276,'EQUALISER',.36)
     B(k,'HF/LF In',20,298,'IN',WH,18); T(k,52,302,'>-<',.4); B(k,'HF/LF SF',84,298,'SF',WH,18)
@@ -43,7 +56,7 @@ def mk_strip(style):
     B(k,'100Hz',22,418,None,DK,16); T(k,22,404,'100Hz',.28); T(k,22,438,'LF',.5)
     K(k,'LF dB',68,430,34,LFC); DOT(k,68,430,24); T(k,58,460,'dB',.26); T(k,86,460,'±15',.26)
     HL(k,478); B(k,'HMF/LMF In',20,500,'IN',WH,18); T(k,52,504,'-0-0-',.36); B(k,'HMF/LMF SF',84,500,'SF',WH,18)
-    k=2
+    k=3
     K(k,'HMF kHz',40,40,26,HMC,'ssl',{'sweep':[-140,140]}); SC(k,40,40,19,['0.45','0.7','3.2','7.5','20'],.27,-140,140); T(k,40,66,'kHz',.26); T(k,84,56,'HMF',.55)
     K(k,'HMF BW',24,104,24,HMC); DOT(k,24,104,17); T(k,24,124,'BW',.26)
     K(k,'HMF dB',70,112,34,HMC); DOT(k,70,112,24); T(k,60,142,'dB',.26); T(k,88,142,'±15',.26)
@@ -55,17 +68,17 @@ def mk_strip(style):
     B(k,'Copy LF',22,336,None,WH,18); T(k,22,318,'COPY LF',.28); T(k,66,320,'MIC',.32,'#ff4a3d'); T(k,66,334,'TAPE',.32); T(k,22,362,'↓ SOURCE',.28)
     K(k,'SF Pan',62,392,30,PANC); DOT(k,62,392,21); T(k,48,418,'L',.3); T(k,76,418,'R',.3); T(k,62,368,'PAN',.28)
     B(k,'SF Mix',86,436,'MIX',WH,18)
-    k=3
+    k=4
     F(k,'Short Fader',28,40,380,SF,.642)
     B(k,'SF Solo',78,250,'SOLO',WH,24); B(k,'SF Cut',78,296,'CUT',WH,24)
     g.d.append(['rect',round((g.cx(k)+8)/g.CW,4),round((34+404)/g.CH,4),round(84/g.CW,4),round(30/g.CH,4),'#c9ccd0','none',4])
     B(k,'Ch Flip',24,500,None,WH,18); T(k,24,520,'CH FLIP',.28); T(k,68,494,'TAPE',.32,'#7fd34a'); T(k,68,510,'MIC',.32)
-    k=4
+    k=5
     K(k,'LF Pan',34,46,32,PANC); DOT(k,34,46,22); T(k,20,74,'L',.3); T(k,48,74,'R',.3); T(k,72,40,'PAN',.28)
     B(k,'LF Mix',84,62,'MIX',WH,18)
     B(k,'LF Solo',30,118,'SOLO',WH,24); B(k,'LF Cut',74,118,'CUT',WH,24)
     g.d.append(['rect',round((g.cx(k)+8)/g.CW,4),round((34+150)/g.CH,4),round(84/g.CW,4),round(30/g.CH,4),'#c9ccd0','none',4])
-    F(k,'Long Fader',40,210,580,SF,.642)
+    F(k,'Long Fader',40,210,580,None,.642)  # long fader scale not shown in any source: drawn without scale
     if not he:
         for e in g.d:
             if e[0]=='txt' and e[5]=='#c9d2dc': e[5]='#1b2a33'

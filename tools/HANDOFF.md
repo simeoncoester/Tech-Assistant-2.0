@@ -70,8 +70,7 @@ sed -n '/<script>/,/<\/script>/p' index.html | sed '1d;$d' > /tmp/x.js && node -
 - Audient DLC jetzt angelegt (Stufenart Sonstiges); Beschriftung der Source/Dest-Felder „LINE I/P / S GRP“ bzw. „LINE O/P / S GRP“ vom Nutzer bestätigt. Audient ASP8024 Kanal: Beschriftung der beiden Shelf-Taster (AIR/100Hz von der HE übernommen) auf dem Foto nicht lesbar.
 
 **Unsicher / beim Nutzer nachfragen (Audient ASP8024 / ASP8024-HE)**
-- Kanalzug-Eingangssektion (Mic-Gain, 48V, Phase, HPF, Line/Mic) fehlt weiter – auf den Fotos zu klein lesbar.
-- Long Fader des Kanalzugs: Skala vom Short Fader übernommen.
+- Kanalzug-Eingangssektion auf Wunsch logisch ergänzt (nicht nach Vorlage); Long Fader ohne Skala (Wunsch des Nutzers).
 - Master Section nach Handbuch-Zeichnungen des Original-ASP8024; Anordnung der Sektionen untereinander (Konsolenfoto) nur ungefähr. Das Pult auf dem Foto hat mehr Aux-Master-Knöpfe als die Zeichnung (A, B, 1–4) – angelegt sind nur die gezeichneten. Wie viele Stereo-Eingänge (angelegt 4) und ob das HE dieselbe Master Section hat (angenommen, plus Kompressor und Heritage aus der Broschüre).
 - Oszillator: zwei Taster ergeben 40 Hz/1k/10k/15k (Kombination laut Zeichnung).
 
