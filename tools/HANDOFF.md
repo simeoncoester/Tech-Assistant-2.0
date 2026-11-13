@@ -41,7 +41,7 @@ sed -n '/<script>/,/<\/script>/p' index.html | sed '1d;$d' > /tmp/x.js && node -
   - `swap.js` (Gerätewechsel tauscht Foto), `eye.js` (Auge Foto ↔ Faceplate), `choice.js` (Foto/Faceplate-Tasten, Amps), `fpsync.js`, `attach.js`
   - `pages.js`, `swipe.js`, `touch.js` (Seiten und Wischen auf iPhone-Größe), `zoom.js` (Lupe, Doppeltipp, Zwei-Finger-Zoom, automatische Seiten; erwartet „ZOOM OK“), `conc.js` (Doppelknöpfe getrennt drehbar, erwartet „CONC OK“), `tab.js` (untere Reiterleiste bleibt beim Scrollen unten, erwartet „TAB OK“), `fader.js`, `master.js` (Master Section), `disp.js` (Display-Texteingabe), `ampch.js` (Kanalnamen mehrerer Amps), `mob.js`
 
-## Stand 13.11.2026 (7) – Übergabe an die nächste Sitzung
+## Stand 13.11.2026 (8) – Übergabe an die nächste Sitzung
 **Arbeitsweise, die sich bewährt hat**
 - Vor jeder Arbeit `git fetch origin main && git merge --ff-only origin/main`; gearbeitet wird im Session-Branch, gepusht auf diesen Branch **und** auf `main` (vom Nutzer so gewünscht). Danach im GitHub-Workflow „pages build and deployment“ (Workflow-ID 393049086) den Erfolg abwarten.
 - Commit-Nachrichten deutsch, mit den vom System vorgegebenen Trailern (Co-Authored-By/Claude-Session).
@@ -56,6 +56,8 @@ sed -n '/<script>/,/<\/script>/p' index.html | sed '1d;$d' > /tmp/x.js && node -
 - Neve 8424 (13.11. (5)/(6)): Channel Strip und Master Section, nach dem Handbuch-PDF des Nutzers korrigiert. Generator `tools/neve8424-gen.py`.
 - Neve 8058 (13.11. (7)): Channel Strip (Routing 32408 / Preamp & EQ 31102 / Aux & Monitor 32404 / Fader) und Master Section (Meter, Aux-Output-Matrix, Phase Meter, Oszillator, Rev Return to 4T, Aux/Group/4T Outputs, Solo Safe, Cue, Studio Loudspeaker, Input Selector, 4T Mixdown, Talkback, Monitor, Meters) – nur aus Fotos des Nutzers (PDF ohne Text) plus Websuche zu den 31102-Frequenzen. Generator `tools/neve8058-gen.py`.
 - Generator-Muster für große Pulte: Python-Skript erzeugt die beiden JSON-Zeilen; in `index.html` die Zeilen, die mit `  "Neve 8058` beginnen, ersetzen (siehe Skriptkopf). Einträge stehen vor `'TL Audio VTC'`.
+
+- Neve VR (13.11. (8)): Channel Strip (6 Spalten) und Master Section (11 Module) nach dem französischen VR-Skript des Nutzers (Text + Panel-Abbildungen mit Skalen). Generator `tools/nevevr-gen.py`. Unsicher: Skalen der Gate-/Kompressor-Knöpfe und der Mic-Gain-Rasterung (aus kleinen Abbildungen abgelesen), Large-/Small-Fader-Skala (10 … 0 … ∞ wie Abbildung S. 7), Lage der Cue-/Rev-Bedienelemente innerhalb der Module (Abbildungen nur schematisch).
 
 **Unsicher / beim Nutzer nachfragen (Neve 8058)**
 - 31102: Gain-Skala, Gain-Bereiche der EQ-Bänder und der kleine Taster neben HF („EQ-Taster“) sind nicht lesbar; Frequenzen (HF 10/12/16 kHz, Mid .35–7.2 kHz, LF 35–220 Hz, HPF 45–360 Hz, LPF 18–6 kHz) stammen aus der Websuche.
