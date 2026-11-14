@@ -41,7 +41,7 @@ sed -n '/<script>/,/<\/script>/p' index.html | sed '1d;$d' > /tmp/x.js && node -
   - `swap.js` (Gerätewechsel tauscht Foto), `eye.js` (Auge Foto ↔ Faceplate), `choice.js` (Foto/Faceplate-Tasten, Amps), `fpsync.js`, `attach.js`
   - `pages.js`, `swipe.js`, `touch.js` (Seiten und Wischen auf iPhone-Größe), `zoom.js` (Lupe, Doppeltipp, Zwei-Finger-Zoom, automatische Seiten; erwartet „ZOOM OK“), `conc.js` (Doppelknöpfe getrennt drehbar, erwartet „CONC OK“), `tab.js` (untere Reiterleiste bleibt beim Scrollen unten, erwartet „TAB OK“), `fader.js`, `master.js` (Master Section), `disp.js` (Display-Texteingabe), `ampch.js` (Kanalnamen mehrerer Amps), `mob.js`
 
-## Stand 14.11.2026 (1) – Übergabe an die nächste Sitzung
+## Stand 14.11.2026 (2) – Übergabe an die nächste Sitzung
 **Arbeitsweise, die sich bewährt hat**
 - Vor jeder Arbeit `git fetch origin main && git merge --ff-only origin/main`; gearbeitet wird im Session-Branch, gepusht auf diesen Branch **und** auf `main` (vom Nutzer so gewünscht). Danach im GitHub-Workflow „pages build and deployment“ (Workflow-ID 393049086) den Erfolg abwarten.
 - Commit-Nachrichten deutsch, mit den vom System vorgegebenen Trailern (Co-Authored-By/Claude-Session).
@@ -64,6 +64,7 @@ sed -n '/<script>/,/<\/script>/p' index.html | sed '1d;$d' > /tmp/x.js && node -
 - Audient ASP8024-HE (13.11. (10)): Channel Strip und Master Section nach der Broschüre; Master Section im Mischpult als Insert im Master-Zug; Übernahme-Dropdown nach Produktion gruppiert. Generator `tools/audient8024-gen.py`.
 
 - Konsolen-Recherche (14.11. (1)): SSL ORIGIN, XL-Desk (je Kanal + Master) und AWS 948 (Kanal) aus offiziellen SSL-Handbüchern. Netzwerk-Umgebung „Tech-Assistant-2.0“ erlaubt solidstatelogic.com, manualslib, apiaudio, ams-neve, archive.org u. a. **Nächste Kandidaten:** SSL 9000 J/K (Handbuch nur auf manualmachine.com, dort 403), SSL Duality/AWS-Master, Neve Genesys/88RS, API Legacy/Vision, Harrison 32C, Trident 80B (nur Rack-Manual gefunden), Amek 9098, MCI JH-500. Knopffarben: ORIGIN nach Handbuchfoto, XL-Desk nach Handbuchtext, AWS nach Handbuchgrafik.
+- Konsolen (14.11. (2)): API Legacy AXS (`tools/apiaxs-gen.py`, nach AXS User Manual 2020), Harrison 32Classic (`tools/harrison32c-gen.py`, nach 32Classic User Guide 2024 = Neuauflage der 32C) und Neve Genesys (`tools/nevegenesys-gen.py`, nach Genesys User Manual Iss. 11), je Kanal + Master. **Unsicher:** alle Farben (Handbücher nur schwarz-weiß; Platten hellgrau, Knöpfe schwarz angenommen); Genesys: Fader-Skala aus der Handbuch-Zeichnung des manuellen Faders, Anzahl Rev Returns (hier 2), EQ/Dynamik-Kassette (optional, nicht gezeichnet – als eigene Stufe wählen), Control Room nur nach Text (keine Abbildung); Harrison: Bus-Fader-Skala wie Kanal-Fader angenommen. **Fehlt noch / braucht Material vom Nutzer:** Neve 88RS (nur Text, keine Panel-Zeichnungen), API Vision, Amek 9098, MCI JH-500 (keine Handbücher frei erhältlich), SSL 9000 J/K (manualmachine 403).
 
 **Unsicher / beim Nutzer nachfragen (API 1608-II)**
 - Doppelknöpfe der Aux-Sends: welches Label innen/außen liegt (angenommen: oberes Symbol = innerer Knopf).
