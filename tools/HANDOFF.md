@@ -41,7 +41,7 @@ sed -n '/<script>/,/<\/script>/p' index.html | sed '1d;$d' > /tmp/x.js && node -
   - `swap.js` (Gerätewechsel tauscht Foto), `eye.js` (Auge Foto ↔ Faceplate), `choice.js` (Foto/Faceplate-Tasten, Amps), `fpsync.js`, `attach.js`
   - `pages.js`, `swipe.js`, `touch.js` (Seiten und Wischen auf iPhone-Größe), `zoom.js` (Lupe, Doppeltipp, Zwei-Finger-Zoom, automatische Seiten; erwartet „ZOOM OK“), `conc.js` (Doppelknöpfe getrennt drehbar, erwartet „CONC OK“), `tab.js` (untere Reiterleiste bleibt beim Scrollen unten, erwartet „TAB OK“), `fader.js`, `master.js` (Master Section), `disp.js` (Display-Texteingabe), `ampch.js` (Kanalnamen mehrerer Amps), `mob.js`
 
-## Stand 13.11.2026 (13) – Übergabe an die nächste Sitzung
+## Stand 14.11.2026 (1) – Übergabe an die nächste Sitzung
 **Arbeitsweise, die sich bewährt hat**
 - Vor jeder Arbeit `git fetch origin main && git merge --ff-only origin/main`; gearbeitet wird im Session-Branch, gepusht auf diesen Branch **und** auf `main` (vom Nutzer so gewünscht). Danach im GitHub-Workflow „pages build and deployment“ (Workflow-ID 393049086) den Erfolg abwarten.
 - Commit-Nachrichten deutsch, mit den vom System vorgegebenen Trailern (Co-Authored-By/Claude-Session).
@@ -62,6 +62,8 @@ sed -n '/<script>/,/<\/script>/p' index.html | sed '1d;$d' > /tmp/x.js && node -
 - SSL 4000 E/G (13.11. (9)): Channel Strip (SL611G, 6 Spalten) und Master Section (SL651G + Centre Section, 17 Spalten in zwei Reihen, `build(..., PR)`) nach dem G-Handbuch des Nutzers (gescanntes PDF → Seiten als Bilder gelesen). Generator `tools/ssl4000eg-gen.py`.
 
 - Audient ASP8024-HE (13.11. (10)): Channel Strip und Master Section nach der Broschüre; Master Section im Mischpult als Insert im Master-Zug; Übernahme-Dropdown nach Produktion gruppiert. Generator `tools/audient8024-gen.py`.
+
+- Konsolen-Recherche (14.11. (1)): SSL ORIGIN, XL-Desk (je Kanal + Master) und AWS 948 (Kanal) aus offiziellen SSL-Handbüchern. Netzwerk-Umgebung „Tech-Assistant-2.0“ erlaubt solidstatelogic.com, manualslib, apiaudio, ams-neve, archive.org u. a. **Nächste Kandidaten:** SSL 9000 J/K (Handbuch nur auf manualmachine.com, dort 403), SSL Duality/AWS-Master, Neve Genesys/88RS, API Legacy/Vision, Harrison 32C, Trident 80B (nur Rack-Manual gefunden), Amek 9098, MCI JH-500. Knopffarben: ORIGIN nach Handbuchfoto, XL-Desk nach Handbuchtext, AWS nach Handbuchgrafik.
 
 **Unsicher / beim Nutzer nachfragen (API 1608-II)**
 - Doppelknöpfe der Aux-Sends: welches Label innen/außen liegt (angenommen: oberes Symbol = innerer Knopf).
