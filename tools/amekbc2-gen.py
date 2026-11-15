@@ -22,8 +22,8 @@ def kit(g):
         g.c.append(['k', name + '|', *P(k, x, y), round(dia / g.CW, 4), col, 'n', e])
         if ring: DOTS(k, x, y, dia * .72, n)
     def CONC(k, name, a, b, x, y, dia=44):   # concentric aux pair: grey outer ring, black inner cap
-        g.c.append(['k', f'{name} {a}|', *P(k, x, y), round(dia / g.CW, 4), GB, 'n', {'ks': 'ssl'}])
-        g.c.append(['k', f'{name} {b}|', *P(k, x, y), round(dia * .55 / g.CW, 4), BK, 'n', {'ks': 'ssl'}])
+        g.c.append(['k', f'{name} {b}|', *P(k, x, y), round(dia / g.CW, 4), GB, 'n', {'ks': 'ssl'}])   # outer ring = aux 2 / 4
+        g.c.append(['k', f'{name} {a}|', *P(k, x, y), round(dia * .55 / g.CW, 4), BK, 'n', {'ks': 'ssl'}])   # inner cap = aux 1 / 3
         DOTS(k, x, y, dia * .66, 11)
     def BT(k, name, x, y, cap=None, col=CAP_B, dia=22): g.c.append(['p', name + '|', *P(k, x, y), round(dia / g.CW, 4), col, 'n', dict({'plain': True}, **({'cap': cap} if cap else {}))])
     def LED(k, x, y, col='#ff3b30', dia=6): g.d.append(['led', *P(k, x, y), round(dia / g.CW, 4), col, False])
@@ -76,12 +76,12 @@ def sends(k, pre):
     for a, b, y in [(1, 2, 320), (3, 4, 420)]:
         CONC(k, f'{pre} Aux', a, b, 42, y, 40); T(k, 92, y - 20, 'AUX', .19); T(k, 22, y + 30, '0', .16); T(k, 52, y + 30, '10', .16); T(k, 90, y + 26, f'{a} ◐ {b}', .17)
         BT(k, f'{pre} Aux {a}/{b} Pre', 50, y + 52, 'PRE', CAP_G, 22)
-for n, lab in zip(range(1, 5), ['3', '4', '1', '2']):
+for n, lab in zip(range(1, 5), ['1', '2', '3', '4']):   # button routes the aux return to this subgroup
     k = n - 1; pre = f'Group {n}'
     T(k, 55, 6, 'BC1125/4', .22)
     BT(k, f'{pre} Return Mute', 50, 28, 'MUTE', CAP_B, 22); BT(k, f'{pre} Return PFL', 50, 56, 'PFL', PFL, 22)
     KN(k, f'{pre} Return Level', 46, 102, 36, BK); T(k, 26, 132, '0', .16); T(k, 66, 132, '10', .16); VT(k, 100, 84, 'LEVEL', .17)
-    BT(k, f'{pre} Return ST', 50, 152, 'ST', CAP_B, 22); BT(k, f'{pre} Return {lab}', 50, 180, lab, CAP_B, 22)
+    BT(k, f'{pre} Return ST', 50, 152, 'ST', CAP_B, 22); BT(k, f'{pre} Return to Group', 50, 180, lab, CAP_B, 22)
     g.HL(k, 204)
     sends(k, pre)
     KN(k, f'{pre} Pan', 42, 518, 34, RD, 9); T(k, 42, 494, 'C', .16); T(k, 92, 504, 'PAN', .18); T(k, 24, 544, 'L', .16); T(k, 60, 544, 'R', .16)
@@ -98,13 +98,13 @@ for i, side in enumerate(['L', 'R']):
 k = 6
 T(k, 55, 6, 'BC1146', .22)
 T(k, 26, 22, 'X10', .17); T(k, 26, 34, 'X100', .17); T(k, 26, 50, 'X1', .17); LINE(k, [(42, 28), (50, 28)])
-BT(k, 'Osc X10 / X100', 70, 28, None, CAP_B, 22); BT(k, 'Osc X1', 70, 54, None, CAP_B, 22); LED(k, 96, 54, '#ff3b30', 6)
-KN(k, 'Osc Freq', 66, 112, 34, TE, ring=False)
-for i, t in enumerate(['150', '125', '100', '80', '60', '40', '30']): T(k, 20, 86 + i * 9, t, .15)
+BT(k, 'Osc x10', 70, 28, None, CAP_B, 22); BT(k, 'Osc x1', 70, 54, None, CAP_B, 22); LED(k, 96, 54, '#ff3b30', 6)
+KN(k, 'Osc Freq', 66, 112, 34, TE, ring=False, ext={'sweep': [-150, -30]})
+for i, t in enumerate(['150', '125', '100', '60', '40', '30']): T(k, 20, 88 + i * 10, t, .15)
 VT(k, 36, 106, 'Hz', .15); VT(k, 101, 98, 'FREQ', .16)
 BT(k, 'Osc Groups', 70, 158, 'GRPS', CAP_B, 22); BT(k, 'Osc Stereo', 70, 186, 'ST', CAP_B, 22)
 g.HL(k, 208)
-KN(k, 'Osc Level', 50, 250, 38, RD); T(k, 30, 282, '0', .16); T(k, 68, 282, '10', .16)
+KN(k, 'PFL Level', 50, 250, 38, RD); VT(k, 101, 232, 'PFL', .16); T(k, 30, 282, '0', .16); T(k, 68, 282, '10', .16)
 T(k, 28, 300, 'METER', .16); T(k, 28, 311, 'ONLY', .16); BT(k, 'Meter Only', 70, 304, None, CAP_B, 22); LED(k, 96, 304, '#ff3b30', 6); LED(k, 88, 332, '#d6b23a', 8)
 g.HL(k, 348)
 for i in range(4):
@@ -121,7 +121,7 @@ T(k, 40, 1094, 'EXT', .16); LINE(k, [(64, 1082), (56, 1082), (56, 1108), (64, 11
 BT(k, 'Talk', 34, 1134, 'TALK', '#e05a54', 34); T(k, 55, 1160, 'AUX MASTER', .16)
 k = 7
 T(k, 55, 6, 'BC1156', .22)
-for i, (nm, l, r, top, three) in enumerate([('T/B to Monitor', 'L', 'L+R', 'OFF', True), ('PFL to Monitor', 'L', 'L+R', '', False), ('Monitor Mute', 'L', 'R', 'L+R', True),
+for i, (nm, l, r, top, three) in enumerate([('T/B to Monitor', 'L', 'L+R', 'OFF', True), ('PFL to Monitor', 'L', 'L+R', 'OFF', True), ('Monitor Mute', 'L', 'R', 'L+R', True),
                                              ('Monitor Mono', 'L', 'R', 'L+R', True), ('Monitor Phase', 'L−Ø', 'L+Ø', 'OFF', True)]):
     y = 40 + i * 34
     SW(k, nm, 70, y, three); T(k, 48, y + 2, l, .15); T(k, 96, y + 2, r, .15)
