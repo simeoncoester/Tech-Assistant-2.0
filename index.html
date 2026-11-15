@@ -13,9 +13,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Tech Assistent">
 <meta name="theme-color" content="#000000">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Condensed:wght@500;600;700&family=Permanent+Marker&display=swap" rel="stylesheet">
+<link href="fonts/fonts.css" rel="stylesheet">
 <style>
 :root{
   --bg:#000; --surface:#0F1217; --surface-2:#161B23; --field:#07090C; --line:#262D38; --line-strong:#3A4555;
@@ -10206,7 +10204,7 @@ function pageHelpSlides() {
 /* ================= home-screen app (PWA) ================= */
 const isStandalone = () => window.matchMedia?.('(display-mode: standalone)').matches || window.navigator.standalone === true;
 const isIOS = () => /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-const APP_VERSION = '15.11.2026 (7)';
+const APP_VERSION = '15.11.2026 (8)';
 // ===== Impressum, Datenschutz, Unterstützen =====
 // Angaben des Betreibers. Solange Name, Anschrift und E-Mail fehlen, zeigt die App keine Rechtstexte an; ohne `donate`-Link keinen Unterstützen-Knopf.
 const LEGAL = { name: '', street: '', city: '', country: 'Deutschland', email: '', phone: '', donate: '', donateLabel: '' };
@@ -10230,7 +10228,7 @@ function legalPop(tab = 'imp') {
   const dsg = () => [H('Verantwortlicher'), ...contact(),
     H('Deine Daten bleiben auf deinem Gerät'), P('Alles, was du in der App einträgst (Künstler, Setlisten, Kits, Fotos, Recall-Einstellungen), wird nur im Speicher deines Browsers abgelegt (localStorage und IndexedDB). Es gibt kein Benutzerkonto und keinen Server, der diese Daten empfängt. Löschen kannst du sie jederzeit über die Website-Daten deines Browsers.'),
     H('Hosting'), P('Die App wird über GitHub Pages (GitHub Inc., USA) ausgeliefert. Beim Aufruf verarbeitet GitHub technisch notwendige Verbindungsdaten wie deine IP-Adresse, um die Seite auszuliefern und vor Missbrauch zu schützen (Art. 6 Abs. 1 lit. f DSGVO). Näheres steht in der Datenschutzerklärung von GitHub.'),
-    H('Schriften und Programmbibliotheken'), P('Die App lädt Schriften von Google Fonts (Google Ireland Ltd.) und bei Bedarf Programmbibliotheken von cdnjs (Cloudflare Inc.) und jsDelivr, z. B. für PDF-Export, Datei-Import und Texterkennung. Dabei wird deine IP-Adresse an diese Anbieter übertragen (Art. 6 Abs. 1 lit. f DSGVO).'),
+    H('Schriften und Programmbibliotheken'), P('Die Schriften werden mit der App selbst ausgeliefert; es besteht keine Verbindung zu Google Fonts. Nur wenn du bestimmte Funktionen nutzt (PDF-Export, Datei-Import, Texterkennung), lädt die App die nötigen Programmbibliotheken von cdnjs (Cloudflare Inc.) bzw. jsDelivr. Dabei wird deine IP-Adresse an diese Anbieter übertragen (Art. 6 Abs. 1 lit. f DSGVO).'),
     H('Mikrofon und Kamera'), P('Stimmgerät und Drum-Tuner werten das Mikrofonsignal nur auf deinem Gerät aus; es wird nichts aufgezeichnet oder übertragen. Fotos werden nur lokal gespeichert.'),
     H('Teilen'), P('Beim Teilen per Link stehen die geteilten Daten komprimiert im Link selbst; beim Teilen per Datei entscheidest du, wem du sie schickst. Der Betreiber erhält dabei nichts.'),
     ...(donateReady() ? [H('Unterstützen'), P('Der Unterstützen-Knopf führt zu einer externen Zahlungsseite. Dort gelten deren Datenschutzbestimmungen; der Betreiber erhält nur die dort übermittelten Zahlungsangaben.')] : []),

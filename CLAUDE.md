@@ -15,7 +15,7 @@ Der Projektinhaber kommuniziert auf **Deutsch**, oft per Diktat (Tippfehler wie 
 | `tools/` | Prüfwerkzeuge (Playwright): `fp-check.js` Faceplate-Überschneidungen, `fp-legible.js` Schriftgröße auf dem iPhone, `fp-sheet.js`/`fp-shots.js` Screenshots, `tests/*.js` Regressionstests; Anleitung und Übergabe-Auftrag in `tools/HANDOFF.md` |
 | `apple-touch-icon.png`, `icon-192.png`, `icon-512.png`, `icon-maskable-512.png` | App-Icons (Logo auf dunklem Grund) |
 
-Externe Bibliotheken nur per CDN und erst bei Bedarf geladen: pdf.js, mammoth (Word), Tesseract.js 5.1.1 (Texterkennung), jsPDF 2.5.1, Google Fonts (Barlow, Barlow Condensed, Permanent Marker).
+Externe Bibliotheken nur per CDN und erst bei Bedarf geladen: pdf.js, mammoth (Word), Tesseract.js 5.1.1 (Texterkennung), jsPDF 2.5.1. **Schriften lokal** (15.11.2026 (8), Datenschutz – keine Verbindung zu Google Fonts): `fonts/fonts.css` mit WOFF2-Dateien (Barlow 400/500/600, Barlow Condensed 500/600/700, je latin + latin-ext; Permanent Marker 400 latin), Lizenzen `fonts/OFL-Barlow.txt` und `fonts/LICENSE-PermanentMarker.txt`; `sw.js` cacht `fonts/fonts.css` (Cache `tech-assistent-v4`). Nie wieder Google-Fonts-Links einbauen.
 
 ## Release-Ablauf (bei jeder Änderung)
 
