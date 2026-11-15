@@ -41,7 +41,7 @@ class D:
         y0, y1 = marks[0][1], marks[-1][1]; L = y1 - y0
         m = [[l, round(1 - (y - y0) / L, 3)] for l, y in marks]
         zero = [p for l, p in m if l == '0'][0]
-        s.c.append(['f', name + '|', *s.P(x, (y0 + y1) / 2), round(L / 8.46 / s.W, 4), col, 'n', {'vert': True, 'zero': zero, 'dbLabel': False, 'plain': True, 'marks': m}])
+        s.c.append(['f', name + '|', *s.P(x, (y0 + y1) / 2), round(L / 16.9 / s.W, 4), col, 'n', {'vert': True, 'asp': 18, 'zero': zero, 'dbLabel': False, 'plain': True, 'marks': m}])
     def out(s, **kw):
         n = [q[1] for q in s.c]; assert len(n) == len(set(n)), [x for x in n if n.count(x) > 1]
         e = dict(noEars=True, noTicks=True, ar=round(s.ar, 4), ink=s.ink, fs=s.F, brand='', model='', tx=.5, ty=.03)

@@ -176,7 +176,7 @@ for k in range(4):
         g.B(k,f'Ch {n} Mix',x-8,220,None,'#c9ccd0',12); TD(k,x-8,234,'MIX',.16)
         g.B(k,f'Ch {n} Sel',x,268,'SEL','#7fe0b0',18); g.B(k,f'Ch {n} Cut',x,296,'CUT','#f06a7a',18); g.B(k,f'Ch {n} Solo',x,324,'SOLO','#f1d27a',18)
         for e in g.c[-3:]: e[7]['plain']=True
-        q={'vert':True,'zero':.761,'dbLabel':False,'marks':DF}; L=600-360
+        q={'vert':True,'zero':.761,'dbLabel':False,'asp':18,'marks':DF}; L=600-360
         g.c.append(['f',f'Ch {n} Fader|',round((g.cx(k)+x-6)/g.CW,4),round((34+480)/g.CH,4),round(L/16.9/g.CW,4),'#c9ccd0','n',q])
 k=4
 g.B(k,'Pre/Post Meters',20,14,None,'#c9ccd0',12); TD(k,46,18,'PRE/POST',.2); TD(k,20,30,'METERS',.18)

@@ -29,7 +29,7 @@ def build(cols, SW, COLH, fs, title_sz=1.0):
     def HL(k,y): x0=cx(k)/CW; yy=round((TOP+y)/CH,4); d.append(['poly',[[x0,yy],[x0+SW/CW,yy]],'#7f8892',2])
     def LED(k,x,y,col,dia=6): d.append(['led',*P(k,x,y),round(dia/CW,4),col,False])
     def F(k,name,x,y0,y1,marks,zero):
-        L=y1-y0; c.append(['f',name+'|',*P(k,x,(y0+y1)/2),round(L/16.9/CW,4),'#2a2d31','n',{'vert':True,'marks':marks,'zero':zero,'dbLabel':False}])
+        L=y1-y0; c.append(['f',name+'|',*P(k,x,(y0+y1)/2),round(L/16.9/CW,4),'#2a2d31','n',{'vert':True,'asp':18,'marks':marks,'zero':zero,'dbLabel':False}])
     def VU(k,x,y,w,h,lab): d.append(['vu',*P(k,x-w/2,y-h/2),round(w/CW,4),round(h/CH,4),{'label':lab}])
     def LEDS(k,x0,y0,x1,y1,n,col): d.append(['leds',*P(k,x0,y0),*P(k,x1,y1),n,round(5/CW,4),col,0,col])
     for k in range(len(cols)-1): d.append(['rect',round((cx(k)+SW)/CW,4),0,round(GP/CW,4),1,GAP,GAP,0])

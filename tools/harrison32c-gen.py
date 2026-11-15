@@ -96,7 +96,7 @@ def BUS(k,a,b):
         KN(k,f'Bus {n} Pan',x,150,22,'L','R')
         for i,nm in enumerate(['PAN','INS','0 dB','MAIN MIX','SOLO']): B(k,f'Bus {n} {nm.title()}'+(' On' if nm=='PAN' else ''),x,192+i*26,None,SB,13); T(k,x,204+i*26,nm,.13)
         B(k,f'Bus {n} Mute',x,332,str(n),SB,20)
-        F(k,f'Bus {n} Fader',x,370,590,FM,round(1-(351-158)/779,3))
+        F(k,f'Bus {n} Fader',x,368,540,FM,round(1-(351-158)/779,3))
 for k,(n,a,b) in enumerate([(1,1,2),(2,3,4),(3,5,6)]): CUE(2*k,n); BUS(2*k+1,a,b)
 k=6
 for j,lab in enumerate(['RETURN MASTER','']):

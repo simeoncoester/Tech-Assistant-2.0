@@ -33,7 +33,7 @@ def build(cols, SW, COLH, title_sz=1.0, PR=None):
     def HL(k,y): x0=cx(k)/CW; yy=round((ry(k)+TOP+y)/CH,4); d.append(['poly',[[x0,yy],[x0+SW/CW,yy]],'#8a929b',2])
     def LED(k,x,y,col,dia=6): d.append(['led',*P(k,x,y),round(dia/CW,4),col,False])
     def F(k,name,x,y0,y1,marks,zero,col='#b9bcbf'):
-        L=y1-y0; q={'vert':True,'zero':zero,'dbLabel':False}
+        L=y1-y0; q={'vert':True,'zero':zero,'dbLabel':False,'asp':18}
         q['marks']=marks or LARGE
         if not marks: q['plain']=True
         c.append(['f',name+'|',*P(k,x,(y0+y1)/2),round(L/16.9/CW,4),col,'n',q])
