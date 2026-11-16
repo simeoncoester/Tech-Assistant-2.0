@@ -8559,16 +8559,16 @@ function syncMixFromStrips(C) {
 }
 // one aux of a channel strip (or aux master of the master section) as console knob: shows and sets the knob angle
 function stripAuxKnob(L, c, label) {
-  const color = c.color || '#9aa3ad', val = h('span', { class: 'kval' });
+  const color = c.color || '#9aa3ad';
   const k = h('div', { class: 'knob send lk', tabindex: 0, role: 'slider', style: `--bc:${color}`, 'aria-label': `${label} · ${L.st.gear || ''}` });
   const [lo, hi] = prPLim(c), ang = () => prAng(c, (L.vals[c.id] || {}).pos ?? 0);
-  const draw = () => { const a = ang(); k.style.setProperty('--a', `${a}deg`); val.textContent = lkClock(a); k.setAttribute('aria-valuetext', lkClock(a)); };
+  const draw = () => { const a = ang(); k.style.setProperty('--a', `${a}deg`); k.setAttribute('aria-valuetext', lkClock(a)); }; // the console shows only the knob position, no clock text
   const set = p => { L.vals[c.id] = { pos: Math.max(lo, Math.min(hi, p)), text: '' }; draw(); };
   const span = prSpan(c); let y0 = 0, p0 = 0;
   holdToAdjust(k, { start: y => { y0 = y; p0 = (L.vals[c.id] || {}).pos ?? 0; }, move: y => set(p0 + (y0 - y) / 160 * 270 / span), end: () => touch() });
   k.addEventListener('keydown', e => { if (!['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) return; e.preventDefault(); set(((L.vals[c.id] || {}).pos ?? 0) + (['ArrowUp', 'ArrowRight'].includes(e.key) ? 8 : -8) / span); touch(); });
   draw();
-  return h('div', { class: 'knob-wrap send-wrap', title: `${label} (${L.st.gear || ''})` }, h('span', { class: 'send-lbl lk-lbl' }, label.slice(0, 7)), k, val);
+  return h('div', { class: 'knob-wrap send-wrap', title: `${label} (${L.st.gear || ''})` }, h('span', { class: 'send-lbl lk-lbl' }, label.slice(0, 7)), k);
 }
 const lkKeySort = (a, b) => { const [pa, na] = a.split(' '), [pb, nb] = b.split(' '); return pa === pb ? (parseFloat(na) || na.charCodeAt(0) + 100) - (parseFloat(nb) || nb.charCodeAt(0) + 100) : pa.localeCompare(pb); };
 function viewConsole() {
@@ -8587,7 +8587,7 @@ function viewConsole() {
   const masterIns = () => { const ins = (C.masters || []).slice(0, 4).map(insBtn); while (ins.length < 4) ins.push(h('div', { class: 'ins empty' })); return ins; }; // the master section sits as insert on the master strip
   let links = new Map(), mLink = null, auxKeys = [];
   const hiddenKnob = () => h('div', { class: 'knob-wrap', style: 'visibility:hidden', 'aria-hidden': 'true' }, 'S', h('div', { class: 'knob ro' }), h('span', { class: 'kval' }, '–'));
-  const auxRows = L => auxKeys.map(key => L && L.auxes[key] ? stripAuxKnob(L, L.auxes[key], key) : hiddenKnob());
+  const auxRows = L => auxKeys.map(key => L && L.auxes[key] ? stripAuxKnob(L, L.auxes[key], key) : h('div', { class: 'knob-wrap send-wrap', style: 'visibility:hidden', 'aria-hidden': 'true' }, h('span', { class: 'send-lbl' }, 'S'), h('div', { class: 'knob ro' })));
   const strip = (ch, kind, anySolo, redraw) => {
     const L = kind === 'ch' ? links.get(ch.id) : null;
     const m = ch.mix, ins = chWidth(ch) === 'dual' ? dualIns(ch) : ch.stages.slice(0, 4).map(insBtn);
@@ -10274,7 +10274,7 @@ function pageHelpSlides() {
 /* ================= home-screen app (PWA) ================= */
 const isStandalone = () => window.matchMedia?.('(display-mode: standalone)').matches || window.navigator.standalone === true;
 const isIOS = () => /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-const APP_VERSION = '16.11.2026 (1)';
+const APP_VERSION = '16.11.2026 (2)';
 // ===== Impressum, Datenschutz, Unterstützen =====
 // Angaben des Betreibers. Solange Name, Anschrift und E-Mail fehlen, zeigt die App keine Rechtstexte an; ohne `donate`-Link keinen Unterstützen-Knopf.
 // Rechtstexte gehen erst zusammen mit einem funktionierenden Unterstützen-Link online (Wunsch des Betreibers); das Kontaktformular erst mit eigener Info-Adresse in `contact`.
