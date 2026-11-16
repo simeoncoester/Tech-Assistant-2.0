@@ -8249,20 +8249,45 @@ function pdfMixer(w, C, title, p, owner) {
   const PER = 16; let first = true;
   for (let o = 0; o < strips.length; o += PER) { const part = strips.slice(o, o + PER);
     w.page('l'); w.h1(title + (strips.length > PER ? `  (${o / PER + 1} / ${Math.ceil(strips.length / PER)})` : '')); first = false;
-    const top = w.y, sw = Math.min(24, (w.W - 2 * M) / part.length), bottom = w.H - M - 6, sH = Math.min(3, sendB.length) * 11, fh = Math.max(34, Math.min(74, bottom - top - 18 - 6 - 12 - sH - 8 - 6 - 15));
-    const knob = (cx, cy, r, ang, col) => { const a = (ang - 90) * Math.PI / 180, c = rgb(col); doc.setFillColor(c[0], c[1], c[2]); doc.setDrawColor(40); doc.setLineWidth(.25); doc.circle(cx, cy, r, 'FD'); doc.setDrawColor(255); doc.setLineWidth(.55); doc.line(cx + Math.cos(a) * r * .25, cy + Math.sin(a) * r * .25, cx + Math.cos(a) * r * .9, cy + Math.sin(a) * r * .9); };
+    // same order as the console: inserts, gain (large), small extra knobs and short faders, sends, aux, pan (large) right above mute/solo and the fader
+    const links = new Map(part.filter(q => q.kind === 'ch').map(q => [q.ch.id, chStripLink(q.ch)])), mLink = part.some(q => q.kind === 'master') ? masterStripLink(C) : null;
+    const exOf = L => lkExtras(L), xfOf = L => lkExtraFaders(L);
+    let nEx = Math.max(0, ...[...links.values()].map(L => exOf(L).length)); nEx += nEx % 2; const nXf = Math.max(0, ...[...links.values()].map(L => xfOf(L).length));
+    const auxKeys = [...new Set([...[...links.values()].filter(Boolean).flatMap(L => Object.keys(L.auxes)), ...(mLink ? Object.keys(mLink.auxes) : [])])].sort(lkKeySort);
+    const top = w.y, sw = Math.min(24, (w.W - 2 * M) / part.length), bottom = w.H - M - 6, fixed = 18.5 + 11 + 12 + 8 + 6 + 3 + 13;
+    const rowsH = Math.ceil(nEx / 2) * 8 + Math.ceil(nXf / 3) * 10 + (sendB.length + auxKeys.length) * 8.5, avail = bottom - top - fixed;
+    const kz = rowsH && avail - rowsH < 34 ? Math.max(.45, (avail - 34) / rowsH) : 1, fh = Math.max(30, Math.min(74, avail - rowsH * kz));
+    const knob = (cx, cy, r, ang, col) => { const a = (ang - 90) * Math.PI / 180, c = rgb(col); doc.setFillColor(c[0], c[1], c[2]); doc.setDrawColor(40); doc.setLineWidth(.25); doc.circle(cx, cy, r, 'FD'); doc.setDrawColor(cLum(col) > .6 ? 20 : 255); doc.setLineWidth(r < 2.5 ? .4 : .55); doc.line(cx + Math.cos(a) * r * .25, cy + Math.sin(a) * r * .25, cx + Math.cos(a) * r * .9, cy + Math.sin(a) * r * .9); };
     const lab = (t, x, yy, size = 6, col = 90, bold = false) => { doc.setFont('helvetica', bold ? 'bold' : 'normal'); doc.setFontSize(size); doc.setTextColor(col); doc.text(pdfTxt(t), x, yy, { align: 'center' }); doc.setTextColor(0); };
+    const angOf = (L, c) => prAng(c, (L.vals[c.id] || {}).pos ?? 0), short = (t, n) => String(t || '').replace(/\s*\|.*$/, '').slice(0, n);
     part.forEach(({ ch, kind }, k) => { const x = M + k * sw, cx = x + sw / 2, m = ch.mix || { fader: 0, pan: 0 }, own = kind === 'ch' ? catCol(ch) : kind === 'bus' ? busColor(ch, busses) : ''; let y = top;
+      const L = kind === 'ch' ? links.get(ch.id) : null, AL = kind === 'master' ? mLink : L;
       doc.setFillColor(kind === 'master' ? 232 : kind === 'bus' ? 240 : 247); doc.setDrawColor(200); doc.setLineWidth(.2); doc.rect(x + .4, top, sw - .8, bottom - top, 'FD');
       // inserts
       const st = [...(ch.stages || [])].slice(0, 4);
       for (let r = 0; r < 4; r++) { const s0 = st[r]; if (s0) { const [sh, col] = STAGE_UI[s0.kind] || STAGE_UI.Sonstiges, c = rgb(col), tpl = tplOf(s0), g = insShort(s0, tpl); doc.setFillColor(c[0], c[1], c[2]); doc.rect(x + 1.2, y + 1 + r * 4.2, sw - 2.4, 3.6, 'F'); doc.setFont('helvetica', 'bold'); doc.setFontSize(5.2); doc.setTextColor(20); doc.text(doc.splitTextToSize(pdfTxt(`${sh} ${g}`), sw - 3.2)[0] || '', x + 1.9, y + 3.6 + r * 4.2); doc.setTextColor(0); } else { doc.setDrawColor(215); doc.rect(x + 1.2, y + 1 + r * 4.2, sw - 2.4, 3.6); } }
       y += 18.5;
-      if (kind === 'ch') { const pre = (ch.stages || []).find(s0 => s0.kind === 'Preamp'), g = pre ? parseFloat(String((pre.vals || {}).Gain || '').replace(',', '.').replace(/[^\d.\-+]/g, '')) : NaN; lab('GAIN ' + (isNaN(g) ? '-' : Math.round(g) + ' dB'), cx, y + 3.4, 5.6); }
-      y += 6;
+      // gain: position of the strip / preamp gain knob, otherwise the typed preamp gain
+      if (kind === 'ch') { const G = L && L.gain[0] ? L : (ch.stages || []).filter(s0 => s0.kind === 'Preamp').map(s0 => stripLink(s0, false)).find(q => q && q.gain[0]);
+        if (G) { knob(cx, y + 3.6, 3, angOf(G, G.gain[0]), G.gain[0].color || '#C4A36E'); lab('GAIN', cx, y + 9.8, 5.4); }
+        else { const pre = (ch.stages || []).find(s0 => s0.kind === 'Preamp'), g = pre ? parseFloat(String((pre.vals || {}).Gain || '').replace(',', '.').replace(/[^\d.\-+]/g, '')) : NaN;
+          knob(cx, y + 3.6, 3, isNaN(g) ? -135 : Math.max(-135, Math.min(135, -135 + g / 70 * 270)), '#C4A36E'); lab('GAIN ' + (isNaN(g) ? '-' : Math.round(g) + ' dB'), cx, y + 9.8, 5.4); } }
+      y += 11;
+      // small extra knobs (two per row) and short faders (three per row)
+      const ex = exOf(L), rk = 8 * kz;
+      for (let q = 0; q < nEx; q++) { const c = ex[q]; if (!c) continue; const ox = cx + (q % 2 ? sw / 4 : -sw / 4), oy = y + Math.floor(q / 2) * rk; const r = Math.min(1.9, rk * .24); knob(ox, oy + r + .4, r, angOf(L, c), c.color || '#3a3f48'); lab(short(c.name, 8), ox, oy + rk - .5, 3.6); }
+      y += Math.ceil(nEx / 2) * rk;
+      const xf = xfOf(L), rf = Math.max(10, 13 * kz);
+      for (let q = 0; q < nXf; q++) { const c = xf[q]; if (!c) continue; const ox = cx + ((q % 3) - 1) * sw / 3.2, oy = y + Math.floor(q / 3) * rf, th = rf - 3.2, pv = Math.max(0, Math.min(1, (L.vals[c.id] || {}).pos ?? 0));
+        doc.setFillColor(40, 44, 52); doc.rect(ox - .35, oy + .5, .7, th, 'F'); doc.setFillColor(225); doc.setDrawColor(40); doc.setLineWidth(.2); doc.rect(ox - 1.6, oy + .5 + (1 - pv) * th - .9, 3.2, 1.8, 'FD'); lab(short((c.name || '').replace(/\s*fader\s*/i, ' ').trim(), 6), ox, oy + rf - .8, 3.8); }
+      y += Math.ceil(nXf / 3) * rf;
+      // bus sends and aux sends, small
+      const rs = 8.5 * kz, kr = Math.min(2.2, rs * .28);
+      sendB.forEach(b => { if (kind === 'ch' && (b.srcIds || []).includes(ch.id)) { const v = (m.sends || {})[b.id] ?? 0; knob(cx, y + kr + .4, kr, -135 + dbToPos(v) * 270, busColor(b, busses)); lab(`${(b.name || 'Bus').slice(0, 7)} ${fmtDb(v)}`, cx, y + rs - .5, 4.2); } y += rs; });
+      auxKeys.forEach(key => { const c = AL && AL.auxes[key]; if (c) { knob(cx, y + kr + .4, kr, angOf(AL, c), c.color || '#9aa3ad'); lab(key, cx, y + rs - .5, 4.2); } y += rs; });
+      // main pan, large, right above mute / solo
       if (kind !== 'master') { knob(cx, y + 4, 3, (m.pan || 0) / 100 * 135, '#3a3f48'); lab('PAN ' + (!m.pan ? 'C' : m.pan < 0 ? 'L' + -m.pan : 'R' + m.pan), cx, y + 10.4, 5.6); }
       y += 12;
-      sendB.slice(0, 3).forEach(b => { if (kind === 'ch' && (b.srcIds || []).includes(ch.id)) { const v = (m.sends || {})[b.id] ?? 0; knob(cx, y + 3.6, 2.7, -135 + dbToPos(v) * 270, busColor(b, busses)); lab(`${(b.name || 'Bus').slice(0, 7)} ${fmtDb(v)}`, cx, y + 9.6, 5.2); } y += 11; });
       if (kind !== 'master') { const bw = Math.min(6, sw / 2 - 2); [['M', m.mute, [200, 50, 44]], ['S', m.solo, [226, 170, 20]]].forEach(([t, on, c], q) => { const bx = cx + (q ? .6 : -bw - .6); if (on) { doc.setFillColor(c[0], c[1], c[2]); doc.rect(bx, y, bw, 5, 'F'); } doc.setDrawColor(90); doc.setLineWidth(.25); doc.rect(bx, y, bw, 5); lab(t, bx + bw / 2, y + 3.7, 6.5, on ? 255 : 80, true); }); }
       y += 8;
       lab(fmtDb(m.fader ?? 0) + ' dB', cx, y + 3.4, 6.8, 0, true); y += 6;
@@ -10333,7 +10358,7 @@ function pageHelpSlides() {
 /* ================= home-screen app (PWA) ================= */
 const isStandalone = () => window.matchMedia?.('(display-mode: standalone)').matches || window.navigator.standalone === true;
 const isIOS = () => /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-const APP_VERSION = '16.11.2026 (6)';
+const APP_VERSION = '16.11.2026 (7)';
 // ===== Impressum, Datenschutz, Unterstützen =====
 // Angaben des Betreibers. Solange Name, Anschrift und E-Mail fehlen, zeigt die App keine Rechtstexte an; ohne `donate`-Link keinen Unterstützen-Knopf.
 // Rechtstexte gehen erst zusammen mit einem funktionierenden Unterstützen-Link online (Wunsch des Betreibers); das Kontaktformular erst mit eigener Info-Adresse in `contact`.
