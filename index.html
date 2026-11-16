@@ -8460,7 +8460,18 @@ function panKnob(m, onSet) {
   draw();
   return h('div', { class: 'knob-wrap' }, 'PAN', k, val);
 }
-function gainKnob(ch) {
+function gainKnob(ch, L) {
+  // gain of a channel strip (or a preamp with faceplate / photo): only the knob position, adjustable here and written back to the device
+  const G = L && L.gain[0] ? L : (ch.stages || []).filter(st => st.kind === 'Preamp').map(st => stripLink(st, false)).find(x => x && x.gain[0]);
+  if (G) { const c = G.gain[0], [lo, hi] = prPLim(c), span = prSpan(c), ang = () => prAng(c, (G.vals[c.id] || {}).pos ?? 0);
+    const k = h('div', { class: 'knob lk', tabindex: 0, role: 'slider', style: `--kc:${c.color || '#C4A36E'}`, 'aria-label': `Gain · ${G.st.gear || ''}`, title: `${c.name || 'Gain'} (${G.st.gear || ''})` });
+    const draw = () => { const a = ang(); k.style.setProperty('--a', `${a}deg`); k.setAttribute('aria-valuetext', lkClock(a)); };
+    const set = p => { G.vals[c.id] = { pos: Math.max(lo, Math.min(hi, p)), text: '' }; draw(); };
+    let y0 = 0, p0 = 0;
+    holdToAdjust(k, { start: y => { y0 = y; p0 = (G.vals[c.id] || {}).pos ?? 0; }, move: y => set(p0 + (y0 - y) / 160 * 270 / span), end: () => touch() });
+    k.addEventListener('keydown', e => { if (!['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) return; e.preventDefault(); set(((G.vals[c.id] || {}).pos ?? 0) + (['ArrowUp', 'ArrowRight'].includes(e.key) ? 8 : -8) / span); touch(); });
+    draw();
+    return h('div', { class: 'knob-wrap' }, 'GAIN', k, h('span', { class: 'kval' }, '\u00a0')); }
   const pre = ch.stages.find(st => st.kind === 'Preamp');
   const raw = pre ? String(pre.vals['Gain'] || '') : '';
   const g = parseFloat(raw.replace(',', '.').replace(/[^\d.\-+]/g, ''));
@@ -8538,7 +8549,10 @@ function stripLink(st, master) {
     if (master ? !/master/i.test(n) || /pan|bal|width|talk/i.test(n) : /pan|pre|\bon\b|master|trim|link|bal|width|return/i.test(n)) return;
     const sc = master && /^(stereo\s*)?(aux|cue)\s*(master\s*)?[0-9ab/]+(\s*master)?$/i.test(n.trim()) ? 2 : 1; // the aux master itself beats sends that sit on a master strip
     if (!auxes[key] || sc > aScore[key]) { auxes[key] = c; aScore[key] = sc; } });
-  return { st, tpl, vals: st.photo.vals, fader: fader.slice(0, master ? 2 : 1), pan: pan.slice(0, 1), mute: btn(/\b(mute|cut)\b/i).slice(0, 1), solo: btn(/\bsolo\b/i).slice(0, 1), auxes };
+  const gain = master ? [] : lkPick(C, c => knob(c) && /gain|^mic$|mic\s*(level|trim)|input\s*trim|^input$|preamp|sensitivity/i.test(c.name || ''),
+    [[/^(mic\s*|preamp\s*|input\s*)?gain$/i, 6], [/^mic$/i, 5], [/mic|preamp/i, 3], [/gain/i, 2], [/input/i, 1]],
+    [/make.?up|eq|\b(hf|lf|mf|hmf|lmf|lmid|hmid)\b|high|low|mid|band|bell|shelf|comp|gate|exp|thresh|aux|cue|send|line|group|grp|return|master|talk|t\/b|osc|\bdi\b|inst|output|\bout\b|mix|monitor|mon\b|phones|track|tape|bus|\bsf\b|small|short|\bhi\b|\blo\b|range|ratio|drive|level$/i]);
+  return { st, tpl, vals: st.photo.vals, gain: gain.slice(0, 1), fader: fader.slice(0, master ? 2 : 1), pan: pan.slice(0, 1), mute: btn(/\b(mute|cut)\b/i).slice(0, 1), solo: btn(/\bsolo\b/i).slice(0, 1), auxes };
 }
 const chStripLink = ch => (ch && ch.stages || []).filter(st => st.kind === 'Channel Strip').map(st => stripLink(st, false)).find(Boolean) || null;
 const masterStripLink = C => (C && C.masters || []).map(st => stripLink(st, true)).find(Boolean) || null;
@@ -8594,7 +8608,7 @@ function viewConsole() {
     while (ins.length < 4) ins.push(h('div', { class: 'ins empty' }));
     const toggle = (key, cls, label) => h('button', { class: cls, type: 'button', 'aria-pressed': String(!!m[key]), 'aria-label': `${label} ${ch.name || ''}`, onclick: () => { m[key] = !m[key]; lkSetBtn(L, key, m[key]); touch(); redraw(); } }, cls.toUpperCase());
     return h('div', { class: `strip ${kind}` + (anySolo && !m.solo ? ' dim' : '') + (m.mute ? ' dim' : '') },
-      ins, kind === 'ch' ? gainKnob(ch) : h('div', { class: 'knob-wrap', style: 'visibility:hidden' }, 'GAIN', h('div', { class: 'knob ro' }), h('span', { class: 'kval' }, '–')),
+      ins, kind === 'ch' ? gainKnob(ch, L) : h('div', { class: 'knob-wrap', style: 'visibility:hidden' }, 'GAIN', h('div', { class: 'knob ro' }), h('span', { class: 'kval' }, '–')),
       panKnob(m, L && L.pan.length ? v => lkSetPan(L, v) : null), sendRows(ch, kind), auxRows(L), h('div', { class: 'ms' }, toggle('mute', 'm', 'Stumm'), toggle('solo', 's', 'Solo')),
       colorFader(faderEl(m, ch.name || 'Kanal', L && L.fader.length ? db => lkSetFader(L, db) : null), kind === 'ch' ? null : busColor(ch, C.busses)),
       h('button', { class: 'scribble' + (kind === 'ch' && chCatColor(ch, route.chainOwner) ? ' has-cat' : ''), style: kind === 'ch' && chCatColor(ch, route.chainOwner) ? `--catc:${chCatColor(ch, route.chainOwner)}` : null, type: 'button', title: 'Signalkette öffnen', onclick: () => { openSet.add(ch.id); nav('chain'); } }, ch.name || (kind === 'bus' ? 'Bus' : 'Kanal')),
@@ -10274,7 +10288,7 @@ function pageHelpSlides() {
 /* ================= home-screen app (PWA) ================= */
 const isStandalone = () => window.matchMedia?.('(display-mode: standalone)').matches || window.navigator.standalone === true;
 const isIOS = () => /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-const APP_VERSION = '16.11.2026 (2)';
+const APP_VERSION = '16.11.2026 (3)';
 // ===== Impressum, Datenschutz, Unterstützen =====
 // Angaben des Betreibers. Solange Name, Anschrift und E-Mail fehlen, zeigt die App keine Rechtstexte an; ohne `donate`-Link keinen Unterstützen-Knopf.
 // Rechtstexte gehen erst zusammen mit einem funktionierenden Unterstützen-Link online (Wunsch des Betreibers); das Kontaktformular erst mit eigener Info-Adresse in `contact`.
