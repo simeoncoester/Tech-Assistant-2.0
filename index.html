@@ -2495,7 +2495,8 @@ button.ins:focus-visible{outline:2px solid #6c9bef;outline-offset:1px}
 .send-lbl{max-width:100%;overflow:hidden;text-overflow:clip;white-space:nowrap}
 .xk-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px 2px;width:100%}
 .xk-wrap{display:flex;flex-direction:column;align-items:center;gap:1px;min-width:0}
-.knob.xk{width:24px;height:24px}
+.knob.xk,.strip .knob.send{width:24px;height:24px}
+.strip .knob.send::after{top:3px;height:7px;transform-origin:50% 9px}
 .xf-row{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px 2px;width:100%}
 .xf-wrap{display:flex;flex-direction:column;align-items:center;gap:2px;min-width:0}
 .xf{position:relative;width:16px;height:64px;touch-action:none;cursor:ns-resize}
@@ -8587,10 +8588,14 @@ function lkKnob(L, c, cls, label, style) {
   draw(); return k;
 }
 // further knobs of a channel strip (trim, EQ …) appear in the console once they have a setting – smaller than gain and pan
+// order of controls along the channel: section (page of the faceplate, e.g. Input / EQ / Main on the VTC), then top to bottom, then left to right
+const lkFlow = L => { let pg = null; try { const fp = L.tpl.builtin && FACEPLATES[L.tpl.builtin]; pg = fp ? (fpPagesOf(fp) || []).filter(q => !/^alles$/i.test(q[0])) : null; } catch (e) {}
+  const sec = c => { if (!pg || !pg.length) return 0; const i = pg.findIndex(q => c.x >= q[1] && c.x <= q[3] && c.y >= q[2] && c.y <= q[4]); return i < 0 ? pg.length : i; };
+  return (a, b) => sec(a) - sec(b) || a.y - b.y || a.x - b.x; };
 const lkExtras = L => { if (!L) return []; const used = new Set([...L.gain, ...L.pan, ...Object.values(L.auxes)].map(c => c.id));
-  return L.tpl.ctrls.filter(c => (c.type || 'knob') === 'knob' && !used.has(c.id) && (L.vals[c.id] || {}).pos != null).sort((a, b) => a.y - b.y || a.x - b.x); };
+  return L.tpl.ctrls.filter(c => (c.type || 'knob') === 'knob' && !used.has(c.id) && (L.vals[c.id] || {}).pos != null).sort(lkFlow(L)); };
 // optional short faders of a channel strip (e.g. Mix B on the TL Audio VTC) once they have a setting: small fader showing the fader position
-const lkExtraFaders = L => L ? L.tpl.ctrls.filter(c => c.type === 'slider' && c.vert && !L.fader.includes(c) && (L.vals[c.id] || {}).pos != null).sort((a, b) => a.x - b.x || a.y - b.y) : [];
+const lkExtraFaders = L => L ? L.tpl.ctrls.filter(c => c.type === 'slider' && c.vert && !L.fader.includes(c) && (L.vals[c.id] || {}).pos != null).sort(lkFlow(L)) : [];
 function lkMiniFader(L, c) {
   const cap = h('i'), f = h('div', { class: 'xf', tabindex: 0, role: 'slider', 'aria-label': `${c.name || 'Fader'} · ${L.st.gear || ''}`, title: `${c.name || 'Fader'} (${L.st.gear || ''})`, style: c.color ? `--fc:${c.color}` : null }, cap);
   const pos = () => (L.vals[c.id] || {}).pos ?? 0;
@@ -8625,13 +8630,13 @@ function viewConsole() {
   // one send knob per bus that has channels, in the bus colour; strips that do not feed it keep an empty slot so the rows line up
   const sendBusses = () => C.busses.filter(b => (b.srcIds || []).some(id => C.channels.some(c => c.id === id)));
   const sendRows = (ch, kind) => sendBusses().map(b => kind === 'ch' && (b.srcIds || []).includes(ch.id) ? sendKnob(ch.mix, b, busColor(b, C.busses))
-    : h('div', { class: 'knob-wrap', style: 'visibility:hidden', 'aria-hidden': 'true' }, 'S', h('div', { class: 'knob ro' }), h('span', { class: 'kval' }, '–')));
+    : h('div', { class: 'knob-wrap', style: 'visibility:hidden', 'aria-hidden': 'true' }, h('span', { class: 'send-lbl' }, 'S'), h('div', { class: 'knob send ro' }), h('span', { class: 'kval' }, '–')));
   const insBtn = st => { const [sh, col] = STAGE_UI[st.kind] || STAGE_UI.Sonstiges; const tpl = st.photo && S.devTpls.find(t => t.id === st.photo.tplId); const g = insShort(st, tpl);
     return h('button', { class: 'ins' + (tpl ? ' has-photo' : ''), type: 'button', style: `--k:${col}`, title: `${st.kind}${st.gear ? ': ' + st.gear : ''}`, 'aria-label': `${st.kind}${st.gear ? ': ' + st.gear : ''}${tpl ? ', ' + trText('Foto mit Einstellungen') : ''}`, onclick: () => insOpen(st, tpl) }, h('i', {}, sh), h('span', {}, g || '')); };
   const masterIns = () => { const ins = (C.masters || []).slice(0, 4).map(insBtn); while (ins.length < 4) ins.push(h('div', { class: 'ins empty' })); return ins; }; // the master section sits as insert on the master strip
   let links = new Map(), mLink = null, auxKeys = [];
   const hiddenKnob = () => h('div', { class: 'knob-wrap', style: 'visibility:hidden', 'aria-hidden': 'true' }, 'S', h('div', { class: 'knob ro' }), h('span', { class: 'kval' }, '–'));
-  const auxRows = L => auxKeys.map(key => L && L.auxes[key] ? stripAuxKnob(L, L.auxes[key], key) : h('div', { class: 'knob-wrap send-wrap', style: 'visibility:hidden', 'aria-hidden': 'true' }, h('span', { class: 'send-lbl' }, 'S'), h('div', { class: 'knob ro' })));
+  const auxRows = L => auxKeys.map(key => L && L.auxes[key] ? stripAuxKnob(L, L.auxes[key], key) : h('div', { class: 'knob-wrap send-wrap', style: 'visibility:hidden', 'aria-hidden': 'true' }, h('span', { class: 'send-lbl' }, 'S'), h('div', { class: 'knob send ro' })));
   let nExtra = 0, nXf = 0;
   const xfRow = L => { const ex = lkExtraFaders(L), cells = ex.map(c => h('div', { class: 'xf-wrap' }, lkMiniFader(L, c), h('span', { class: 'xk-lbl' }, (c.name || '').replace(/\s*fader\s*/i, ' ').trim().slice(0, 7) || 'Fader')));
     while (cells.length < nXf) cells.push(h('div', { class: 'xf-wrap', style: 'visibility:hidden', 'aria-hidden': 'true' }, h('div', { class: 'xf' }), h('span', { class: 'xk-lbl' }, 'S')));
@@ -8646,7 +8651,7 @@ function viewConsole() {
     const toggle = (key, cls, label) => h('button', { class: cls, type: 'button', 'aria-pressed': String(!!m[key]), 'aria-label': `${label} ${ch.name || ''}`, onclick: () => { m[key] = !m[key]; lkSetBtn(L, key, m[key]); touch(); redraw(); } }, cls.toUpperCase());
     return h('div', { class: `strip ${kind}` + (anySolo && !m.solo ? ' dim' : '') + (m.mute ? ' dim' : '') },
       ins, kind === 'ch' ? gainKnob(ch, L) : h('div', { class: 'knob-wrap', style: 'visibility:hidden' }, 'GAIN', h('div', { class: 'knob ro' }), h('span', { class: 'kval' }, '–')),
-      extraGrid(L), xfRow(L), panKnob(m, L && L.pan.length ? v => lkSetPan(L, v) : null), sendRows(ch, kind), auxRows(L), h('div', { class: 'ms' }, toggle('mute', 'm', 'Stumm'), toggle('solo', 's', 'Solo')),
+      extraGrid(L), xfRow(L), sendRows(ch, kind), auxRows(L), panKnob(m, L && L.pan.length ? v => lkSetPan(L, v) : null), h('div', { class: 'ms' }, toggle('mute', 'm', 'Stumm'), toggle('solo', 's', 'Solo')),
       colorFader(faderEl(m, ch.name || 'Kanal', L && L.fader.length ? db => lkSetFader(L, db) : null), kind === 'ch' ? null : busColor(ch, C.busses)),
       h('button', { class: 'scribble' + (kind === 'ch' && chCatColor(ch, route.chainOwner) ? ' has-cat' : ''), style: kind === 'ch' && chCatColor(ch, route.chainOwner) ? `--catc:${chCatColor(ch, route.chainOwner)}` : null, type: 'button', title: 'Signalkette öffnen', onclick: () => { openSet.add(ch.id); nav('chain'); } }, ch.name || (kind === 'bus' ? 'Bus' : 'Kanal')),
       h('div', { class: 'src' }, chWidth(ch) === 'stereo' ? h('b', { class: 'src-w' }, 'ST ') : chWidth(ch) === 'dual' ? h('b', { class: 'src-w' }, 'L/R ') : null, kind === 'bus' ? (ch.source || 'Bus') : kind === 'send' ? (ch.source || 'Send') : (ch.source || '')));
@@ -8666,8 +8671,8 @@ function viewConsole() {
       h('div', { class: 'strip master' }, masterIns(),
         h('div', { class: 'knob-wrap', style: 'visibility:hidden' }, 'GAIN', h('div', { class: 'knob ro' }), h('span', { class: 'kval' }, '–')),
         extraGrid(null), xfRow(null),
-        h('div', { class: 'knob-wrap', style: 'visibility:hidden' }, 'PAN', h('div', { class: 'knob ro' }), h('span', { class: 'kval' }, '–')),
         sendRows(null, 'master'), auxRows(mLink),
+        h('div', { class: 'knob-wrap', style: 'visibility:hidden' }, 'PAN', h('div', { class: 'knob ro' }), h('span', { class: 'kval' }, '–')),
         h('div', { class: 'ms', style: 'visibility:hidden' }, h('button', {}, 'M')),
         faderEl(C.master, 'Master', mLink && mLink.fader.length ? db => lkSetFader(mLink, db) : null), h('div', { class: 'scribble', style: 'cursor:default' }, 'Master'), h('div', { class: 'src' }, 'Stereo'))));
     fitConsole();
@@ -10328,7 +10333,7 @@ function pageHelpSlides() {
 /* ================= home-screen app (PWA) ================= */
 const isStandalone = () => window.matchMedia?.('(display-mode: standalone)').matches || window.navigator.standalone === true;
 const isIOS = () => /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-const APP_VERSION = '16.11.2026 (5)';
+const APP_VERSION = '16.11.2026 (6)';
 // ===== Impressum, Datenschutz, Unterstützen =====
 // Angaben des Betreibers. Solange Name, Anschrift und E-Mail fehlen, zeigt die App keine Rechtstexte an; ohne `donate`-Link keinen Unterstützen-Knopf.
 // Rechtstexte gehen erst zusammen mit einem funktionierenden Unterstützen-Link online (Wunsch des Betreibers); das Kontaktformular erst mit eigener Info-Adresse in `contact`.
