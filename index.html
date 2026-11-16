@@ -2493,6 +2493,11 @@ button.ins:focus-visible{outline:2px solid #6c9bef;outline-offset:1px}
 .bus-src .chip[aria-pressed="true"]{color:#fff;border-color:var(--accent,#4d8cf0);background:rgba(77,140,240,.22)}
 .knob.send{background:radial-gradient(circle at 36% 30%,color-mix(in srgb,var(--bc) 55%,#fff),var(--bc) 55%,color-mix(in srgb,var(--bc) 45%,#000));--kc:#111}
 .send-lbl{max-width:100%;overflow:hidden;text-overflow:clip;white-space:nowrap}
+.xk-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px 2px;width:100%}
+.xk-wrap{display:flex;flex-direction:column;align-items:center;gap:1px;min-width:0}
+.knob.xk{width:24px;height:24px}
+.knob.xk::after{top:3px;height:7px;transform-origin:50% 9px}
+.xk-lbl{font:600 8px/1.1 "Barlow Condensed",sans-serif;color:var(--muted);max-width:100%;overflow:hidden;white-space:nowrap;text-overflow:clip;letter-spacing:.02em}
 .ins-dual{padding:0!important;gap:0!important}
 .ins-h{flex:1 1 50%;min-width:0;display:flex;align-items:center;gap:2px;padding:0 3px;height:100%;overflow:hidden;position:relative}
 .ins-h + .ins-h{border-left:1px solid rgba(255,255,255,.18)}
@@ -8463,14 +8468,7 @@ function panKnob(m, onSet) {
 function gainKnob(ch, L) {
   // gain of a channel strip (or a preamp with faceplate / photo): only the knob position, adjustable here and written back to the device
   const G = L && L.gain[0] ? L : (ch.stages || []).filter(st => st.kind === 'Preamp').map(st => stripLink(st, false)).find(x => x && x.gain[0]);
-  if (G) { const c = G.gain[0], [lo, hi] = prPLim(c), span = prSpan(c), ang = () => prAng(c, (G.vals[c.id] || {}).pos ?? 0);
-    const k = h('div', { class: 'knob lk', tabindex: 0, role: 'slider', style: `--kc:${c.color || '#C4A36E'}`, 'aria-label': `Gain · ${G.st.gear || ''}`, title: `${c.name || 'Gain'} (${G.st.gear || ''})` });
-    const draw = () => { const a = ang(); k.style.setProperty('--a', `${a}deg`); k.setAttribute('aria-valuetext', lkClock(a)); };
-    const set = p => { G.vals[c.id] = { pos: Math.max(lo, Math.min(hi, p)), text: '' }; draw(); };
-    let y0 = 0, p0 = 0;
-    holdToAdjust(k, { start: y => { y0 = y; p0 = (G.vals[c.id] || {}).pos ?? 0; }, move: y => set(p0 + (y0 - y) / 160 * 270 / span), end: () => touch() });
-    k.addEventListener('keydown', e => { if (!['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) return; e.preventDefault(); set(((G.vals[c.id] || {}).pos ?? 0) + (['ArrowUp', 'ArrowRight'].includes(e.key) ? 8 : -8) / span); touch(); });
-    draw();
+  if (G) { const k = lkKnob(G, G.gain[0], '', 'Gain');
     return h('div', { class: 'knob-wrap' }, 'GAIN', k, h('span', { class: 'kval' }, '\u00a0')); }
   const pre = ch.stages.find(st => st.kind === 'Preamp');
   const raw = pre ? String(pre.vals['Gain'] || '') : '';
@@ -8571,6 +8569,20 @@ function syncMixFromStrips(C) {
   const M = masterStripLink(C);
   if (M && M.fader[0]) { C.master ||= { fader: 0 }; const v = M.vals[M.fader[0].id]; if (lkHas(v)) C.master.fader = posToDb(Math.max(0, Math.min(1, v.pos))); else lkSetFader(M, C.master.fader); }
 }
+// console knob bound to one control of a device: shows only the angle, dragging sets it on the device
+function lkKnob(L, c, cls, label, style) {
+  const k = h('div', { class: 'knob lk ' + (cls || ''), tabindex: 0, role: 'slider', style: style || `--kc:${c.color || '#C4A36E'}`, 'aria-label': `${label} · ${L.st.gear || ''}`, title: `${c.name || label} (${L.st.gear || ''})` });
+  const [lo, hi] = prPLim(c), span = prSpan(c), ang = () => prAng(c, (L.vals[c.id] || {}).pos ?? 0);
+  const draw = () => { const a = ang(); k.style.setProperty('--a', `${a}deg`); k.setAttribute('aria-valuetext', lkClock(a)); };
+  const set = p => { L.vals[c.id] = { pos: Math.max(lo, Math.min(hi, p)), text: '' }; draw(); };
+  let y0 = 0, p0 = 0;
+  holdToAdjust(k, { start: y => { y0 = y; p0 = (L.vals[c.id] || {}).pos ?? 0; }, move: y => set(p0 + (y0 - y) / 160 * 270 / span), end: () => touch() });
+  k.addEventListener('keydown', e => { if (!['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) return; e.preventDefault(); set(((L.vals[c.id] || {}).pos ?? 0) + (['ArrowUp', 'ArrowRight'].includes(e.key) ? 8 : -8) / span); touch(); });
+  draw(); return k;
+}
+// further knobs of a channel strip (trim, EQ …) appear in the console once they have a setting – smaller than gain and pan
+const lkExtras = L => { if (!L) return []; const used = new Set([...L.gain, ...L.pan, ...Object.values(L.auxes)].map(c => c.id));
+  return L.tpl.ctrls.filter(c => (c.type || 'knob') === 'knob' && !used.has(c.id) && (L.vals[c.id] || {}).pos != null).sort((a, b) => a.y - b.y || a.x - b.x); };
 // one aux of a channel strip (or aux master of the master section) as console knob: shows and sets the knob angle
 function stripAuxKnob(L, c, label) {
   const color = c.color || '#9aa3ad';
@@ -8602,6 +8614,10 @@ function viewConsole() {
   let links = new Map(), mLink = null, auxKeys = [];
   const hiddenKnob = () => h('div', { class: 'knob-wrap', style: 'visibility:hidden', 'aria-hidden': 'true' }, 'S', h('div', { class: 'knob ro' }), h('span', { class: 'kval' }, '–'));
   const auxRows = L => auxKeys.map(key => L && L.auxes[key] ? stripAuxKnob(L, L.auxes[key], key) : h('div', { class: 'knob-wrap send-wrap', style: 'visibility:hidden', 'aria-hidden': 'true' }, h('span', { class: 'send-lbl' }, 'S'), h('div', { class: 'knob ro' })));
+  let nExtra = 0;
+  const extraGrid = L => { const ex = lkExtras(L), cells = ex.map(c => h('div', { class: 'xk-wrap' }, lkKnob(L, c, 'xk', c.name || 'Poti'), h('span', { class: 'xk-lbl' }, (c.name || '').replace(/\s*\|.*$/, '').slice(0, 9))));
+    while (cells.length < nExtra) cells.push(h('div', { class: 'xk-wrap', style: 'visibility:hidden', 'aria-hidden': 'true' }, h('div', { class: 'knob xk ro' }), h('span', { class: 'xk-lbl' }, 'S')));
+    return nExtra ? h('div', { class: 'xk-grid' }, cells) : null; };
   const strip = (ch, kind, anySolo, redraw) => {
     const L = kind === 'ch' ? links.get(ch.id) : null;
     const m = ch.mix, ins = chWidth(ch) === 'dual' ? dualIns(ch) : ch.stages.slice(0, 4).map(insBtn);
@@ -8609,7 +8625,7 @@ function viewConsole() {
     const toggle = (key, cls, label) => h('button', { class: cls, type: 'button', 'aria-pressed': String(!!m[key]), 'aria-label': `${label} ${ch.name || ''}`, onclick: () => { m[key] = !m[key]; lkSetBtn(L, key, m[key]); touch(); redraw(); } }, cls.toUpperCase());
     return h('div', { class: `strip ${kind}` + (anySolo && !m.solo ? ' dim' : '') + (m.mute ? ' dim' : '') },
       ins, kind === 'ch' ? gainKnob(ch, L) : h('div', { class: 'knob-wrap', style: 'visibility:hidden' }, 'GAIN', h('div', { class: 'knob ro' }), h('span', { class: 'kval' }, '–')),
-      panKnob(m, L && L.pan.length ? v => lkSetPan(L, v) : null), sendRows(ch, kind), auxRows(L), h('div', { class: 'ms' }, toggle('mute', 'm', 'Stumm'), toggle('solo', 's', 'Solo')),
+      extraGrid(L), panKnob(m, L && L.pan.length ? v => lkSetPan(L, v) : null), sendRows(ch, kind), auxRows(L), h('div', { class: 'ms' }, toggle('mute', 'm', 'Stumm'), toggle('solo', 's', 'Solo')),
       colorFader(faderEl(m, ch.name || 'Kanal', L && L.fader.length ? db => lkSetFader(L, db) : null), kind === 'ch' ? null : busColor(ch, C.busses)),
       h('button', { class: 'scribble' + (kind === 'ch' && chCatColor(ch, route.chainOwner) ? ' has-cat' : ''), style: kind === 'ch' && chCatColor(ch, route.chainOwner) ? `--catc:${chCatColor(ch, route.chainOwner)}` : null, type: 'button', title: 'Signalkette öffnen', onclick: () => { openSet.add(ch.id); nav('chain'); } }, ch.name || (kind === 'bus' ? 'Bus' : 'Kanal')),
       h('div', { class: 'src' }, chWidth(ch) === 'stereo' ? h('b', { class: 'src-w' }, 'ST ') : chWidth(ch) === 'dual' ? h('b', { class: 'src-w' }, 'L/R ') : null, kind === 'bus' ? (ch.source || 'Bus') : kind === 'send' ? (ch.source || 'Send') : (ch.source || '')));
@@ -8617,6 +8633,7 @@ function viewConsole() {
   const draw = () => {
     syncMixFromStrips(C);
     links = new Map(C.channels.map(ch => [ch.id, chStripLink(ch)])); mLink = masterStripLink(C);
+    nExtra = Math.max(0, ...[...links.values()].map(L => lkExtras(L).length)); nExtra += nExtra % 2;
     auxKeys = [...new Set([...[...links.values()].filter(Boolean).flatMap(L => Object.keys(L.auxes)), ...(mLink ? Object.keys(mLink.auxes) : [])])].sort(lkKeySort);
     const anySolo = all.some(c => c.mix.solo);
     wrap.replaceChildren(h('div', { class: 'console', role: 'group', 'aria-label': 'Mischpult' },
@@ -8626,6 +8643,7 @@ function viewConsole() {
       h('div', { class: 'sep' }),
       h('div', { class: 'strip master' }, masterIns(),
         h('div', { class: 'knob-wrap', style: 'visibility:hidden' }, 'GAIN', h('div', { class: 'knob ro' }), h('span', { class: 'kval' }, '–')),
+        extraGrid(null),
         h('div', { class: 'knob-wrap', style: 'visibility:hidden' }, 'PAN', h('div', { class: 'knob ro' }), h('span', { class: 'kval' }, '–')),
         sendRows(null, 'master'), auxRows(mLink),
         h('div', { class: 'ms', style: 'visibility:hidden' }, h('button', {}, 'M')),
@@ -10288,7 +10306,7 @@ function pageHelpSlides() {
 /* ================= home-screen app (PWA) ================= */
 const isStandalone = () => window.matchMedia?.('(display-mode: standalone)').matches || window.navigator.standalone === true;
 const isIOS = () => /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-const APP_VERSION = '16.11.2026 (3)';
+const APP_VERSION = '16.11.2026 (4)';
 // ===== Impressum, Datenschutz, Unterstützen =====
 // Angaben des Betreibers. Solange Name, Anschrift und E-Mail fehlen, zeigt die App keine Rechtstexte an; ohne `donate`-Link keinen Unterstützen-Knopf.
 // Rechtstexte gehen erst zusammen mit einem funktionierenden Unterstützen-Link online (Wunsch des Betreibers); das Kontaktformular erst mit eigener Info-Adresse in `contact`.
