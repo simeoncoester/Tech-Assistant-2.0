@@ -2496,6 +2496,12 @@ button.ins:focus-visible{outline:2px solid #6c9bef;outline-offset:1px}
 .xk-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px 2px;width:100%}
 .xk-wrap{display:flex;flex-direction:column;align-items:center;gap:1px;min-width:0}
 .knob.xk{width:24px;height:24px}
+.xf-row{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px 2px;width:100%}
+.xf-wrap{display:flex;flex-direction:column;align-items:center;gap:2px;min-width:0}
+.xf{position:relative;width:16px;height:64px;touch-action:none;cursor:ns-resize}
+.xf::before{content:"";position:absolute;left:50%;top:4px;bottom:4px;width:3px;margin-left:-1.5px;border-radius:2px;background:#050608;box-shadow:inset 0 1px 1px rgba(0,0,0,.8),0 0 0 1px rgba(255,255,255,.06)}
+.xf i{position:absolute;left:0;width:16px;height:8px;border-radius:2px;background:linear-gradient(#f2f2f0,#b9bcc0 45%,#e8e8e6 55%,#9da0a5);box-shadow:0 2px 3px rgba(0,0,0,.6),inset 0 0 0 1px rgba(0,0,0,.25);border-bottom:2px solid var(--fc,transparent)}
+.xf:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .knob.xk::after{top:3px;height:7px;transform-origin:50% 9px}
 .xk-lbl{font:600 8px/1.1 "Barlow Condensed",sans-serif;color:var(--muted);max-width:100%;overflow:hidden;white-space:nowrap;text-overflow:clip;letter-spacing:.02em}
 .ins-dual{padding:0!important;gap:0!important}
@@ -8583,6 +8589,18 @@ function lkKnob(L, c, cls, label, style) {
 // further knobs of a channel strip (trim, EQ …) appear in the console once they have a setting – smaller than gain and pan
 const lkExtras = L => { if (!L) return []; const used = new Set([...L.gain, ...L.pan, ...Object.values(L.auxes)].map(c => c.id));
   return L.tpl.ctrls.filter(c => (c.type || 'knob') === 'knob' && !used.has(c.id) && (L.vals[c.id] || {}).pos != null).sort((a, b) => a.y - b.y || a.x - b.x); };
+// optional short faders of a channel strip (e.g. Mix B on the TL Audio VTC) once they have a setting: small fader showing the fader position
+const lkExtraFaders = L => L ? L.tpl.ctrls.filter(c => c.type === 'slider' && c.vert && !L.fader.includes(c) && (L.vals[c.id] || {}).pos != null).sort((a, b) => a.x - b.x || a.y - b.y) : [];
+function lkMiniFader(L, c) {
+  const cap = h('i'), f = h('div', { class: 'xf', tabindex: 0, role: 'slider', 'aria-label': `${c.name || 'Fader'} · ${L.st.gear || ''}`, title: `${c.name || 'Fader'} (${L.st.gear || ''})`, style: c.color ? `--fc:${c.color}` : null }, cap);
+  const pos = () => (L.vals[c.id] || {}).pos ?? 0;
+  const draw = () => { cap.style.bottom = `calc(${pos() * 100}% - ${pos() * 8}px)`; f.setAttribute('aria-valuetext', `${Math.round(pos() * 100)} %`); };
+  const set = p => { L.vals[c.id] = { ...(L.vals[c.id] || {}), pos: Math.max(0, Math.min(1, p)), text: '' }; draw(); };
+  let y0 = 0, p0 = 0;
+  holdToAdjust(f, { start: y => { y0 = y; p0 = pos(); }, move: y => set(p0 + (y0 - y) / 64), end: () => touch() });
+  f.addEventListener('keydown', e => { if (!['ArrowUp', 'ArrowDown'].includes(e.key)) return; e.preventDefault(); set(pos() + (e.key === 'ArrowUp' ? .05 : -.05)); touch(); });
+  draw(); return f;
+}
 // one aux of a channel strip (or aux master of the master section) as console knob: shows and sets the knob angle
 function stripAuxKnob(L, c, label) {
   const color = c.color || '#9aa3ad';
@@ -8614,7 +8632,10 @@ function viewConsole() {
   let links = new Map(), mLink = null, auxKeys = [];
   const hiddenKnob = () => h('div', { class: 'knob-wrap', style: 'visibility:hidden', 'aria-hidden': 'true' }, 'S', h('div', { class: 'knob ro' }), h('span', { class: 'kval' }, '–'));
   const auxRows = L => auxKeys.map(key => L && L.auxes[key] ? stripAuxKnob(L, L.auxes[key], key) : h('div', { class: 'knob-wrap send-wrap', style: 'visibility:hidden', 'aria-hidden': 'true' }, h('span', { class: 'send-lbl' }, 'S'), h('div', { class: 'knob ro' })));
-  let nExtra = 0;
+  let nExtra = 0, nXf = 0;
+  const xfRow = L => { const ex = lkExtraFaders(L), cells = ex.map(c => h('div', { class: 'xf-wrap' }, lkMiniFader(L, c), h('span', { class: 'xk-lbl' }, (c.name || '').replace(/\s*fader\s*/i, ' ').trim().slice(0, 7) || 'Fader')));
+    while (cells.length < nXf) cells.push(h('div', { class: 'xf-wrap', style: 'visibility:hidden', 'aria-hidden': 'true' }, h('div', { class: 'xf' }), h('span', { class: 'xk-lbl' }, 'S')));
+    return nXf ? h('div', { class: 'xf-row' }, cells) : null; };
   const extraGrid = L => { const ex = lkExtras(L), cells = ex.map(c => h('div', { class: 'xk-wrap' }, lkKnob(L, c, 'xk', c.name || 'Poti'), h('span', { class: 'xk-lbl' }, (c.name || '').replace(/\s*\|.*$/, '').slice(0, 9))));
     while (cells.length < nExtra) cells.push(h('div', { class: 'xk-wrap', style: 'visibility:hidden', 'aria-hidden': 'true' }, h('div', { class: 'knob xk ro' }), h('span', { class: 'xk-lbl' }, 'S')));
     return nExtra ? h('div', { class: 'xk-grid' }, cells) : null; };
@@ -8625,7 +8646,7 @@ function viewConsole() {
     const toggle = (key, cls, label) => h('button', { class: cls, type: 'button', 'aria-pressed': String(!!m[key]), 'aria-label': `${label} ${ch.name || ''}`, onclick: () => { m[key] = !m[key]; lkSetBtn(L, key, m[key]); touch(); redraw(); } }, cls.toUpperCase());
     return h('div', { class: `strip ${kind}` + (anySolo && !m.solo ? ' dim' : '') + (m.mute ? ' dim' : '') },
       ins, kind === 'ch' ? gainKnob(ch, L) : h('div', { class: 'knob-wrap', style: 'visibility:hidden' }, 'GAIN', h('div', { class: 'knob ro' }), h('span', { class: 'kval' }, '–')),
-      extraGrid(L), panKnob(m, L && L.pan.length ? v => lkSetPan(L, v) : null), sendRows(ch, kind), auxRows(L), h('div', { class: 'ms' }, toggle('mute', 'm', 'Stumm'), toggle('solo', 's', 'Solo')),
+      extraGrid(L), xfRow(L), panKnob(m, L && L.pan.length ? v => lkSetPan(L, v) : null), sendRows(ch, kind), auxRows(L), h('div', { class: 'ms' }, toggle('mute', 'm', 'Stumm'), toggle('solo', 's', 'Solo')),
       colorFader(faderEl(m, ch.name || 'Kanal', L && L.fader.length ? db => lkSetFader(L, db) : null), kind === 'ch' ? null : busColor(ch, C.busses)),
       h('button', { class: 'scribble' + (kind === 'ch' && chCatColor(ch, route.chainOwner) ? ' has-cat' : ''), style: kind === 'ch' && chCatColor(ch, route.chainOwner) ? `--catc:${chCatColor(ch, route.chainOwner)}` : null, type: 'button', title: 'Signalkette öffnen', onclick: () => { openSet.add(ch.id); nav('chain'); } }, ch.name || (kind === 'bus' ? 'Bus' : 'Kanal')),
       h('div', { class: 'src' }, chWidth(ch) === 'stereo' ? h('b', { class: 'src-w' }, 'ST ') : chWidth(ch) === 'dual' ? h('b', { class: 'src-w' }, 'L/R ') : null, kind === 'bus' ? (ch.source || 'Bus') : kind === 'send' ? (ch.source || 'Send') : (ch.source || '')));
@@ -8634,6 +8655,7 @@ function viewConsole() {
     syncMixFromStrips(C);
     links = new Map(C.channels.map(ch => [ch.id, chStripLink(ch)])); mLink = masterStripLink(C);
     nExtra = Math.max(0, ...[...links.values()].map(L => lkExtras(L).length)); nExtra += nExtra % 2;
+    nXf = Math.max(0, ...[...links.values()].map(L => lkExtraFaders(L).length));
     auxKeys = [...new Set([...[...links.values()].filter(Boolean).flatMap(L => Object.keys(L.auxes)), ...(mLink ? Object.keys(mLink.auxes) : [])])].sort(lkKeySort);
     const anySolo = all.some(c => c.mix.solo);
     wrap.replaceChildren(h('div', { class: 'console', role: 'group', 'aria-label': 'Mischpult' },
@@ -8643,7 +8665,7 @@ function viewConsole() {
       h('div', { class: 'sep' }),
       h('div', { class: 'strip master' }, masterIns(),
         h('div', { class: 'knob-wrap', style: 'visibility:hidden' }, 'GAIN', h('div', { class: 'knob ro' }), h('span', { class: 'kval' }, '–')),
-        extraGrid(null),
+        extraGrid(null), xfRow(null),
         h('div', { class: 'knob-wrap', style: 'visibility:hidden' }, 'PAN', h('div', { class: 'knob ro' }), h('span', { class: 'kval' }, '–')),
         sendRows(null, 'master'), auxRows(mLink),
         h('div', { class: 'ms', style: 'visibility:hidden' }, h('button', {}, 'M')),
@@ -10306,7 +10328,7 @@ function pageHelpSlides() {
 /* ================= home-screen app (PWA) ================= */
 const isStandalone = () => window.matchMedia?.('(display-mode: standalone)').matches || window.navigator.standalone === true;
 const isIOS = () => /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-const APP_VERSION = '16.11.2026 (4)';
+const APP_VERSION = '16.11.2026 (5)';
 // ===== Impressum, Datenschutz, Unterstützen =====
 // Angaben des Betreibers. Solange Name, Anschrift und E-Mail fehlen, zeigt die App keine Rechtstexte an; ohne `donate`-Link keinen Unterstützen-Knopf.
 // Rechtstexte gehen erst zusammen mit einem funktionierenden Unterstützen-Link online (Wunsch des Betreibers); das Kontaktformular erst mit eigener Info-Adresse in `contact`.
