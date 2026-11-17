@@ -10469,11 +10469,11 @@ function pageHelpSlides() {
 /* ================= home-screen app (PWA) ================= */
 const isStandalone = () => window.matchMedia?.('(display-mode: standalone)').matches || window.navigator.standalone === true;
 const isIOS = () => /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-const APP_VERSION = '17.11.2026 (6)';
+const APP_VERSION = '17.11.2026 (7)';
 // ===== Impressum, Datenschutz, Unterstützen =====
 // Angaben des Betreibers. Solange Name, Anschrift und E-Mail fehlen, zeigt die App keine Rechtstexte an; ohne `donate`-Link keinen Unterstützen-Knopf.
 // Rechtstexte gehen erst zusammen mit einem funktionierenden Unterstützen-Link online (Wunsch des Betreibers); das Kontaktformular erst mit eigener Info-Adresse in `contact`.
-const LEGAL = { name: 'Simeon Cöster', street: 'Wittstocker Straße 7a', city: '10553 Berlin', country: 'Deutschland', email: 'simeoncoester@gmail.com', phone: '', contact: 'infotechassistent@gmail.com', donate: '', donateLabel: '' };
+const LEGAL = { name: 'Simeon Cöster', street: 'Wittstocker Straße 7a', city: '10553 Berlin', country: 'Deutschland', email: 'simeoncoester@gmail.com', phone: '', contact: 'infotechassistent@gmail.com', donate: 'https://paypal.me/TechAssistent1', donateLabel: '' };
 const legalReady = () => !!(LEGAL.name && LEGAL.street && LEGAL.city && LEGAL.email) && donateReady();
 const contactReady = () => /^[^@\s]+@[^@\s]+\.[a-z]{2,}$/i.test(LEGAL.contact || '');
 function donateReady() { return /^https:\/\//.test(LEGAL.donate || ''); }
