@@ -7413,16 +7413,21 @@ function meterEl(needle) {
   return [h('div', { class: 'meter', 'aria-hidden': 'true' }, h('div', { class: 'zone' }), h('div', { class: 'center' }), needle),
     h('div', { class: 'meter-labels' }, h('span', {}, 'zu tief'), h('span', {}, 'zu hoch'))];
 }
-function instIcon(k) {
+function instIcon(k, cls, small) {
   if (k === 'drums') return svg('svg', { viewBox: '0 0 48 48', class: 'ico', 'aria-hidden': 'true' },
     svg('ellipse', { cx: 24, cy: 15, rx: 18, ry: 6, fill: 'none', stroke: 'currentColor', 'stroke-width': 2.5 }),
     svg('path', { d: 'M6 15v15c0 3.3 8 6 18 6s18-2.7 18-6V15', fill: 'none', stroke: 'currentColor', 'stroke-width': 2.5 }),
     svg('path', { d: 'M10 21l5 13M38 21l-5 13M24 21v15', stroke: 'currentColor', 'stroke-width': 1.5, opacity: .6 }));
-  const n = k === 'bass' ? 4 : 6, pegs = [];
-  for (let i = 0; i < n; i++) pegs.push(svg('circle', { cx: i < n / 2 ? 14 : 34, cy: 9 + (i % (n / 2)) * (k === 'bass' ? 9 : 6.5), r: 2.6, fill: 'currentColor' }));
-  return svg('svg', { viewBox: '0 0 48 48', class: 'ico', 'aria-hidden': 'true' },
-    svg('path', { d: 'M18 4h12l-1.5 26h-9z', fill: 'none', stroke: 'currentColor', 'stroke-width': 2.5, 'stroke-linejoin': 'round' }),
-    svg('path', { d: 'M24 30v15', stroke: 'currentColor', 'stroke-width': 3.5, 'stroke-linecap': 'round' }), pegs);
+  const w = small ? 3.4 : 2.5, att = cls ? { viewBox: '0 0 48 48', class: cls, 'aria-hidden': 'true' } : { viewBox: '0 0 48 48', class: 'ico', 'aria-hidden': 'true' };
+  if (k === 'bass') { const pegs = [];   // bass: symmetric 2 + 2 headstock
+    for (let i = 0; i < 4; i++) pegs.push(svg('circle', { cx: i < 2 ? 14 : 34, cy: 9 + (i % 2) * 10, r: small ? 3.2 : 2.6, fill: 'currentColor' }));
+    return svg('svg', att, svg('path', { d: 'M18 4h12l-1.5 26h-9z', fill: 'none', stroke: 'currentColor', 'stroke-width': w, 'stroke-linejoin': 'round' }),
+      svg('path', { d: 'M24 30v15', stroke: 'currentColor', 'stroke-width': w + 1, 'stroke-linecap': 'round' }), pegs); }
+  // guitar: Fender-style headstock with six tuners in line on one side, so it reads differently from the bass
+  const keys = []; for (let i = 0; i < 6; i++) { const y = 7.5 + i * 3.7; keys.push(svg('path', { d: `M21 ${y}h-2.4`, stroke: 'currentColor', 'stroke-width': 1.6 }), svg('circle', { cx: 16.6, cy: y, r: small ? 1.9 : 1.6, fill: 'currentColor' })); }
+  return svg('svg', att,
+    svg('path', { d: 'M21 31V8.5C21 5 22.8 3 26 3s5.4 1.8 6 4.8c.5 2.6 2.4 4 2.4 6.6 0 2.8-2.9 3.9-3.9 6.1-.8 1.8-.4 4.4-1.6 6.6L27 31z', fill: 'none', stroke: 'currentColor', 'stroke-width': w, 'stroke-linejoin': 'round' }),
+    svg('path', { d: 'M24 31v14', stroke: 'currentColor', 'stroke-width': w + 1, 'stroke-linecap': 'round' }), keys);
 }
 // quick start from a setlist card: large view or show mode; closing either returns to the list
 function startChoice(sl) {
@@ -8031,7 +8036,7 @@ const ICON_PATHS = {
   busses: ['M3 7h12M3 12h12M3 17h12', 'M15 7l5 5-5 5', 'M20 12h1'],
   master: ['M12 3v18', 'M8 12h8', 'M5 6v12M19 6v12']
 };
-function areaIcon(k, cls) { return svg('svg', { viewBox: '0 0 24 24', class: cls || '', fill: 'none', stroke: 'currentColor', 'stroke-width': 2, 'stroke-linecap': 'round', 'stroke-linejoin': 'round', 'aria-hidden': 'true' }, (ICON_PATHS[k] || []).map(d => svg('path', { d }))); }
+function areaIcon(k, cls) { if (k === 'ginsts') return instIcon(route.inst === 'bass' ? 'bass' : 'guitar', cls || 'ai-inst', true); return svg('svg', { viewBox: '0 0 24 24', class: cls || '', fill: 'none', stroke: 'currentColor', 'stroke-width': 2, 'stroke-linecap': 'round', 'stroke-linejoin': 'round', 'aria-hidden': 'true' }, (ICON_PATHS[k] || []).map(d => svg('path', { d }))); }
 function atile(k, title, desc, onclick, wide) {
   return h('button', { class: 'atile', style: `--c:var(--accent)${wide ? ';grid-column:1/-1;min-height:96px' : ''}`, type: 'button', onclick },
     h('span', { class: 'at-ico' }, areaIcon(k)), h('span', {}, h('b', {}, title)));
@@ -10465,7 +10470,7 @@ function pageHelpSlides() {
 /* ================= home-screen app (PWA) ================= */
 const isStandalone = () => window.matchMedia?.('(display-mode: standalone)').matches || window.navigator.standalone === true;
 const isIOS = () => /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-const APP_VERSION = '17.11.2026 (3)';
+const APP_VERSION = '17.11.2026 (4)';
 // ===== Impressum, Datenschutz, Unterstützen =====
 // Angaben des Betreibers. Solange Name, Anschrift und E-Mail fehlen, zeigt die App keine Rechtstexte an; ohne `donate`-Link keinen Unterstützen-Knopf.
 // Rechtstexte gehen erst zusammen mit einem funktionierenden Unterstützen-Link online (Wunsch des Betreibers); das Kontaktformular erst mit eigener Info-Adresse in `contact`.
