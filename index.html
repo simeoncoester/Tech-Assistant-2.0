@@ -2634,19 +2634,21 @@ html .stage-song > .ss-top{position:absolute;left:22px;right:22px;width:auto!imp
 .gc-sub{margin:0 0 8px;font-size:.85rem}
 .pop-gc input[type=search]{margin-bottom:8px;min-width:0}
 .gc-list{overflow:auto;flex:1 1 auto;min-height:0;display:flex;flex-direction:column;gap:6px;overscroll-behavior:contain}
-.gc-kind{border:1px solid var(--line,rgba(255,255,255,.14));border-radius:12px;padding:0 10px}
-.gc-kind>summary{display:flex;align-items:center;gap:10px;padding:10px 0;cursor:pointer;list-style:none}
-.gc-kind>summary::-webkit-details-marker{display:none}
-.gc-kind>summary b{flex:1;min-width:0}.gc-kind small,.gc-row small{color:var(--muted);font-variant-numeric:tabular-nums}
-.gc-acts{display:flex;gap:8px;padding-bottom:6px}
-.gc-brand{border-top:1px solid var(--line,rgba(255,255,255,.08))}.gc-brand.off .gc-lab span{opacity:.5}
-.gc-row{display:flex;align-items:center;gap:8px;min-height:40px}
+.gc-list{gap:0}
+.gc-brand{border-bottom:1px solid var(--line,rgba(255,255,255,.1))}.gc-brand.off>.gc-row .gc-lab span{opacity:.5}
+.gc-brand.open{background:rgba(255,255,255,.035);border-radius:10px}
+.gc-row{display:flex;align-items:center;gap:8px;min-height:44px;padding:0 4px}
+.gc-row .gc-lab span{font-weight:600}
+.gc-row small{color:var(--muted);font-variant-numeric:tabular-nums}
 .gc-lab{display:flex;align-items:center;gap:10px;flex:1;min-width:0;cursor:pointer}
 .gc-lab span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.gc-lab input,.gc-kind>summary input{width:20px;height:20px;flex:none;accent-color:var(--accent,#4d8cf0)}
+.gc-lab input[type=checkbox]{width:20px;height:20px;min-height:0;min-width:0;padding:0;margin:0;border:0;background:none;box-shadow:none;flex:none;accent-color:var(--accent,#4d8cf0)}
 .gc-exp{width:36px;height:36px;border:0;background:none;color:var(--muted);font-size:1rem;cursor:pointer;flex:none}
-.gc-models{display:flex;flex-direction:column;padding:0 0 6px 30px}
-.gc-model{min-height:34px;font-size:.92rem}
+.gc-models{display:flex;flex-direction:column;margin:0 6px 10px 32px;padding:4px 0 4px 12px;border-left:2px solid var(--accent,#4d8cf0)}
+.gc-model{min-height:34px;font-size:.88rem;color:var(--muted)}
+.gc-model input[type=checkbox]{width:17px;height:17px}
+.gc-model:not(.off){color:var(--text,inherit)}
+.gc-model em{font-style:normal;font-size:.72rem;color:var(--muted);border:1px solid var(--line,rgba(255,255,255,.18));border-radius:6px;padding:0 5px;flex:none}
 .gc-fp{font-style:normal;color:var(--muted);font-size:.8rem;flex:none}
 </style>
 </head>
@@ -5522,7 +5524,7 @@ function studioTools(preId) {
 }
 // which devices and manufacturers appear in the device selection of one production
 function gearChoice(p, onDone) {
-  const off = gearOffOf(p), openK = new Set(), openB = new Set();
+  const off = gearOffOf(p), openB = new Set();
   const save = () => { p.gearOff = [...off]; touch(); };
   const ov = h('div', { class: 'sheet-ov pop-ov', role: 'dialog', 'aria-modal': 'true', 'aria-label': 'Geräteauswahl' });
   const close = () => { ov.remove(); document.removeEventListener('keydown', esc, true); onDone?.(); };
@@ -5534,24 +5536,21 @@ function gearChoice(p, onDone) {
   const setAll = (keys, on) => { keys.forEach(k => on ? off.delete(k) : off.add(k)); save(); draw(); };
   const box = (keys, label) => { const n = keys.filter(k => !off.has(k)).length, cb = h('input', { type: 'checkbox', 'aria-label': label, onchange: e => setAll(keys, e.target.checked) });
     cb.checked = n > 0; cb.indeterminate = n > 0 && n < keys.length; return [cb, n]; };
+  // manufacturers A–Z, their devices underneath (across all device types)
+  const brandMap = () => { const m = new Map(); gearToolKinds().forEach(kind => gearBrands(kind).forEach(b => gearModels(kind, b).forEach(md => { if (!m.has(b)) m.set(b, []); m.get(b).push([kind, md]); })));
+    return [...m.entries()].sort((a, b) => a[0].localeCompare(b[0])).map(([b, l]) => [b, l.sort((x, y) => x[1].localeCompare(y[1], undefined, { numeric: true }))]); };
   const draw = () => {
     const f = q.value.trim().toLowerCase(), hit = t => !f || t.toLowerCase().includes(f);
-    const kinds = gearToolKinds().map(kind => {
-      const brands = gearBrands(kind).map(b => [b, hit(kind) || hit(b) ? gearModels(kind, b) : gearModels(kind, b).filter(m => hit(m) || hit(`${b} ${m}`))]).filter(([, ms]) => ms.length);
-      if (!brands.length) return null;
-      const keys = brands.flatMap(([b, ms]) => ms.map(m => gearKey(kind, b, m))), [kcb, kn] = box(keys, kind);
-      const rows = brands.map(([b, ms]) => { const bk = ms.map(m => gearKey(kind, b, m)), [cb, n] = box(bk, b), id = kind + '|' + b, open = openB.has(id) || (f && !hit(b));
-        return h('div', { class: 'gc-brand' + (n ? '' : ' off') },
-          h('div', { class: 'gc-row' }, h('label', { class: 'gc-lab' }, cb, h('span', { class: 'no-i18n' }, b)), h('small', {}, `${n}/${bk.length}`),
-            h('button', { class: 'gc-exp', type: 'button', 'aria-expanded': String(!!open), 'aria-label': `${b}: ${trText('Geräte')}`, onclick: () => { openB.has(id) ? openB.delete(id) : openB.add(id); draw(); } }, open ? '▾' : '▸')),
-          open ? h('div', { class: 'gc-models' }, ms.map(m => { const k = gearKey(kind, b, m), c = h('input', { type: 'checkbox', 'aria-label': `${b} ${m}`, onchange: e => setAll([k], e.target.checked) }); c.checked = !off.has(k);
-            return h('label', { class: 'gc-lab gc-model' }, c, h('span', { class: 'no-i18n' }, m), FACEPLATES[`${b} ${m}`] ? h('i', { class: 'gc-fp', title: trText('Faceplate vorhanden') }, '▦') : null); })) : null); });
-      const det = h('details', { class: 'gc-kind', open: openK.has(kind) || f ? '' : null }, h('summary', {}, kcb, h('b', {}, kind), h('small', {}, `${kn}/${keys.length}`)),
-        h('div', { class: 'gc-acts' }, h('button', { class: 'btn small ghost', type: 'button', onclick: () => setAll(keys, true) }, 'Alle'), h('button', { class: 'btn small ghost', type: 'button', onclick: () => setAll(keys, false) }, 'Keine')), rows);
-      det.addEventListener('toggle', () => { if (!f) det.open ? openK.add(kind) : openK.delete(kind); });
-      kcb.addEventListener('click', e => e.stopPropagation());
-      return det; }).filter(Boolean);
-    const top = list.scrollTop; list.replaceChildren(...(kinds.length ? kinds : [h('p', { class: 'muted' }, 'Nichts gefunden.')])); list.scrollTop = top;
+    const rows = brandMap().map(([b, all]) => {
+      const ms = hit(b) ? all : all.filter(([, m]) => hit(m) || hit(`${b} ${m}`)); if (!ms.length) return null;
+      const keys = ms.map(([k, m]) => gearKey(k, b, m)), [cb, n] = box(keys, b), open = openB.has(b) || (f && !hit(b));
+      const dup = m => all.filter(x => x[1] === m).length > 1;
+      return h('div', { class: 'gc-brand' + (n ? '' : ' off') + (open ? ' open' : '') },
+        h('div', { class: 'gc-row' }, h('label', { class: 'gc-lab' }, cb, h('span', { class: 'no-i18n' }, b)), h('small', {}, `${n}/${keys.length}`),
+          h('button', { class: 'gc-exp', type: 'button', 'aria-expanded': String(!!open), 'aria-label': `${b}: ${trText('Geräte')}`, onclick: () => { openB.has(b) ? openB.delete(b) : openB.add(b); draw(); } }, open ? '▾' : '▸')),
+        open ? h('div', { class: 'gc-models' }, ms.map(([kind, m]) => { const k = gearKey(kind, b, m), c = h('input', { type: 'checkbox', 'aria-label': `${b} ${m}`, onchange: e => setAll([k], e.target.checked) }); c.checked = !off.has(k);
+          return h('label', { class: 'gc-lab gc-model' + (c.checked ? '' : ' off') }, c, h('span', { class: 'no-i18n' }, m), dup(m) ? h('em', {}, kind) : null, FACEPLATES[`${b} ${m}`] ? h('i', { class: 'gc-fp', title: trText('Faceplate vorhanden') }, '▦') : null); })) : null); }).filter(Boolean);
+    const top = list.scrollTop; list.replaceChildren(...(rows.length ? rows : [h('p', { class: 'muted' }, 'Nichts gefunden.')])); list.scrollTop = top;
   };
   draw();
   ov.append(h('div', { class: 'pop pop-gc' }, h('h3', {}, 'Geräteauswahl'), h('p', { class: 'muted gc-sub' }, h('b', { class: 'no-i18n' }, p.name || ''), ' · ', trText('Nur angehakte Geräte stehen in dieser Produktion zur Auswahl. Neue Produktionen zeigen wieder alle Geräte.')),
@@ -10470,7 +10469,7 @@ function pageHelpSlides() {
 /* ================= home-screen app (PWA) ================= */
 const isStandalone = () => window.matchMedia?.('(display-mode: standalone)').matches || window.navigator.standalone === true;
 const isIOS = () => /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-const APP_VERSION = '17.11.2026 (4)';
+const APP_VERSION = '17.11.2026 (5)';
 // ===== Impressum, Datenschutz, Unterstützen =====
 // Angaben des Betreibers. Solange Name, Anschrift und E-Mail fehlen, zeigt die App keine Rechtstexte an; ohne `donate`-Link keinen Unterstützen-Knopf.
 // Rechtstexte gehen erst zusammen mit einem funktionierenden Unterstützen-Link online (Wunsch des Betreibers); das Kontaktformular erst mit eigener Info-Adresse in `contact`.
