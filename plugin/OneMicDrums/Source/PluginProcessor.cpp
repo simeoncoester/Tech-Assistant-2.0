@@ -10,12 +10,6 @@ namespace
     {
         return (float) std::exp (-1.0 / (timeSeconds * sampleRate));
     }
-
-    inline float smoothstep (float e0, float e1, float x)
-    {
-        const float t = juce::jlimit (0.0f, 1.0f, (x - e0) / (e1 - e0));
-        return t * t * (3.0f - 2.0f * t);
-    }
 }
 
 //==============================================================================
@@ -118,38 +112,45 @@ void MonoToStereo::process (const float* low, const float* high, float* left, fl
 //==============================================================================
 SpaceReverb::Character SpaceReverb::characterFor (float x)
 {
-    // Ankerpunkte jeweils in der Mitte des Viertels.
-    static const Character anchors[4] =
+    // Jedes Viertel ist eine Hall-Art; innerhalb des Viertels wächst der Raum
+    // (von klein nach groß). Die Menge im Mix regelt der Mix-Fader.
+    struct Range { Character small, big; };
+    static const Range types[4] =
     {
-        //  size  damp  pre   wet   lowCut  highCut
-        { 0.70f, 0.05f,  0.0f, 1.25f, 260.0f, 12000.0f },   // Plate: dicht, hell, ohne Pre-Delay
-        { 0.52f, 0.50f,  7.0f, 1.45f, 200.0f,  8000.0f },   // Room: kurz, natürlich
-        { 0.84f, 0.40f, 24.0f, 1.10f, 180.0f,  7500.0f },   // Hall: lang, Pre-Delay
-        { 0.97f, 0.28f, 48.0f, 0.95f, 150.0f,  6500.0f },   // Space: sehr groß, langer Ausklang
+        //    size   damp   pre    wet    lowCut  highCut
+        { { 0.55f, 0.05f,  0.0f, 1.30f, 260.0f, 12000.0f },     // Plate: dicht, hell
+          { 0.82f, 0.05f, 10.0f, 1.05f, 260.0f, 12000.0f } },
+        { { 0.35f, 0.55f,  3.0f, 1.60f, 200.0f,  8000.0f },     // Room: kurz, natürlich
+          { 0.65f, 0.45f, 12.0f, 1.25f, 200.0f,  8000.0f } },
+        { { 0.75f, 0.42f, 15.0f, 1.05f, 180.0f,  7500.0f },     // Hall: lang, Pre-Delay
+          { 0.90f, 0.40f, 35.0f, 0.80f, 180.0f,  7500.0f } },
+        { { 0.90f, 0.30f, 30.0f, 0.70f, 150.0f,  6500.0f },     // Space: sehr groß
+          { 0.985f, 0.22f, 60.0f, 0.45f, 150.0f, 6500.0f } },
     };
 
-    const float t = juce::jlimit (0.0f, 3.0f, x * 4.0f - 0.5f);
-    const int i0 = juce::jmin ((int) t, 2);
-    const float f = t - (float) i0;
-    const auto& a = anchors[i0];
-    const auto& b = anchors[i0 + 1];
+    x = juce::jlimit (0.0f, 1.0f, x);
+    const int i = juce::jmin (3, (int) (x * 4.0f));
+    const float f = juce::jlimit (0.0f, 1.0f, x * 4.0f - (float) i);
+    const auto& a = types[i].small;
+    const auto& b = types[i].big;
     auto mix = [f] (float p, float q) { return p + (q - p) * f; };
-
-    Character c { mix (a.size, b.size), mix (a.damping, b.damping), mix (a.preDelayMs, b.preDelayMs),
-                  mix (a.wet, b.wet), mix (a.lowCutHz, b.lowCutHz), mix (a.highCutHz, b.highCutHz) };
-
-    // Von 0 aus sanft einblenden (erstes Achtel), danach volle Hall-Menge.
-    c.wet *= smoothstep (0.0f, 0.125f, x);
-    return c;
+    return { mix (a.size, b.size), mix (a.damping, b.damping), mix (a.preDelayMs, b.preDelayMs),
+             mix (a.wet, b.wet), mix (a.lowCutHz, b.lowCutHz), mix (a.highCutHz, b.highCutHz) };
 }
 
 juce::String SpaceReverb::typeNameFor (float x)
 {
-    if (x < 0.005f) return "Dry";
     if (x < 0.25f)  return "Plate";
     if (x < 0.50f)  return "Room";
     if (x < 0.75f)  return "Hall";
     return "Space";
+}
+
+float SpaceReverb::sizePercentFor (float x)
+{
+    x = juce::jlimit (0.0f, 1.0f, x);
+    const int i = juce::jmin (3, (int) (x * 4.0f));
+    return juce::jlimit (0.0f, 1.0f, x * 4.0f - (float) i) * 100.0f;
 }
 
 void SpaceReverb::prepare (double sampleRate, int maxBlock)
@@ -165,6 +166,7 @@ void SpaceReverb::prepare (double sampleRate, int maxBlock)
     params.width = 1.0f;
     params.freezeMode = 0.0f;
     lastAmount = -1.0f;
+    lastMix = -1.0f;
     reset();
 }
 
@@ -177,12 +179,13 @@ void SpaceReverb::reset()
     writePos = 0;
 }
 
-void SpaceReverb::setAmount (float x)
+void SpaceReverb::setAmount (float x, float mix01)
 {
-    if (std::abs (x - lastAmount) < 1.0e-4f)
+    if (std::abs (x - lastAmount) < 1.0e-4f && std::abs (mix01 - lastMix) < 1.0e-4f)
         return;
     const bool first = lastAmount < 0.0f;
     lastAmount = x;
+    lastMix = mix01;
 
     const auto c = characterFor (x);
     params.roomSize = c.size;
@@ -199,9 +202,13 @@ void SpaceReverb::setAmount (float x)
         sendLp.coefficients = juce::dsp::IIR::Coefficients<float>::makeLowPass (sr, highCut);
     }
 
+    // Mix-Fader: 0 = kein Hall, 50 % = ausgewogene Menge, 100 % ≈ +9 dB mehr.
+    const float m = juce::jlimit (0.0f, 1.0f, mix01);
+    const float wetGain = c.wet * 2.8f * m * std::sqrt (m);
+
     const float pd = c.preDelayMs * 0.001f * (float) sr;
-    if (first) { preDelaySamples.setCurrentAndTargetValue (pd); wet.setCurrentAndTargetValue (c.wet); }
-    else       { preDelaySamples.setTargetValue (pd);           wet.setTargetValue (c.wet); }
+    if (first) { preDelaySamples.setCurrentAndTargetValue (pd); wet.setCurrentAndTargetValue (wetGain); }
+    else       { preDelaySamples.setTargetValue (pd);           wet.setTargetValue (wetGain); }
 }
 
 void SpaceReverb::processAdd (const float* send, float* left, float* right, int n)
@@ -252,9 +259,10 @@ OneMicDrumsProcessor::OneMicDrumsProcessor()
     pComp   = dynamic_cast<juce::AudioParameterFloat*>  (apvts.getParameter ("comp"));
     pAttack = dynamic_cast<juce::AudioParameterChoice*> (apvts.getParameter ("attack"));
     pSpace  = dynamic_cast<juce::AudioParameterFloat*>  (apvts.getParameter ("space"));
+    pSpaceMix = dynamic_cast<juce::AudioParameterFloat*> (apvts.getParameter ("spacemix"));
     pCrush  = dynamic_cast<juce::AudioParameterFloat*>  (apvts.getParameter ("crush"));
     pOutput = dynamic_cast<juce::AudioParameterFloat*>  (apvts.getParameter ("output"));
-    jassert (pLow && pHigh && pComp && pAttack && pSpace && pCrush && pOutput);
+    jassert (pLow && pHigh && pComp && pAttack && pSpace && pSpaceMix && pCrush && pOutput);
 }
 
 juce::AudioProcessorValueTreeState::ParameterLayout OneMicDrumsProcessor::createLayout()
@@ -279,8 +287,10 @@ juce::AudioProcessorValueTreeState::ParameterLayout OneMicDrumsProcessor::create
                     NormalisableRange<float> (0.0f, 1.0f, 0.001f), 0.0f,
                     AudioParameterFloatAttributes().withStringFromValueFunction ([] (float v, int)
                     {
-                        return omd::SpaceReverb::typeNameFor (v) + (v >= 0.005f ? " " + String (roundToInt (v * 100.0f)) + " %" : String());
+                        return omd::SpaceReverb::typeNameFor (v) + " · Size " + String (roundToInt (omd::SpaceReverb::sizePercentFor (v))) + "%";
                     })));
+    layout.add (std::make_unique<AudioParameterFloat> (ParameterID { "spacemix", 1 }, "Space Mix",
+                                                       NormalisableRange<float> (0.0f, 1.0f, 0.001f), 0.0f, pct));
     layout.add (std::make_unique<AudioParameterFloat> (ParameterID { "crush", 1 }, "Crush",
                                                        NormalisableRange<float> (0.0f, 1.0f, 0.001f), 0.0f, pct));
     layout.add (std::make_unique<AudioParameterFloat> (ParameterID { "output", 1 }, "Output",
@@ -480,7 +490,7 @@ void OneMicDrumsProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce:
         buffer.clear (ch, 0, n);
 
     // 5) Hall als Parallel-Bus
-    space.setAmount (pSpace->get());
+    space.setAmount (pSpace->get(), pSpaceMix->get());
     space.processAdd (m, L, R, n);
 
     // 6) Crush / Limiter

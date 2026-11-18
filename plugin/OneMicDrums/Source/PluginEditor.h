@@ -9,6 +9,8 @@ public:
     OmdLookAndFeel();
     void drawRotarySlider (juce::Graphics&, int x, int y, int w, int h, float pos,
                            float startAngle, float endAngle, juce::Slider&) override;
+    void drawLinearSlider (juce::Graphics&, int x, int y, int w, int h, float pos, float minPos, float maxPos,
+                           juce::Slider::SliderStyle, juce::Slider&) override;
     void drawButtonBackground (juce::Graphics&, juce::Button&, const juce::Colour&,
                                bool highlighted, bool down) override;
 };
@@ -51,6 +53,8 @@ private:
 
     OmdKnob low, high, comp, space, crush, output;
     juce::TextButton slowBtn { "SLOW" }, fastBtn { "FAST" };
+    juce::Slider spaceMix;   // Menge des Halls im Mix (Fader unter dem Space-Poti)
+    std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> spaceMixAttachment;
     juce::ParameterAttachment attackAttachment;
 
     float grDisplay = 0.0f, crushDisplay = 0.0f;

@@ -15,7 +15,8 @@
 //                                                                          ▼
 //                       Stereo-Bild: Bässe mittig, Höhen breit (monokompatibel)
 //                                                                          ▼
-//                   + Hall als Parallel-Bus (Plate → Room → Hall → Space)
+//                   + Hall als Parallel-Bus (Poti: Plate → Room → Hall → Space,
+//                     Fader: Menge im Mix)
 //                                                                          ▼
 //                                       Crush: Drive + Limiter (4× Oversampling)
 //                                                                          ▼
@@ -46,17 +47,19 @@ namespace omd
         float computeGainDb (float levelDb) const noexcept;
     };
 
-    // Raum-Regler: morpht zwischen vier Hall-Charakteren und mischt parallel zu.
+    // Raum-Regler: wählt Hall-Art (Plate/Room/Hall/Space je ein Viertel) und Raumgröße
+    // innerhalb des Viertels; der Mix-Fader bestimmt die Menge im Parallel-Bus.
     class SpaceReverb
     {
     public:
         void prepare (double sampleRate, int maxBlock);
         void reset();
-        void setAmount (float amount01);
+        void setAmount (float type01, float mix01);
         // Nimmt das Mono-Send-Signal und addiert den Stereo-Hall auf L/R.
         void processAdd (const float* send, float* left, float* right, int numSamples);
 
-        static juce::String typeNameFor (float amount01);
+        static juce::String typeNameFor (float type01);
+        static float sizePercentFor (float type01);   // Raumgröße innerhalb der Hall-Art
 
     private:
         struct Character { float size, damping, preDelayMs, wet, lowCutHz, highCutHz; };
@@ -70,7 +73,7 @@ namespace omd
         int writePos = 0;
         juce::SmoothedValue<float> preDelaySamples { 0.0f }, wet { 0.0f };
         std::vector<float> bufL, bufR;
-        float lastAmount = -1.0f;
+        float lastAmount = -1.0f, lastMix = -1.0f;
         float lowCut = 0.0f, highCut = 0.0f;
     };
 
@@ -139,6 +142,7 @@ private:
     juce::AudioParameterFloat* pComp = nullptr;
     juce::AudioParameterChoice* pAttack = nullptr;
     juce::AudioParameterFloat* pSpace = nullptr;
+    juce::AudioParameterFloat* pSpaceMix = nullptr;
     juce::AudioParameterFloat* pCrush = nullptr;
     juce::AudioParameterFloat* pOutput = nullptr;
 

@@ -157,7 +157,7 @@ int main (int argc, char** argv)
         float tails[4];
         for (int k = 0; k < 4; ++k)
         {
-            auto r = render (dry, { { "space", pos[k] } });
+            auto r = render (dry, { { "space", pos[k] }, { "spacemix", 0.5f } });
             const int t0 = nSig + (int) (0.7 * SR);      // 0,7 s nach Loop-Ende
             tails[k] = rmsDb (r.out.getReadPointer (0) + t0, (int) (0.8 * SR));
             juce::AudioBuffer<float> wetOnly (1, nSig);
@@ -169,9 +169,33 @@ int main (int argc, char** argv)
         }
         lastTail = tails[0];
         check (tails[2] > tails[1] + 6.0f && tails[3] > tails[2], "Hall und Space klingen länger aus als Room");
+
+        // Mix-Fader regelt die Menge, das Poti innerhalb einer Hall-Art die Raumgröße
+        auto wetRms = [&] (float sp, float mx)
+        {
+            auto r = render (dry, { { "space", sp }, { "spacemix", mx } });
+            juce::AudioBuffer<float> w (1, nSig);
+            for (int i = 0; i < nSig; ++i) w.setSample (0, i, r.out.getSample (0, i) - neutral.out.getSample (0, i));
+            return std::pair<float, float> { rmsDb (w.getReadPointer (0), nSig),
+                                             rmsDb (r.out.getReadPointer (0) + nSig + (int) (0.7 * SR), (int) (0.8 * SR)) };
+        };
+        const auto m25 = wetRms (0.625f, 0.25f), m50 = wetRms (0.625f, 0.5f), m100 = wetRms (0.625f, 1.0f);
+        std::printf ("Hall-Mix 25 %%: %.1f dB, 50 %%: %.1f dB, 100 %%: %.1f dB\n", m25.first, m50.first, m100.first);
+        check (m25.first < m50.first - 3.0f && m50.first < m100.first - 3.0f, "Mehr Mix = mehr Hall");
+        const auto small = wetRms (0.51f, 0.5f), big = wetRms (0.74f, 0.5f);
+        std::printf ("Hall klein: Ausklang %.1f dB, Hall groß: %.1f dB\n", small.second, big.second);
+        check (big.second > small.second + 6.0f, "Weiter drehen innerhalb einer Hall-Art = größerer Raum");
+        float lo = 1e9f, hi = -1e9f;
+        for (float sp : { 0.02f, 0.23f, 0.27f, 0.48f, 0.52f, 0.73f, 0.77f, 0.98f })
+        {
+            const float w = wetRms (sp, 0.5f).first;
+            std::printf ("  Space %.2f: Hall-Anteil %.1f dB\n", sp, w);
+            lo = juce::jmin (lo, w); hi = juce::jmax (hi, w);
+        }
+        check (hi - lo < 6.0f, "Ähnliche Hall-Menge über alle Arten/Größen bei gleichem Mix (Spanne " + juce::String (hi - lo, 1) + " dB)");
         juce::ignoreUnused (lastTail);
-        auto zero = render (dry, { { "space", 0.0f } });
-        check (rmsDb (zero.out.getReadPointer (0) + nSig + (int) (0.7 * SR), (int) (0.8 * SR)) < -100.0f, "Space 0 = kein Hall");
+        auto zero = render (dry, { { "space", 0.6f }, { "spacemix", 0.0f } });
+        check (rmsDb (zero.out.getReadPointer (0) + nSig + (int) (0.7 * SR), (int) (0.8 * SR)) < -100.0f, "Mix 0 = kein Hall");
     }
 
     // Crush
@@ -191,7 +215,7 @@ int main (int argc, char** argv)
         for (int k = 0; k < 6; ++k)
         {
             auto r = render (dry, { { "low", -24 + 36 * u (rng) }, { "high", -24 + 36 * u (rng) }, { "comp", u (rng) },
-                                    { "attack", u (rng) > 0.5f ? 1.0f : 0.0f }, { "space", u (rng) }, { "crush", 0.05f + u (rng) } });
+                                    { "attack", u (rng) > 0.5f ? 1.0f : 0.0f }, { "space", u (rng) }, { "spacemix", u (rng) }, { "crush", 0.05f + u (rng) } });
             for (int c = 0; c < 2; ++c) for (int i = 0; i < nAll; ++i) finite &= std::isfinite (r.out.getSample (c, i));
             maxPk = juce::jmax (maxPk, peakDb (r.out, 0, nAll));
         }
@@ -207,15 +231,15 @@ int main (int argc, char** argv)
         writeWav (outDir.getChildFile ("00-dry.wav"), dryStereo);
         writeWav (outDir.getChildFile ("01-neutral.wav"), neutral.out);
         writeWav (outDir.getChildFile ("02-fat.wav"),
-                  render (dry, { { "low", 3.0f }, { "high", 1.0f }, { "comp", 0.55f }, { "space", 0.42f }, { "crush", 0.45f } }).out);
+                  render (dry, { { "low", 3.0f }, { "high", 1.0f }, { "comp", 0.55f }, { "space", 0.42f }, { "spacemix", 0.5f }, { "crush", 0.45f } }).out);
         writeWav (outDir.getChildFile ("03-smash.wav"),
-                  render (dry, { { "low", 4.0f }, { "comp", 0.9f }, { "attack", 1.0f }, { "space", 0.7f }, { "crush", 0.85f } }).out);
+                  render (dry, { { "low", 4.0f }, { "comp", 0.9f }, { "attack", 1.0f }, { "space", 0.7f }, { "spacemix", 0.6f }, { "crush", 0.85f } }).out);
     }
 
     // Bildschirmfoto der Oberfläche
     {
         OneMicDrumsProcessor p;
-        for (auto [id, v] : std::map<juce::String, float> { { "low", 3.0f }, { "high", 1.0f }, { "comp", 0.55f }, { "space", 0.42f }, { "crush", 0.45f } })
+        for (auto [id, v] : std::map<juce::String, float> { { "low", 3.0f }, { "high", 1.0f }, { "comp", 0.55f }, { "space", 0.42f }, { "spacemix", 0.35f }, { "crush", 0.45f } })
             p.apvts.getParameter (id)->setValueNotifyingHost (p.apvts.getParameter (id)->convertTo0to1 (v));
         std::unique_ptr<juce::AudioProcessorEditor> ed (p.createEditor());
         ed->setSize (760, 400);

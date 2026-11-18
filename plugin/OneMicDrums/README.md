@@ -11,7 +11,8 @@ Plugin für Pro Tools, Logic, Cubase, Ableton & Co., um **Drums, die mit nur ein
 | **High** / **Low** | Das Signal wird bei **160 Hz** in zwei Bänder geteilt (Linkwitz-Riley, 24 dB/Okt.; beide auf 0 dB = unverändert). Low = Bassdrum-Druck, High = Snare, Becken, Raum. −24 dB = Band aus. |
 | **Compress** | Ein Regler für alles: je weiter auf, desto tiefer der Threshold (bis −32 dB) und desto höher die Ratio (1:1 bis 12:1). Die Aufholverstärkung passiert automatisch. Der gelbe Balken zeigt die Gain-Reduction. |
 | **Slow / Fast** | Attack. **Slow** (25 ms) lässt den Anschlag durch → mehr Punch. **Fast** (0,8 ms) fängt die Transiente → dichter, glatter. |
-| **Space** | Hall als **Parallel-Bus** (trockenes Signal bleibt voll erhalten). 0 = trocken, 1. Viertel **Plate**, 2. **Room**, 3. **Hall**, 4. **Space** (sehr groß). Dazwischen geht der Charakter fließend über. Der Hall wird nur ab ca. 200 Hz gespeist, damit die Bassdrum nicht verschwimmt. |
+| **Space** (Poti) | Wählt **Hall-Art und Raumgröße**: 1. Viertel **Plate**, 2. **Room**, 3. **Hall**, 4. **Space** (sehr groß). Innerhalb jedes Viertels wird der Raum beim Weiterdrehen größer (längerer Ausklang, mehr Pre-Delay). Die Anzeige zeigt z. B. „Room · Size 68%“. |
+| **Mix** (Fader unter Space) | **Menge des Halls** im Mix. Der Hall läuft als **Parallel-Bus**, das trockene Signal bleibt voll erhalten. 0 % = kein Hall (Standard), 50 % = ausgewogene Menge, 100 % = ca. +9 dB mehr. Die Hall-Arten sind im Pegel angeglichen: Beim Umschalten ändert sich der Charakter, die Menge bleibt etwa gleich. Der Hall wird nur ab ca. 200 Hz gespeist, damit die Bassdrum nicht verschwimmt. |
 | **Crush** | Drive (bis +20 dB) in eine Sättigung (4× Oversampling) und einen Limiter mit 1 ms Lookahead. Je weiter auf, desto lauter und dichter („crushed“). Die Spitze bleibt immer bei −0,5 dBFS. |
 | **Output** | Ausgangspegel. |
 
@@ -68,7 +69,7 @@ Das Messprogramm schickt einen synthetischen Mono-Drumloop durch das Plugin. Es 
 - Bässe exakt mittig
 - Bänder getrennt regelbar
 - mehr Compress = mehr Reduktion, Fast fängt Spitzen
-- Hall-Ausklang je Bereich
+- Hall-Ausklang je Bereich, Mix-Fader regelt die Menge, größerer Raum klingt länger aus, ähnliche Menge über alle Hall-Arten
 - Crush lauter, aber nie über 0 dBFS
 - keine NaN-Werte bei zufälligen Einstellungen
 

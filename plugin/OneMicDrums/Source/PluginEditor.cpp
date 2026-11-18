@@ -64,6 +64,30 @@ void OmdLookAndFeel::drawRotarySlider (juce::Graphics& g, int x, int y, int w, i
     g.fillPath (ptr, juce::AffineTransform::rotation (angle).translated (c.x, c.y));
 }
 
+void OmdLookAndFeel::drawLinearSlider (juce::Graphics& g, int x, int y, int w, int h, float pos, float, float,
+                                       juce::Slider::SliderStyle, juce::Slider& s)
+{
+    const auto accent = s.findColour (juce::Slider::trackColourId);
+    const float cy = (float) y + (float) h * 0.5f;
+    const float th = juce::jmax (4.0f, (float) h * 0.18f);
+    auto track = juce::Rectangle<float> ((float) x, cy - th * 0.5f, (float) w, th);
+    g.setColour (colours::edge);
+    g.fillRoundedRectangle (track, th * 0.5f);
+    g.setColour (accent);
+    g.fillRoundedRectangle (track.withRight (pos), th * 0.5f);
+
+    // Fader-Kappe
+    const float cw = juce::jmax (10.0f, (float) h * 0.42f), ch = (float) h * 0.8f;
+    auto cap = juce::Rectangle<float> (cw, ch).withCentre ({ pos, cy });
+    g.setColour (juce::Colours::black.withAlpha (0.45f));
+    g.fillRoundedRectangle (cap.translated (0.0f, 1.5f), 3.0f);
+    g.setGradientFill (juce::ColourGradient (juce::Colour (0xff4a505c), cap.getX(), cap.getY(),
+                                             juce::Colour (0xff22252c), cap.getX(), cap.getBottom(), false));
+    g.fillRoundedRectangle (cap, 3.0f);
+    g.setColour (accent.brighter (0.3f));
+    g.fillRect (juce::Rectangle<float> (2.0f, ch * 0.62f).withCentre (cap.getCentre()));
+}
+
 void OmdLookAndFeel::drawButtonBackground (juce::Graphics& g, juce::Button& b, const juce::Colour&,
                                            bool highlighted, bool)
 {
@@ -139,6 +163,15 @@ OneMicDrumsEditor::OneMicDrumsEditor (OneMicDrumsProcessor& p)
     slowBtn.onClick = [this] { attackAttachment.setValueAsCompleteGesture (0.0f); };
     fastBtn.onClick = [this] { attackAttachment.setValueAsCompleteGesture (1.0f); };
     attackAttachment.sendInitialUpdate();
+
+    spaceMix.setSliderStyle (juce::Slider::LinearHorizontal);
+    spaceMix.setTextBoxStyle (juce::Slider::NoTextBox, false, 0, 0);
+    spaceMix.setColour (juce::Slider::trackColourId, colours::space);
+    spaceMix.setDoubleClickReturnValue (true, 0.0);
+    spaceMix.setTooltip ("Space mix: how much reverb is added (parallel bus)");
+    addAndMakeVisible (spaceMix);
+    spaceMixAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment> (p.apvts, "spacemix", spaceMix);
+    spaceMix.onValueChange = [this] { repaint(); };
 
     slowBtn.setTooltip ("Slow attack: transient passes through (more punch)");
     fastBtn.setTooltip ("Fast attack: transient gets caught (smoother, denser)");
@@ -234,9 +267,19 @@ void OneMicDrumsEditor::paint (juce::Graphics& g)
             const float a = a0 + (a1 - a0) * (0.125f + 0.25f * (float) i);
             const float rr = d * 0.5f + 14.0f * s;
             const auto pt = c.getPointOnCircumference (rr, a);
-            const bool active = v >= 0.005f && juce::jmin (3, (int) (v * 4.0f)) == i;
+            const bool active = juce::jmin (3, (int) (v * 4.0f)) == i;
             g.setColour (active ? colours::space.brighter (0.4f) : colours::dim.withAlpha (0.8f));
             g.drawText (names[i], juce::Rectangle<float> (60 * s, 14 * s).withCentre (pt), juce::Justification::centred);
+        }
+        // Mix-Fader: Beschriftung links, Wert rechts
+        {
+            auto row = spaceMix.getBounds().toFloat();
+            auto lab = juce::Rectangle<float> (row.getX(), row.getY() - 13 * s, row.getWidth(), 13 * s);
+            g.setFont (juce::FontOptions (10.0f * s, juce::Font::bold));
+            g.setColour (colours::dim);
+            g.drawText ("MIX", lab, juce::Justification::centredLeft);
+            g.setColour (colours::text);
+            g.drawText (juce::String (juce::roundToInt (spaceMix.getValue() * 100.0)) + " %", lab, juce::Justification::centredRight);
         }
         // Trennstriche an den Viertelgrenzen
         g.setColour (colours::bg);
@@ -289,9 +332,11 @@ void OneMicDrumsEditor::resized()
     slowBtn.setBounds (btnRow.removeFromLeft (btnRow.getWidth() / 2).reduced (S (3), 0));
     fastBtn.setBounds (btnRow.reduced (S (3), 0));
 
-    space.setBounds (bigArea (panels[2]));
+    space.setBounds (bigArea (panels[2]).withTrimmedBottom (S (12)));
     space.insetX = S (16);         // Platz für PLATE / SPACE links und rechts
     space.resized();
+    spaceMix.setBounds (panels[2].reduced (S (16), 0).withTop (panels[2].getBottom() - S (40)).withHeight (S (26)));
+    space.slider.setTextBoxStyle (juce::Slider::TextBoxBelow, false, S (140), S (18));
     crush.setBounds (bigArea (panels[3]));
 
     auto o = panels[4].reduced (S (6), 0);
