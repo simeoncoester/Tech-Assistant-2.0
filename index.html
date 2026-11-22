@@ -2587,6 +2587,7 @@ button.ins:focus-visible{outline:2px solid #6c9bef;outline-offset:1px}
 .pr-knob.real.set,.pr-push.real.set{box-shadow:0 0 0 2px rgba(61,220,140,.85),0 0 10px rgba(61,220,140,.5)}
 .pr-push.real.psq{border-radius:14%}.pr-push.real.in::after{display:none}
 .pr-ctrl > .pr-tog{width:100%;height:auto;aspect-ratio:.625;position:relative}
+.pr-ctrl > .pr-tog.dirt{aspect-ratio:1}
 .pr-photo.fpreal .pr-ctrl{min-width:0}.pr-photo.fpreal .pr-ctrl::before{content:"";position:absolute;inset:calc(-9px / var(--z,1))}/* drawn faceplate: controls keep their true size (no overlap with the print), the tap area stays finger-sized */
 .pr-tog.set svg{filter:drop-shadow(0 0 4px rgba(61,220,140,.95))}
 .pr-sld{position:relative;box-sizing:border-box}
@@ -5224,8 +5225,7 @@ function fpSvg(fp, mode) {
       if (!mode && !['chicken', 'marconi', 'api', 'apiring'].includes(ks)) out.push(prKnobSvg(ks || 'round', col !== undefined && col !== '' ? col : fp.kc).replace('<svg ', `<svg x="${X - R}" y="${Y - R}" width="${R * 2}" height="${R * 2}" `).replace(/class="rot"/g, `transform="rotate(${ext && ext.sweep ? ext.sweep[0] : -135})"`).replace(/<text[\s\S]*?<\/text>/g, '')); }
     if (t === 'p') { const sq = (ext && ext.ps || fp.ps) === 'sq'; out.push(sq ? `<rect x="${X - R * 1.2 + R * .12}" y="${Y - R * 1.2 + R * .25}" width="${R * 2.4}" height="${R * 2.4}" rx="${R * .3}" fill="#000" opacity=".55" filter="url(#blur)"/><rect x="${X - R * 1.22}" y="${Y - R * 1.22}" width="${R * 2.44}" height="${R * 2.44}" rx="${R * .3}" fill="url(#scr)" stroke="rgba(0,0,0,.6)" stroke-width="1.2"/><rect x="${X - R * 1.06}" y="${Y - R * 1.06}" width="${R * 2.12}" height="${R * 2.12}" rx="${R * .22}" fill="#050505"/>`
       : shadow(R * 1.3) + `<circle cx="${X}" cy="${Y}" r="${R * 1.28}" fill="url(#scr)" stroke="rgba(0,0,0,.6)" stroke-width="1.2"/><circle cx="${X}" cy="${Y}" r="${R * 1.1}" fill="#050505"/>`); }
-    if (t === 's') out.push(shadow(R * .9, .12, .35), `<circle cx="${X}" cy="${Y}" r="${R * .95}" fill="url(#scr)" stroke="rgba(0,0,0,.55)" stroke-width="1.2"/>`);
-    if (t === 'd') out.push(`<circle cx="${X}" cy="${Y}" r="${R * 1.15}" fill="#101010" stroke="rgba(255,255,255,.22)" stroke-width="2"/>`);
+    if ((t === 's' || t === 'd') && !mode) { const tall = t === 's'; out.push(prTogSvg('c', tall).replace('<svg ', `<svg x="${X - R}" y="${Y - (tall ? R * 1.6 : R)}" width="${R * 2}" height="${tall ? R * 3.2 : R * 2}" overflow="visible" `)); } // toggles: drawn by the overlay (prTogSvg); the full picture (previews, prMini) shows them neutral (lever towards the viewer), so a lever drawn on top never doubles
     if (t === 'x') { const dh = R * 2 / ((ext && ext.dar) || 5); out.push(`<rect x="${X - R - 4}" y="${Y - dh / 2 - 4}" width="${R * 2 + 8}" height="${dh + 8}" rx="5" fill="#050505" stroke="rgba(255,255,255,.2)" stroke-width="1.5"/><rect x="${X - R}" y="${Y - dh / 2}" width="${R * 2}" height="${dh}" rx="3" fill="${cMix(col || '#ff3a2a', '#000000', .9)}"/><rect x="${X - R}" y="${Y - dh / 2}" width="${R * 2}" height="${dh * .45}" rx="3" fill="#fff" opacity=".05"/>`); } // digital display: the text is typed in per stage
     if (t === 'f' && ext && ext.vert && ext.marks && ext.plain) { const L = R * ((ext && ext.asp) || 9); out.push(`<rect x="${X - R * .16}" y="${Y - L * .94}" width="${R * .32}" height="${L * 1.88}" rx="${R * .16}" fill="#050505" stroke="rgba(255,255,255,.18)" stroke-width="2"/>`); } // lever without printed scale (the panel prints its own)
     else if (t === 'f' && ext && ext.vert && ext.marks) { const L = R * ((ext && ext.asp) || 9); out.push(`<rect x="${X - R * .16}" y="${Y - L * .94}" width="${R * .32}" height="${L * 1.88}" rx="${R * .16}" fill="#050505" stroke="rgba(255,255,255,.18)" stroke-width="2"/>`); // console fader: printed scale exactly as on the original
@@ -5727,15 +5727,48 @@ function prKnobSvg(ks, col, col2, body) {
   else g = `<circle r="48" fill="${lo}"/>${knurl(46, 4, cMix(c, '#000000', .75), 36)}<circle r="41" fill="url(#${id}d)"/><circle r="41" fill="url(#${id}g)"/><circle r="41" fill="none" stroke="url(#${id}e)" stroke-width="1.5"/><g class="rot">${line(14, 39, 4.4, ptr)}</g>`;
   return `<svg viewBox="-50 -50 100 100" aria-hidden="true">${defs}${g}</svg>`;
 }
+// toggle switch as real hardware, seen from the front with light from the upper left: soft contact shadow on the panel, flat washer, bevelled hex nut,
+// threaded bushing with a deep hole, chrome bat lever with a cast shadow and a shiny ball tip. d = u / d / l / r (lever direction) or c (lever points at the viewer)
+let prTogN = 0;
+function prTogSvg(d, tall) {
+  const id = 'tg' + (++prTogN), L = tall ? 56 : 44, Lx = -.6, Ly = -.8, f = (n, k = 1) => (+n).toFixed(k);
+  const ang = { u: 0, r: 90, d: 180, l: -90 }[d], c = ang === undefined;
+  const shade = (nx, ny) => { const k = Math.max(0, Math.min(1, .5 + .5 * -(nx * Lx + ny * Ly))); const v = Math.round(48 + 207 * (1 - k)); return `rgb(${v},${v + 2},${v + 6})`; }; // facet brightness from its normal
+  let facets = ''; const ro = 25.5, ri = 20.5; // hex nut: outer corners and the chamfer edge
+  for (let i = 0; i < 6; i++) { const a0 = Math.PI / 6 + i * Math.PI / 3, a1 = a0 + Math.PI / 3, am = (a0 + a1) / 2;
+    facets += `<polygon points="${f(ro * Math.cos(a0))},${f(ro * Math.sin(a0))} ${f(ro * Math.cos(a1))},${f(ro * Math.sin(a1))} ${f(ri * Math.cos(a1))},${f(ri * Math.sin(a1))} ${f(ri * Math.cos(a0))},${f(ri * Math.sin(a0))}" fill="${shade(Math.cos(am), Math.sin(am))}"/>`; }
+  const hex = r => [0, 1, 2, 3, 4, 5].map(i => { const a = Math.PI / 6 + i * Math.PI / 3; return f(r * Math.cos(a)) + ',' + f(r * Math.sin(a)); }).join(' ');
+  const t = ang === undefined ? 0 : ang * Math.PI / 180, sx = Math.sin(t), sy = -Math.cos(t); // screen direction of the lever
+  const hi = (Math.cos(t) * Lx + Math.sin(t) * Ly) > 0; // which long side of the bat faces the light
+  const bat = `M-6.6 0L-4.2 ${-L + 4}L4.2 ${-L + 4}L6.6 0Z`, tx = sx * L, ty = sy * L;
+  const defs = `<defs><filter id="${id}f" x="-60%" y="-60%" width="220%" height="220%"><feGaussianBlur stdDeviation="2.6"/></filter><filter id="${id}s" x="-60%" y="-60%" width="220%" height="220%"><feGaussianBlur stdDeviation="1.4"/></filter>`
+    + `<radialGradient id="${id}w" cx="40%" cy="34%" r="75%"><stop offset="0" stop-color="#f3f5f7"/><stop offset=".55" stop-color="#b9bec4"/><stop offset="1" stop-color="#6b7077"/></radialGradient>`
+    + `<radialGradient id="${id}n" cx="38%" cy="32%" r="80%"><stop offset="0" stop-color="#ffffff"/><stop offset=".5" stop-color="#cfd3d8"/><stop offset="1" stop-color="#868b92"/></radialGradient>`
+    + `<radialGradient id="${id}b" cx="36%" cy="30%" r="85%"><stop offset="0" stop-color="#e9ecef"/><stop offset=".45" stop-color="#9ea3aa"/><stop offset="1" stop-color="#3e4248"/></radialGradient>`
+    + `<radialGradient id="${id}h" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#000"/><stop offset=".7" stop-color="#08090a"/><stop offset="1" stop-color="#2b2e33"/></radialGradient>`
+    + `<linearGradient id="${id}l" x1="${hi ? 1 : 0}" y1="0" x2="${hi ? 0 : 1}" y2="0"><stop offset="0" stop-color="#4c5157"/><stop offset=".22" stop-color="#ffffff"/><stop offset=".42" stop-color="#d8dce1"/><stop offset=".75" stop-color="#8a9097"/><stop offset="1" stop-color="#3a3e44"/></linearGradient>`
+    + `<linearGradient id="${id}a" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#000" stop-opacity=".55"/><stop offset=".35" stop-color="#000" stop-opacity="0"/></linearGradient>`
+    + `<radialGradient id="${id}t" cx="34%" cy="28%" r="80%"><stop offset="0" stop-color="#ffffff"/><stop offset=".18" stop-color="#f4f6f8"/><stop offset=".55" stop-color="#a7adb4"/><stop offset=".85" stop-color="#555a61"/><stop offset="1" stop-color="#2c2f34"/></radialGradient></defs>`;
+  const panel = `<ellipse cx="2.5" cy="4" rx="35" ry="34" fill="#000" opacity=".5" filter="url(#${id}f)"/>` // contact shadow: the switch sits in the panel
+    + `<circle r="33.5" fill="#1a1c1f" opacity=".55"/><circle r="32.5" fill="url(#${id}w)"/><circle r="32.5" fill="none" stroke="rgba(0,0,0,.55)" stroke-width="1"/><circle r="31" fill="none" stroke="rgba(255,255,255,.55)" stroke-width=".9" stroke-dasharray="40 200" transform="rotate(200)"/>` // washer
+    + `<polygon points="${hex(ro)}" fill="#000" opacity=".45" transform="translate(1.6 2.4)" filter="url(#${id}s)"/>${facets}<polygon points="${hex(ro)}" fill="none" stroke="rgba(0,0,0,.6)" stroke-width=".9" stroke-linejoin="round"/>`
+    + `<circle r="${ri}" fill="url(#${id}n)"/><circle r="${ri}" fill="none" stroke="rgba(255,255,255,.7)" stroke-width=".8"/>` // nut top with the chamfer edge
+    + `<circle r="14.5" fill="url(#${id}b)"/>${[13.2, 11.8, 10.4].map(r => `<circle r="${r}" fill="none" stroke="rgba(0,0,0,.32)" stroke-width=".7"/>`).join('')}<circle r="14.5" fill="none" stroke="rgba(0,0,0,.5)" stroke-width=".8"/>` // threaded bushing
+    + `<circle r="9.2" fill="url(#${id}h)"/><circle r="9.2" fill="none" stroke="rgba(255,255,255,.35)" stroke-width=".7" stroke-dasharray="10 60" transform="rotate(20)"/>`; // hole with a lit lower lip
+  const lever = c
+    ? `<circle cx="2.5" cy="3.5" r="11.5" fill="#000" opacity=".55" filter="url(#${id}s)"/><circle r="11" fill="url(#${id}t)"/><circle r="11" fill="none" stroke="rgba(0,0,0,.45)" stroke-width=".8"/><ellipse cx="-3.6" cy="-4.2" rx="3.2" ry="2.2" fill="#fff" opacity=".85" transform="rotate(-35 -3.6 -4.2)"/>`
+    : `<g transform="translate(${f(4 + sx * 3)} ${f(6 + sy * 3)}) rotate(${ang}) scale(1 1.12)" filter="url(#${id}f)" opacity=".55"><path d="${bat}" fill="#000"/><circle cy="${-L}" r="9" fill="#000"/></g>` // cast shadow, a little longer than the lever
+      + `<circle r="7.6" fill="url(#${id}t)"/>` // pivot ball in the bushing
+      + `<g transform="rotate(${ang})"><path d="${bat}" fill="url(#${id}l)" stroke="rgba(0,0,0,.45)" stroke-width=".7" stroke-linejoin="round"/><path d="${bat}" fill="url(#${id}a)"/></g>`
+      + `<circle cx="${f(tx)}" cy="${f(ty)}" r="10.4" fill="url(#${id}t)"/><circle cx="${f(tx)}" cy="${f(ty)}" r="10.4" fill="none" stroke="rgba(0,0,0,.45)" stroke-width=".8"/><ellipse cx="${f(tx - 3)}" cy="${f(ty - 3.6)}" rx="2.8" ry="1.9" fill="#fff" opacity=".9" transform="rotate(-35 ${f(tx - 3)} ${f(ty - 3.6)})"/>`;
+  return `<svg viewBox="${tall ? '-50 -80 100 160' : '-50 -50 100 100'}" aria-hidden="true">${defs}${panel}${lever}</svg>`;
+}
 const prAng = (c, pos) => { const sw = c && c.sweep; return sw ? sw[0] + (pos ?? 0) * (sw[1] - sw[0]) : -135 + (pos ?? 0) * 270; }; // angle of a knob's index: default 7 to 5 o'clock, or the arc the faceplate prints (sweep: [from, to])
 function prRealFace(c, v, fp) {
   const ext = fp ? (fp.c.find(q => q[1].split('|')[0] === c.name) || [])[7] || {} : {}, set = prHasVal(c, v) ? ' set' : '';
   if (c.type === 'knob') { const el = h('div', { class: 'pr-knob real' + set }); el.innerHTML = prKnobSvg(c.ks || ext.ks || (fp && fp.ks) || 'round', c.color, ext.c2, ext.bc); el.style.setProperty('--a', prAng({ sweep: c.sweep || ext.sweep }, v.pos) + 'deg'); return el; }
-  if (c.type === 'switch') { const el = h('div', { class: 'pr-tog' + set + (v.on ? ' on' : '') }), id = 'pt' + (++prKid);
-    el.innerHTML = `<svg viewBox="-50 -80 100 160" aria-hidden="true"><defs><linearGradient id="${id}" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#7c828a"/><stop offset=".35" stop-color="#fbfbfb"/><stop offset=".6" stop-color="#c3c8ce"/><stop offset="1" stop-color="#5d6268"/></linearGradient><radialGradient id="${id}b" cx="35%" cy="30%" r="70%"><stop offset="0" stop-color="#fff"/><stop offset=".5" stop-color="#c9cdd2"/><stop offset="1" stop-color="#6b7077"/></radialGradient></defs>`
-      + `<polygon points="${[0, 1, 2, 3, 4, 5].map(i => { const a = Math.PI / 6 + i * Math.PI / 3; return (27 * Math.cos(a)).toFixed(1) + ',' + (27 * Math.sin(a)).toFixed(1); }).join(' ')}" fill="url(#${id})" stroke="rgba(0,0,0,.5)"/><circle r="15" fill="#151515"/>`
-      + `<g transform="scale(1,${v.on ? 1 : -1})"><path d="M-7 4L-6 -58Q0 -62 6 -58L7 4Z" fill="#000" opacity=".35" transform="translate(4,6)"/><path d="M-8 2L-5.5 -58L5.5 -58L8 2Z" fill="url(#${id})"/><circle cy="-62" r="9.5" fill="url(#${id}b)" stroke="rgba(0,0,0,.4)"/></g></svg>`;
-    return el; }
+  if (c.type === 'switch') { const el = h('div', { class: 'pr-tog' + set + (v.on ? ' on' : '') }); el.innerHTML = prTogSvg(v.on ? 'u' : 'd', true); return el; }
+  if (c.type === 'dir') { const el = h('div', { class: 'pr-tog dirt' + set, 'data-d': v.dir || 'c' }); el.innerHTML = prTogSvg(v.dir || 'c', false); return el; }
   if (c.type === 'push') { const sq = (ext.ps || (fp && fp.ps)) === 'sq', col = c.color, on = !!v.in, el = h('div', { class: 'pr-push real' + (sq ? ' psq' : '') + set + (on ? ' in' : '') }), id = 'pp' + (++prKid);
     const lamp = col && !ext.plain && (Math.max(...hexRgb(col)) - Math.min(...hexRgb(col)) > 60); // coloured caps light up, grey / white caps are plain plastic
     const capC = lamp ? (on ? cMix(col, '#ffffff', .25) : cMix(col, '#000000', .45)) : col ? (on ? cMix(col, '#000000', .18) : col) : (on ? '#2b2e33' : '#3a3e44'), s0 = on ? 33 : 37;
@@ -8203,7 +8236,7 @@ async function pdfDevImage(st, tpl) {
   const drawn = new Set();
   if (real) { const H0 = Math.round(1000 / fp.ar), nest = (s, x, y, w, hh) => s.replace(/^<svg\b([^>]*)>/, (m, a) => '<svg' + a.replace(/\s(?:width|height|x|y|preserveAspectRatio)="[^"]*"/g, '') + ` x="${x}" y="${y}" width="${w}" height="${hh}" preserveAspectRatio="none" overflow="visible">`);
     let mid = '';
-    tpl.ctrls.forEach(c => { if (!['knob', 'switch', 'push'].includes(c.type || 'knob')) return; const v = vals[c.id] || {}; let el = null; try { el = prRealFace(c, v, fp); } catch (e) {} if (!el) return;
+    tpl.ctrls.forEach(c => { if (!['knob', 'switch', 'push', 'dir'].includes(c.type || 'knob')) return; const v = vals[c.id] || {}; let el = null; try { el = prRealFace(c, v, fp); } catch (e) {} if (!el) return;
       let s = el.innerHTML; if (!/^<svg/.test(s)) return; const ang = parseFloat(el.style.getPropertyValue('--a')) || 0; s = s.replace(/class="rot"/g, `transform="rotate(${ang})"`);
       const w = (c.r || .08) * 1000, hh = c.type === 'switch' ? w / .625 : w; mid += nest(s, c.x * 1000 - w / 2, c.y * H0 - hh / 2, w, hh); drawn.add(c.id); });
     const full = `<svg xmlns="http://www.w3.org/2000/svg" width="${Wp}" height="${Hp}" viewBox="0 0 1000 ${H0}">` + nest(fpSvg(fp, 'notext'), 0, 0, 1000, H0) + mid + nest(fpSvg(fp, 'text'), 0, 0, 1000, H0) + '</svg>';
@@ -8641,8 +8674,8 @@ function prMini(st, tpl) {
   const real = !!(tpl.builtin && FACEPLATES[tpl.builtin] && !String(devPhotoCache[tpl.id] || 'data:image/svg').startsWith('data:image/jpeg') && !String(devPhotoCache[tpl.id] || 'data:image/svg').startsWith('data:image/png'));
   devPhoto(tpl).then(d => { if (d) img.src = d; else wrap.classList.add('nophoto'); });
   tpl.ctrls.forEach(c => { const v = (st.photo.vals || {})[c.id] || {}, col = c.color ? `--kc:${c.color}` : '';
-    const f = (c.type === 'display' && prDispFace(c, v)) || (real && prRealFace(c, v, FACEPLATES[tpl.builtin])) || c.type === 'switch' ? h('div', { class: 'pr-sw' + (v.on ? ' on' : ''), style: col }, h('i')) : c.type === 'push' ? h('div', { class: 'pr-push' + (v.in ? ' in' : '') + (c.color ? ' colored' : ''), style: col })
-      : c.type === 'dir' ? h('div', { class: 'pr-dir' + (c.color ? ' colored' : ''), style: col, 'data-d': v.dir || 'c' }, h('i')) : c.type === 'slider' ? h('div', { class: 'pr-sld' + (c.vert ? ' vsld' : '') + (c.color ? ' colored' : ''), style: col + `;--p:${sldPos(c, v)}` + sldAsp(c) }, h('i')) : h('div', { class: 'pr-knob' + (prHasVal(c, v) ? ' set' : '') + (c.color ? ' colored' : ''), style: col + `;--a:${-135 + (v.pos ?? 0) * 270}deg` }, h('i', { class: 'pr-ptr' }));
+    const f = (c.type === 'display' && prDispFace(c, v)) || (real && prRealFace(c, v, FACEPLATES[tpl.builtin])) || (c.type === 'switch' ? h('div', { class: 'pr-sw' + (v.on ? ' on' : ''), style: col }, h('i')) : c.type === 'push' ? h('div', { class: 'pr-push' + (v.in ? ' in' : '') + (c.color ? ' colored' : ''), style: col })
+      : c.type === 'dir' ? h('div', { class: 'pr-dir' + (c.color ? ' colored' : ''), style: col, 'data-d': v.dir || 'c' }, h('i')) : c.type === 'slider' ? h('div', { class: 'pr-sld' + (c.vert ? ' vsld' : '') + (c.color ? ' colored' : ''), style: col + `;--p:${sldPos(c, v)}` + sldAsp(c) }, h('i')) : h('div', { class: 'pr-knob' + (prHasVal(c, v) ? ' set' : '') + (c.color ? ' colored' : ''), style: col + `;--a:${-135 + (v.pos ?? 0) * 270}deg` }, h('i', { class: 'pr-ptr' })));
     layer.append(h('div', { class: 'pr-ctrl t-' + (c.type || 'knob'), style: `left:${c.x * 100}%;top:${c.y * 100}%;width:${(c.r || .08) * 100}%` }, f)); });
   wrap.append(img, layer); return wrap;
 }
@@ -10480,7 +10513,7 @@ function pageHelpSlides() {
 /* ================= home-screen app (PWA) ================= */
 const isStandalone = () => window.matchMedia?.('(display-mode: standalone)').matches || window.navigator.standalone === true;
 const isIOS = () => /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-const APP_VERSION = '22.11.2026 (3)';
+const APP_VERSION = '22.11.2026 (4)';
 // ===== Impressum, Datenschutz, Unterstützen =====
 // Angaben des Betreibers. Solange Name, Anschrift und E-Mail fehlen, zeigt die App keine Rechtstexte an; ohne `donate`-Link keinen Unterstützen-Knopf.
 // Rechtstexte gehen erst zusammen mit einem funktionierenden Unterstützen-Link online (Wunsch des Betreibers); das Kontaktformular erst mit eigener Info-Adresse in `contact`.
