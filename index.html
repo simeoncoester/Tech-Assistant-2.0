@@ -2656,6 +2656,23 @@ html .stage-song > .ss-top{position:absolute;left:22px;right:22px;width:auto!imp
 .set-bk{flex-wrap:wrap}
 .bk-btns{display:flex;gap:8px;flex-wrap:wrap}
 .bk-st{flex-basis:100%;color:var(--muted);font-size:.78rem}
+/* ===== accessibility audit 22.11.2026 (5): text contrast (WCAG AA 4.5:1) and touch targets ===== */
+.pick-btn .ph{color:#7d8798}
+.ice .pick-btn .ph{color:#5f6a7a}
+.app-version,.legal-link{opacity:1}
+.ice .legal-link.donate{color:#b8322a}
+.ice .ch-width{color:#2858b0}
+.ice .ch-width.w-dual,.ice .dual-tab b{color:#8a5208}
+.fader .tick b{color:#959eab}
+.ice .console{--muted:#8C97A8}
+.ice .ck-beat.acc{color:#c42d22}
+.ice .x.x-del{color:#b8322a}
+.ss-wslot b{color:#9aa2ad}.ss-wslot span{color:#aab2bd}
+input[type=range]{min-height:28px}
+.pr-title{min-height:32px}
+.ss-click .ss-bpm{min-height:30px;display:inline-flex;align-items:center}
+.ss-wslot b{color:#a3abb6}
+@media (pointer:coarse){.ss-click .ss-play{min-width:40px;min-height:40px}.x.sm{width:36px;min-height:36px}.seg > button{min-height:34px}.legal-link{padding:10px 4px}.st-more.sm{min-height:34px}}
 </style>
 </head>
 <body>
@@ -10513,7 +10530,7 @@ function pageHelpSlides() {
 /* ================= home-screen app (PWA) ================= */
 const isStandalone = () => window.matchMedia?.('(display-mode: standalone)').matches || window.navigator.standalone === true;
 const isIOS = () => /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-const APP_VERSION = '22.11.2026 (4)';
+const APP_VERSION = '22.11.2026 (5)';
 // ===== Impressum, Datenschutz, Unterstützen =====
 // Angaben des Betreibers. Solange Name, Anschrift und E-Mail fehlen, zeigt die App keine Rechtstexte an; ohne `donate`-Link keinen Unterstützen-Knopf.
 // Rechtstexte gehen erst zusammen mit einem funktionierenden Unterstützen-Link online (Wunsch des Betreibers); das Kontaktformular erst mit eigener Info-Adresse in `contact`.
